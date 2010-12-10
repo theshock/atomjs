@@ -130,9 +130,16 @@
 			return this.each(function (elem) {
 				for (var i in events) {
 					if (elem == doc && i == 'load') elem = window;
-					elem.addEventListener(i, events[i].bind(this, this), false);
+					elem.addEventListener(i, events[i].bind(this), false);
 				}
 			}.bind(this));
+		},
+		delegate : function (tagName, event, fn) {
+			this.bind(event, function (e) {
+				if (e.target.tagName.toLowerCase() == tagName.toLowerCase()) {
+					fn.apply(this, arguments);
+				}
+			});
 		},
 		ready : function (full, fn) {
 			if (arguments.length == 1) {
@@ -149,7 +156,7 @@
 			return nano(nano.unique(result));
 		},
 		log : function () {
-			nano.log.call(nano, arguments.length ? arguments : ['nano', this.elems]);
+			nano.log.apply(nano, arguments.length ? arguments : ['nano', this.elems]);
 			return this;
 		},
 		appendTo : function (to) {

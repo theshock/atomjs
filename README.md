@@ -79,7 +79,15 @@ Elem - елемент, который необходимо расширить с
 
 #### nanoElem.bind(events)
 Прикрепить события ко всем элементам.
-	nano('div').bind({ click : function () { alert('clicked') } )})
+	nano('div').bind({ click : function () {
+		alert('div clicked')
+	}});
+
+#### nanoElem.delegate(tagName, event, fn)
+Прикрепить события ко всем элементам tagName внутри nanoElem
+	nano('div').delegate('img', 'click', function () {
+		alert('img clicked')
+	}});
 
 #### nanoElem.find(selector)
 Найти элемент внутри коллекции. Аналог nano(selector, context);
