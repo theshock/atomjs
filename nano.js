@@ -130,8 +130,14 @@
 		get : function (index) {
 			return this.elems[index || 0];
 		},
-		create : function (tagName, index) {
-			return nano(this.get(index).createElement(tagName));
+		create : function (tagName, index, attr) {
+			if (typeof index == 'object') {
+				attr  = index;
+				index = 0;
+			}
+			var elem = nano(this.get(index).createElement(tagName));
+			if (attr) elem.attr(attr);
+			return elem;
 		},
 		each : function (fn) {
 			this.elems.forEach(fn.bind(this));

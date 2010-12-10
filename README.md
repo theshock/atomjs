@@ -59,10 +59,14 @@ Elem - елемент, который необходимо расширить с
 	nano('img').get();  // первая картинка на странице
 	nano('img').get(5); // пятая картинка на странице
 
-#### nanoElem.create(tagName, index = 0)
+#### nanoElem.create(tagName, index = 0, attr = null)
 Создает элемент, добавляет его в ноду с индексом index текущего набора и возвращает его внутри nano:
 	// создаем Canvas в пятом div:
 	var nanoCanvas = nano('div').create('canvas', 5);
+	var nanoCanvas = nano('div').create('canvas', {
+		width  : 400,
+		height : 100
+	});
 
 #### nanoElem.each(fn)
 Пройти все элементы коллекции функцией (аналог array.forEach):
