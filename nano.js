@@ -1,5 +1,5 @@
-
 (function () {
+	var win, doc;
 	var nano = function (arg, context) {
 		if (nano.isNano(context)) {
 			return context.find(arg);
@@ -22,10 +22,14 @@
 		return elem;
 	};
 	nano.extend(nano, {
-		context : function (newWindow) {
+		setContext : function (newWindow) {
 			win = newWindow;
-			doc = window.document;
+			doc = win.document;
 			win.nano = nano;
+			return this;
+		},
+		getContext : function () {
+			return win;
 		},
 		implement : function (elem, safe, from) {
 			if (arguments.length == 2) {
@@ -132,7 +136,7 @@
 
 	nano.implement(Nano, {
 		get : function (index) {
-			return this.elems[index || 0];
+			return this.elems[index * 1 || 0];
 		},
 		create : function (tagName, index, attr) {
 			if (typeof index == 'object') {
@@ -211,8 +215,33 @@
 			});
 		}
 	});
-	
-	nano.context(window);
+
+	nano.extend({
+		rich : function () {
+			nano.implement(Number, 'safe', {
+				between: function (n1, n2, equals) {
+					return (n1 <= n2) && (
+						(equals == 'L'   && this == n1) ||
+						(equals == 'R'   && this == n2) ||
+						(  this  > n1    && this  < n2) ||
+						([true, 'LR', 'RL'].contains(equals) && (n1 == this || n2 == this))
+					);
+				},
+				equals : function (to, accuracy) {
+					if (arguments.length == 1) accuracy = 8;
+					return this.toFixed(accuracy) == to.toFixed(accuracy);
+				}
+			});
+
+			nano.implement(Array, 'safe', {
+				contains : function (elem) {
+					return nano.contains(this, elem);
+				}
+			});
+		}
+	});
+
+	nano.setContext(window);
 })();
 
 (function () {
@@ -237,7 +266,7 @@
 			return _function;
 		}
 	});
-	
+
 	nano.extend(Object, 'safe', {
 		// https://developer.mozilla.org/en/JavaScript/Reference/Global_Objects/Object/keys
 		keys : function(o) {
@@ -257,28 +286,3 @@
 		}
 	});
 })();
-
-nano.extend({
-	rich : function () {
-		nano.implement(Number, 'safe', {
-			between: function (n1, n2, equals) {
-				return (n1 <= n2) && (
-					(equals == 'L'   && this == n1) ||
-					(equals == 'R'   && this == n2) ||
-					(  this  > n1    && this  < n2) ||
-					([true, 'LR', 'RL'].contains(equals) && (n1 == this || n2 == this))
-				);
-			},
-			equals : function (to, accuracy) {
-				if (arguments.length == 1) accuracy = 8;
-				return this.toFixed(accuracy) == to.toFixed(accuracy);
-			}
-		});
-
-		nano.implement(Array, 'safe', {
-			contains : function (elem) {
-				return nano.contains(this, elem);
-			}
-		});
-	}
-});
