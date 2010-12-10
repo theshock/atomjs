@@ -91,9 +91,11 @@ Elem - елемент, который необходимо расширить с
 
 ## JavaScript 1.8.5 Compatiblity
 В браузерах, которые не поддерживают JavaScript 1.8.5 реализованы следующие методы:
-*   [https://developer.mozilla.org/en/JavaScript/Reference/Global_Objects/Function/bind](Function.prototype.bind)
-*   [https://developer.mozilla.org/en/JavaScript/Reference/Global_Objects/Object/keys](Function.prototype.bind)
-*   [https://developer.mozilla.org/en/JavaScript/Reference/Global_Objects/Array/isArray](Function.prototype.bind)
+<ul>
+	<li>[https://developer.mozilla.org/en/JavaScript/Reference/Global_Objects/Function/bind](Function.prototype.bind)</li>
+	<li>[https://developer.mozilla.org/en/JavaScript/Reference/Global_Objects/Object/keys](Object.keys)</li>
+	<li>[https://developer.mozilla.org/en/JavaScript/Reference/Global_Objects/Array/isArray](Array.isArray)</li>
+</ul>
 
 ## nano.rich();
 Дополнительно расширяет некоторые встроенные объекты.
