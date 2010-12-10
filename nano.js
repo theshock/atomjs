@@ -105,13 +105,13 @@
 			for (var i = array.length; i--;) if (i in array) {
 				 if (elem === array[i]) return TRUE;
 			}
-			return false;
+			return FALSE;
 		},
 		log : function () {
 			var c = win.console;
 			if (c && c.log) {
 				return c.log.apply(c, arguments);
-			} else return false;
+			} else return FALSE;
 		},
 		isNano : function (elem) {
 			return elem && elem instanceof Nano;
@@ -161,7 +161,7 @@
 		} else if (typeof arg == 'function') {
 			this.elems = e = [In];
 			this.ready(arg);
-		} else if (arg instanceof Array) {
+		} else if (Array.isArray(arg)) {
 			e = arg;
 		} else if (arg instanceof HTMLCollection) {
 			e = nano.toArray(arg);
