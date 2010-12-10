@@ -175,7 +175,7 @@
 			}.bind(this));
 		},
 		delegate : function (tagName, event, fn) {
-			this.bind(event, function (e) {
+			return this.bind(event, function (e) {
 				if (e.target.tagName.toLowerCase() == tagName.toLowerCase()) {
 					fn.apply(this, arguments);
 				}
