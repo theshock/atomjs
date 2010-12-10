@@ -152,8 +152,8 @@
 		} else if (typeof arg == s_string) {
 			e = arg.match(idRe) ? [In.getElementById(arg)] :
 				toArray(
-					arg.match(classNameRe) ? In.getElementsByClassName(arg) :
-					arg.match(tagNameRe)   ? In.getElementsByTagName(arg) :
+					arg.match(classNameRE) ? In.getElementsByClassName(arg) :
+					arg.match(tagNameRE)   ? In.getElementsByTagName(arg) :
 						In.querySelectorAll(arg)
 				);
 		} else if (nano.isNano(arg)) {
