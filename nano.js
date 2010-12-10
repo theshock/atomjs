@@ -24,7 +24,15 @@
 	};
 	nano.extend(nano, {
 		implement : function (elem, safe, from) {
-			return nano.extend(elem.prototype, safe, from);
+			if (arguments.length == 2) {
+				from = safe;
+				safe = false;
+			} else if (arguments.length == 1) {
+				from = elem;
+				elem = Nano;
+			}
+			nano.extend(elem.prototype, safe, from);
+			return elem;
 		},
 		find : function (In, selector) {
 			if (!selector) return [In];
@@ -112,7 +120,7 @@
 			return this;
 		},
 		css : function (css) {
-			var css = nano.setter(arguments);
+			css = nano.setter(arguments);
 			return this.each(function (elem) {
 				nano.extend(elem, css);
 			});
@@ -129,7 +137,7 @@
 			if (arguments.length == 1) {
 				fn   = full;
 				full = false;
-			};
+			}
 			return this.bind(full ? 'load' : 'DOMContentLoaded', fn);
 		},
 		find : function (selector) {
@@ -150,6 +158,8 @@
 			});
 		}
 	});
+
+	console.log(Nano.prototype);
 	
 	window.nano = nano;
 })(document);
