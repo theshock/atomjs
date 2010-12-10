@@ -1,6 +1,5 @@
 
-(function (doc) {
-
+(function () {
 	var nano = function (arg, context) {
 		if (nano.isNano(context)) {
 			return context.find(arg);
@@ -23,6 +22,11 @@
 		return elem;
 	};
 	nano.extend(nano, {
+		context : function (newWindow) {
+			win = newWindow;
+			doc = window.document;
+			win.nano = nano;
+		},
 		implement : function (elem, safe, from) {
 			if (arguments.length == 2) {
 				from = safe;
@@ -98,7 +102,7 @@
 			return false;
 		},
 		log : function () {
-			var c = window.console;
+			var c = win.console;
 			if (c && c.log) {
 				return c.log.apply(c, arguments);
 			} else return false;
@@ -165,7 +169,7 @@
 			var events = nano.setter(arguments);
 			return this.each(function (elem) {
 				for (var i in events) {
-					if (elem == doc && i == 'load') elem = window;
+					if (elem == doc && i == 'load') elem = win;
 					elem.addEventListener(i, events[i].bind(this), false);
 				}
 			}.bind(this));
@@ -208,8 +212,8 @@
 		}
 	});
 	
-	window.nano = nano;
-})(document);
+	nano.context(window);
+})();
 
 (function () {
 	// JavaScript 1.8.5 Compatiblity
