@@ -1,5 +1,10 @@
 (function () {
-	var win, doc;
+
+	var win, doc, // Better compression
+		s_object = 'object', s_string = 'string', s_safe = 'safe',
+		TRUE = true, FALSE = false;
+
+
 	var nano = function (arg, context) {
 		if (nano.isNano(context)) {
 			return context.find(arg);
@@ -7,10 +12,10 @@
 			return new Nano(arg, context || doc);
 		}
 	};
-	nano.extend = function (elem, safe, from) {
+	var extend = nano.extend = function (elem, safe, from) {
 		if (arguments.length == 2) {
 			from = safe;
-			safe = false;
+			safe = FALSE;
 		} else if (arguments.length == 1) {
 			from = elem;
 			elem = nano;
@@ -21,7 +26,7 @@
 		}
 		return elem;
 	};
-	nano.extend(nano, {
+	extend(nano, {
 		setContext : function (newWindow) {
 			win = newWindow;
 			doc = win.document;
@@ -34,7 +39,7 @@
 		implement : function (elem, safe, from) {
 			if (arguments.length == 2) {
 				from = safe;
-				safe = false;
+				safe = FALSE;
 			} else if (arguments.length == 1) {
 				from = elem;
 				elem = Nano;
@@ -45,24 +50,22 @@
 		deepEquals : function (first, second) {
 			for (var i in first) {
 				var f = first[i], s = second[i];
-				if (typeof f == 'object') {
-					if (!s || !nano.deepEquals(f, s)) return false;
+				if (typeof f == s_object) {
+					if (!s || !nano.deepEquals(f, s)) return FALSE;
 				} else if (f != s) {
-					return false;
+					return FALSE;
 				}
 			}
 
-			for (var k in second) {
-				if (!(k in first)) return false;
-			}
+			for (var k in second) if (!(k in first)) return FALSE;
 
-			return true;
+			return TRUE;
 		},
 		find : function (In, selector) {
 			if (!selector) return [In];
 
 			var toArray = nano.toArray;
-			if (typeof selector == 'string') {
+			if (typeof selector == s_string) {
 				return toArray(In.querySelectorAll(selector));
 			} else if (selector.nodeName) {
 				return [selector];
@@ -89,7 +92,7 @@
 			return tmp;
 		},
 		setter : function (args) {
-			if (args.length == 1 && typeof args[0] == 'object') {
+			if (args.length == 1 && typeof args[0] == s_object) {
 				return args[0];
 			} else if (args.length == 1) {
 				return args[0];
@@ -101,7 +104,7 @@
 		},
 		contains : function (array, elem) {
 			for (var i = array.length; i--;) if (i in array) {
-				 if (elem === array[i]) return true;
+				 if (elem === array[i]) return TRUE;
 			}
 			return false;
 		},
@@ -113,25 +116,47 @@
 		},
 		isNano : function (elem) {
 			return elem && elem instanceof Nano;
+		},
+		rich : function () {
+			nano.implement(Number, s_safe, {
+				between: function (n1, n2, equals) {
+					return (n1 <= n2) && (
+						(equals == 'L'   && this == n1) ||
+						(equals == 'R'   && this == n2) ||
+						(  this  > n1    && this  < n2) ||
+						([TRUE, 'LR', 'RL'].contains(equals) && (n1 == this || n2 == this))
+					);
+				},
+				equals : function (to, accuracy) {
+					if (arguments.length == 1) accuracy = 8;
+					return this.toFixed(accuracy) == to.toFixed(accuracy);
+				}
+			});
+
+			nano.implement(Array, s_safe, {
+				contains : function (elem) {
+					return nano.contains(this, elem);
+				}
+			});
 		}
 	});
 
 	var Nano = function (arg, In) {
 		if (!arguments.length) {
-			this.elems = [doc];
+			var e = [doc];
 		} else if (nano.isNano(arg)) {
-			this.elems = arg.elems;
+			e = arg.elems;
 		} else if (typeof arg == 'function') {
-			this.elems = [In];
+			e = [In];
 			this.ready(arg);
 		} else if (arg instanceof Array) {
-			this.elems = arg;
+			e = arg;
 		} else if (arg instanceof HTMLCollection) {
-			this.elems = nano.toArray(arg);
+			e = nano.toArray(arg);
 		} else {
-			this.elems = nano.find(In, arg);
+			e = nano.find(In, arg);
 		}
-		return this;
+		this.elems = e;
 	};
 
 	nano.implement(Nano, {
@@ -139,7 +164,7 @@
 			return this.elems[index * 1 || 0];
 		},
 		create : function (tagName, index, attr) {
-			if (typeof index == 'object') {
+			if (typeof index == s_object) {
 				attr  = index;
 				index = 0;
 			}
@@ -153,7 +178,7 @@
 		},
 		attr : function (attr) {
 			attr = nano.setter(arguments);
-			if (typeof attr[0] == 'string') {
+			if (typeof attr[0] == s_string) {
 				return this.get().getAttribute(attr[0]);
 			}
 			return this.each(function (elem) {
@@ -162,7 +187,7 @@
 		},
 		css : function (css) {
 			css = nano.setter(arguments);
-			if (typeof css[0] == 'string') {
+			if (typeof css[0] == s_string) {
 				return this.get().style[css[0]];
 			}
 			return this.each(function (elem) {
@@ -174,7 +199,7 @@
 			return this.each(function (elem) {
 				for (var i in events) {
 					if (elem == doc && i == 'load') elem = win;
-					elem.addEventListener(i, events[i].bind(this), false);
+					elem.addEventListener(i, events[i].bind(this), FALSE);
 				}
 			}.bind(this));
 		},
@@ -188,7 +213,7 @@
 		ready : function (full, fn) {
 			if (arguments.length == 1) {
 				fn   = full;
-				full = false;
+				full = FALSE;
 			}
 			return this.bind(full ? 'load' : 'DOMContentLoaded', fn);
 		},
@@ -215,45 +240,18 @@
 			});
 		}
 	});
-
-	nano.extend({
-		rich : function () {
-			nano.implement(Number, 'safe', {
-				between: function (n1, n2, equals) {
-					return (n1 <= n2) && (
-						(equals == 'L'   && this == n1) ||
-						(equals == 'R'   && this == n2) ||
-						(  this  > n1    && this  < n2) ||
-						([true, 'LR', 'RL'].contains(equals) && (n1 == this || n2 == this))
-					);
-				},
-				equals : function (to, accuracy) {
-					if (arguments.length == 1) accuracy = 8;
-					return this.toFixed(accuracy) == to.toFixed(accuracy);
-				}
-			});
-
-			nano.implement(Array, 'safe', {
-				contains : function (elem) {
-					return nano.contains(this, elem);
-				}
-			});
-		}
-	});
-
+	
 	nano.setContext(window);
-})();
-
-(function () {
+	
 	// JavaScript 1.8.5 Compatiblity
-
-	nano.implement(Function, 'safe', {
+	nano.implement(Function, s_safe, {
 		// https://developer.mozilla.org/en/JavaScript/Reference/Global_Objects/Function/bind
 		bind : function(context /*, arg1, arg2... */) {
 			'use strict';
 			if (typeof this !== 'function') throw new TypeError();
-			var _slice = Array.prototype.slice,
-				_concat = Array.prototype.concat,
+			var proto  = Array.prototype,
+				_slice = proto.slice,
+				_concat = proto.concat,
 				_arguments = _slice.call(arguments, 1),
 				_this = this,
 				_function = function() {
@@ -267,21 +265,18 @@
 		}
 	});
 
-	nano.extend(Object, 'safe', {
+	extend(Object, s_safe, {
 		// https://developer.mozilla.org/en/JavaScript/Reference/Global_Objects/Object/keys
 		keys : function(o) {
 			var result = [];
-			for(var name in o) {
-				if (o.hasOwnProperty(name))
-				  result.push(name);
-			}
+			for(var name in o) if (o.hasOwnProperty(name)) result.push(name);
 			return result;
 		}
 	});
 
-	nano.extend(Array, 'safe', {
+	extend(Array, s_safe, {
 		// https://developer.mozilla.org/en/JavaScript/Reference/Global_Objects/Array/isArray
-		isArray : Array.isArray || function(o) {
+		isArray : function(o) {
 			return Object.prototype.toString.call(o) === '[object Array]';
 		}
 	});
