@@ -11,7 +11,7 @@
 	nano(function () {
 		// DOMContentLoaded
 	});
-	nano(true, function () {
+	nano().ready(true, function () {
 		// document.onload
 	});
 	

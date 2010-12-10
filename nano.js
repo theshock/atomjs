@@ -6,7 +6,7 @@
 
 
 	var nano = function (arg, context) {
-		if (nano.isNano(context)) {
+		if (context && nano.isNano(context)) {
 			return context.find(arg);
 		} else {
 			return new Nano(arg, context || doc);
@@ -64,7 +64,6 @@
 		find : function (In, selector) {
 			if (!selector) return [In];
 
-			var toArray = nano.toArray;
 			if (typeof selector == s_string) {
 				return toArray(In.querySelectorAll(selector));
 			} else if (selector.nodeName) {
@@ -141,13 +140,26 @@
 		}
 	});
 
+	var toArray = nano.toArray;
+
+	var tagNameRE = /^[a-z]+$/;
+	var classNameRE = /^\.[a-z]+$/;
+	var idRe = /^\#[a-z]+$/;
+
 	var Nano = function (arg, In) {
 		if (!arguments.length) {
 			var e = [doc];
+		} else if (typeof arg == s_string) {
+			e = arg.match(idRe) ? [In.getElementById(arg)] :
+				toArray(
+					arg.match(classNameRe) ? In.getElementsByClassName(arg) :
+					arg.match(tagNameRe)   ? In.getElementsByTagName(arg) :
+						In.querySelectorAll(arg)
+				);
 		} else if (nano.isNano(arg)) {
 			e = arg.elems;
 		} else if (typeof arg == 'function') {
-			e = [In];
+			this.elems = e = [In];
 			this.ready(arg);
 		} else if (arg instanceof Array) {
 			e = arg;
@@ -240,9 +252,9 @@
 			});
 		}
 	});
-	
+
 	nano.setContext(window);
-	
+
 	// JavaScript 1.8.5 Compatiblity
 	nano.implement(Function, s_safe, {
 		// https://developer.mozilla.org/en/JavaScript/Reference/Global_Objects/Function/bind
