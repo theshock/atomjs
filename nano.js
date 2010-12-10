@@ -142,17 +142,17 @@
 
 	var toArray = nano.toArray;
 
-	var tagNameRE = /^[a-z]+$/;
-	var classNameRE = /^\.[a-z]+$/;
-	var idRe = /^\#[a-z]+$/;
+	var tagNameRE = /^[-_a-z0-9]+$/i;
+	var classNameRE = /^\.[-_a-z0-9]+$/i;
+	var idRe = /^\#[-_a-z0-9]+$/i;
 
 	var Nano = function (arg, In) {
 		if (!arguments.length) {
 			var e = [doc];
 		} else if (typeof arg == s_string) {
-			e = arg.match(idRe) ? [In.getElementById(arg)] :
+			e = arg.match(idRe) ? [In.getElementById(arg.substr(1))] :
 				toArray(
-					arg.match(classNameRE) ? In.getElementsByClassName(arg) :
+					arg.match(classNameRE) ? In.getElementsByClassName(arg.substr(1)) :
 					arg.match(tagNameRE)   ? In.getElementsByTagName(arg) :
 						In.querySelectorAll(arg)
 				);
