@@ -34,6 +34,22 @@
 			nano.extend(elem.prototype, safe, from);
 			return elem;
 		},
+		deepEquals : function (first, second) {
+			for (var i in first) {
+				var f = first[i], s = second[i];
+				if (typeof f == 'object') {
+					if (!s || !nano.deepEquals(f, s)) return false;
+				} else if (f != s) {
+					return false;
+				}
+			}
+
+			for (var k in second) {
+				if (!(k in first)) return false;
+			}
+
+			return true;
+		},
 		find : function (In, selector) {
 			if (!selector) return [In];
 
@@ -65,12 +81,14 @@
 			return tmp;
 		},
 		setter : function (args) {
-			if (args.length == 2) {
+			if (args.length == 1 && typeof args[0] == 'object') {
+				return args[0];
+			} else if (args.length == 1) {
+				return args[0];
+			} else {
 				var r = {};
 				r[args[0]] = args[1];
 				return r;
-			} else {
-				return args;
 			}
 		},
 		contains : function (array, elem) {
@@ -121,14 +139,20 @@
 		},
 		attr : function (attr) {
 			attr = nano.setter(arguments);
+			if (typeof attr[0] == 'string') {
+				return this.get().getAttribute(attr[0]);
+			}
 			return this.each(function (elem) {
 				nano.extend(elem, attr);
 			});
 		},
 		css : function (css) {
 			css = nano.setter(arguments);
+			if (typeof css[0] == 'string') {
+				return this.get().style[css[0]];
+			}
 			return this.each(function (elem) {
-				nano.extend(elem, css);
+				nano.extend(elem.style, css);
 			});
 		},
 		bind : function () {
@@ -169,6 +193,11 @@
 			to = nano(to).get();
 			return this.each(function (elem) {
 				to.appendChild(elem);
+			});
+		},
+		destroy : function () {
+			return this.each(function (elem) {
+				elem.parentNode.removeChild(elem);
 			});
 		}
 	});
