@@ -108,13 +108,17 @@ Elem - елемент, который необходимо расширить с
 ## nano.rich();
 Дополнительно расширяет некоторые встроенные объекты.
 
-#### nano.between(n1, n2, equals);
+#### Number.between(n1, n2, equals);
 	(5).between(2, 6); // true
 	(6).between(2, 6); // false
 	(6).between(2, 6, true); // true
 
-#### nano.equals(to, accuracy = 8);
+#### Number.equals(to, accuracy = 8);
 Позволят сравнивать два float числа (через == их сравнивать нельзя) с точностью до accuracy точек после запятой
 	(1.15124124).equals(1.15124124); // true
 	(1.15124124).equals(1.15124001); // false
 	(1.15124124).equals(1.15124001, 3); // true (1.151 == 1.151)
+
+#### Array.contains(elem);
+Ищет в текущем массиве с помощью nano.contains:
+	[1,2,3].contains(1); // true

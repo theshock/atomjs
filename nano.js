@@ -119,6 +119,12 @@
 			this.elems.forEach(fn.bind(this));
 			return this;
 		},
+		attr : function (attr) {
+			attr = nano.setter(arguments);
+			return this.each(function (elem) {
+				nano.extend(elem, attr);
+			});
+		},
 		css : function (css) {
 			css = nano.setter(arguments);
 			return this.each(function (elem) {
@@ -215,7 +221,7 @@
 
 nano.extend({
 	rich : function () {
-		nano.implement(Number, {
+		nano.implement(Number, 'safe', {
 			between: function (n1, n2, equals) {
 				return (n1 <= n2) && (
 					(equals == 'L'   && this == n1) ||
@@ -227,6 +233,12 @@ nano.extend({
 			equals : function (to, accuracy) {
 				if (arguments.length == 1) accuracy = 8;
 				return this.toFixed(accuracy) == to.toFixed(accuracy);
+			}
+		});
+
+		nano.implement(Array, 'safe', {
+			contains : function (elem) {
+				return nano.contains(this, elem);
 			}
 		});
 	}
