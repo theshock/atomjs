@@ -129,6 +129,7 @@
 			var events = nano.setter(arguments);
 			return this.each(function (elem) {
 				for (var i in events) {
+					if (elem == doc && i == 'load') elem = window;
 					elem.addEventListener(i, events[i].bind(this, this), false);
 				}
 			}.bind(this));
@@ -158,8 +159,6 @@
 			});
 		}
 	});
-
-	console.log(Nano.prototype);
 	
 	window.nano = nano;
 })(document);
