@@ -1,3 +1,6 @@
+// (c) 2010 Pavel Ponomarenko
+// under terms of LGPL
+
 (function () {
 	var win = window,
 	    doc = win.document,
