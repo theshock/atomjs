@@ -1,5 +1,5 @@
 Atom Core
----------
+=========
 #### atom.extend(object, safe = false)
 Расширить класс Атома статичными свойствами
 Здесь и ниже необязательный параметр *Safe* указывает на то, что необходимо наследовать только те свойства, которые еще не реализованы.
@@ -36,7 +36,7 @@ Elem - елемент, который необходимо расширить с
 
 
 JavaScript 1.8.5 Compatiblity
------------------------------
+=============================
 В браузерах, которые не поддерживают JavaScript 1.8.5 реализованы следующие методы:
 <ul>
 	<li><a href="https://developer.mozilla.org/en/JavaScript/Reference/Global_Objects/Function/bind">Function.prototype.bind</a></li>
@@ -46,7 +46,7 @@ JavaScript 1.8.5 Compatiblity
 
 
 Atom.Plugins.DOM
-----------------
+================
 #### Constructor:
 	atom();
 	atom('tag .class');
@@ -127,7 +127,7 @@ Atom.Plugins.DOM
 
 
 Atom.Plugins.Types.Number
--------------------------
+=========================
 #### Number.between(n1, n2, equals);
 	(5).between(2, 6); // true
 	(6).between(2, 6); // false
@@ -140,14 +140,14 @@ Atom.Plugins.Types.Number
 	(1.15124124).equals(1.15124001, 3); // true (1.151 == 1.151)
 
 Atom.Plugins.Types.Array
-------------------------
+========================
 #### Array.contains(elem);
 Ищет в текущем массиве с помощью nano.contains:
 	[1,2,3].contains(1); // true
 
 
 Atom.Plugins.Class
-------------------
+==================
 	var NameLogger = atom.Class({
 		log : function (msg) {
 			atom.log(this.name, msg);
@@ -199,7 +199,7 @@ Atom.Plugins.Class
 	var dog = Dog.factory.produce(['Max', 'dalmatian']);
 
 Atom.Plugins.Ajax
------------------
+=================
 	atom.ajax(configObject);
 
 #### interval = 0
@@ -228,8 +228,7 @@ onLoad, onError
 		}
 	});
 
-Atom.Plugins.Ajax + Atom.Plugins.Dom
-====================================
+### Atom.Plugins.Ajax + Atom.Plugins.Dom
 
 	atom('#newMsgs').ajax({ // update html of #newMsgs
 		interval : 15, // every 15 seconds
