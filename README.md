@@ -17,7 +17,7 @@ Supported browsers:
 Distributed under terms of LGPL.
 
 Documentation: see lower for description of Atom core and bundled plugins, or
-read documentation about [creating a plugin](blob/master/plugins.md).
+read documentation about [creating a plugin](/theshock/atomjs/blob/master/plugins.md).
 
 Atom Core
 =========
