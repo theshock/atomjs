@@ -1,3 +1,21 @@
+Atom
+====
+
+Atom is compact JavaScript framework oriented on modern browsers, which allows
+to support quite broad list of features without keeping a lot of cruft necessary
+to implement them in old browsers.
+
+Supported browsers:
+
+* Firefox 3.5+
+* Google Chrome
+* Safari 4+ (maybe earlier?)
+* Opera 10+ (maybe earlier?)
+* Mobile Safari
+* Android Browser
+
+Distributed under terms of LGPL.
+
 Atom Core
 =========
 
