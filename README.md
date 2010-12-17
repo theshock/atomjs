@@ -10,7 +10,7 @@ Atom Core
 #### atom.extend(object, safe = false,from)
 Расширить object свойствами parent
 Elem - елемент, который необходимо расширить своствами объекта from:
-	// Расширить только если в прототипе еще нету метода bind
+	// элемент с default values расширяется свойствами из config и обновляется config
 	config = atom.extend({
 		// default values
 		a : 15,
