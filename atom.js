@@ -66,7 +66,8 @@
 		},
 		isAtom : function (elem) {
 			return elem && elem instanceof Atom;
-		}
+		},
+		plugins : {}
 	});
 
 	var Atom = function () {
@@ -120,12 +121,13 @@
  * Atom.Plugins.DOM
  */
 (function () {
+	atom.plugins['dom'] = true;
+
 	var win = window,
 	    doc = win.document,
-		atom = win.atom,
 		tagNameRE = /^[-_a-z0-9]+$/i,
 		classNameRE = /^\.[-_a-z0-9]+$/i,
-		idRe = /^\#[-_a-z0-9]+$/i,
+		idRE = /^\#[-_a-z0-9]+$/i,
 		toArray = atom.toArray,
 		length = 'length',
 		getElement = 'getElement',
@@ -135,52 +137,40 @@
 		querySelectorAll = 'querySelectorAll',
 		appendChild = 'appendChild';
 
-
 	atom.extend({
-		initialize : function (arg, context) {
+		initialize : function (sel, context) {
 			if (context && atom.isAtom(context)) return context.find(arg);
 			context = context || doc;
 
-			if (!arguments[length]) {
-				var e = [doc];
-			} else if (typeof arg == 'string') {
-				e = arg.match(idRe) ? [context[getElementById](arg.substr(1))] :
-					toArray(
-						arg.match(classNameRE) ? context[getElementsByClassName](arg.substr(1)) :
-						arg.match(tagNameRE)   ? context[getElementsByTagName](arg) :
-							context[querySelectorAll](arg)
-					);
-			} else if (atom.isAtom(arg)) {
-				e = arg.elems;
-			} else if (typeof arg == 'function') {
-				this.elems = e = [context];
-				this.ready(arg);
-			} else if (Array.isArray(arg)) {
-				e = arg;
-			} else if (arg instanceof HTMLCollection) {
-				e = toArray(arg);
-			} else {
-				e = atom.find(context, arg);
+			if (typeof sel == 'function' && !atom.isAtom(sel)) {
+				this.elems = [context];
+				return this.ready(sel);
 			}
-			this.elems = e;
+			this.elems = (sel instanceof HTMLCollection) ? e = toArray(sel)
+				: (!arguments[length])     ? [doc]
+				: (typeof sel == 'string') ? atom.findByString(context, sel)
+				: (atom.isAtom(sel))       ? sel.elems
+				: (Array.isArray(sel))     ? sel
+				:      atom.find(context, sel);
 			return this;
 		},
-		find : function (context, selector) {
-			if (!selector) return [context];
+		findByString : function (context, sel) {
+			var find = atom.find;
+			return sel.match(idRE)     ? find(context, { id: sel.substr(1) }) :
+				sel.match(classNameRE) ? find(context, { Class: sel.substr(1) }) :
+				sel.match(tagNameRE)   ? find(context, { tag: sel }) :
+					toArray(context[querySelectorAll](sel));
+		},
+		find : function (context, sel) {
+			if (!sel) return [context];
+			var a = toArray;
 
-			if (typeof selector == 'string') {
-				return toArray(context[querySelectorAll](selector));
-			} else if (selector.nodeName) {
-				return [selector];
-			} else if (selector.id) {
-				return [context[getElementById](selector.id)];
-			} else if (selector.tag) {
-				return toArray(context[getElementsByTagName](selector.tag));
-			} else if (selector.Class) {
-				return toArray(context[getElementsByClassName](selector.Class));
-			} else {
-				return [context];
-			}
+			return (typeof sel == 'string') ? atom.findByString(context, sel)
+				: (sel.nodeName) ?  [sel]
+				: (sel.id   )    ?  [context[getElementById](sel.id) ]
+				: (sel.tag  )    ? a(context[getElementsByTagName](sel.tag))
+				: (sel.Class)    ? a(context[getElementsByClassName](sel.Class))
+				:                        [context];
 		}
 	}).implement({
 		get : function (index) {
@@ -275,8 +265,10 @@
 
 
 /**
- * Atom.Plugins.Types.String
+ * Atom.Plugins.Types.Number
  */
+atom.plugins['types.number'] = true;
+
 atom.implement(Number, 'safe', {
 	between: function (n1, n2, equals) {
 		return (n1 <= n2) && (
@@ -295,6 +287,8 @@ atom.implement(Number, 'safe', {
 /**
  * Atom.Plugins.Types.Array
  */
+atom.plugins['types.array'] = true;
+
 atom.implement(Array, 'safe', {
 	contains : function (elem) {
 		return this.indexOf(elem) != -1;
@@ -304,6 +298,8 @@ atom.implement(Array, 'safe', {
 /**
  * Atom.Plugins.Types.Object
  */
+atom.plugins['types.object'] = true;
+
 atom.extend(Object, 'safe', {
 	deepEquals : function (first, second) {
 		for (var i in first) {
@@ -324,13 +320,16 @@ atom.extend(Object, 'safe', {
 /**
  * Atom.Plugins.Class
  */
-
 (function () {
+	atom.plugins['class'] = true;
+
 	var impl = atom.implement, extend = atom.extend,
 	    prototype = 'prototype', constructor = 'constructor',
 	    makeFn = function(){ return function(){} };
 
-	var Factory = impl(function ( Parent, object) {
+	var Factory = impl(function (Parent, object) {
+		if (Parent instanceof Factory) Parent = Parent.get()
+
 		if (typeof Parent !== 'function') {
 			object = Parent;
 			Parent = null;
@@ -412,4 +411,74 @@ atom.extend(Object, 'safe', {
 			return new Factory(parent, object);
 		}
 	});
+})();
+
+
+/**
+ * Atom.Plugins.Ajax
+ */
+
+
+(function () {
+	atom.plugins['ajax'] = true;
+
+	var extend = atom.extend, emptyFn = function () { return function(){}; };
+	
+	var ajax = function (userConfig) {
+		var config     = extend(extend({}, ajax.defaultProps  ), userConfig);
+		config.headers = extend(extend({}, ajax.defaultHeaders), userConfig.headers);
+
+		var req = new XMLHttpRequest();
+		req.onreadystatechange = ajax.onready;
+		req.open(config.method.toUpperCase(), config.url, true);
+		req.send(null);
+	};
+
+	ajax.defaultProps = {
+		interval : 0,
+		type     : 'plain',
+		method   : 'post',
+		url      : location.href,
+		onLoad   : emptyFn(),
+		onError  : emptyFn()
+	};
+
+	ajax.defaultHeaders = {
+		'X-Requested-With': 'XMLHttpRequest',
+		'Accept': 'text/javascript, text/html, application/xml, text/xml, */*'
+	};
+
+	ajax.onready = function (e) {
+		if (req.readyState == 4) {
+			if (req.status != 200) return config.onError(e);
+
+			var result = req.responseText;
+			if (config.type.toLowerCase() == 'json') {
+				result = JSON.parse(result, e);
+			}
+			if (config.interval > 0) setTimeout(function () {
+				atom.ajax(config);
+			}, config.interval * 1000);
+			config.onLoad(result);
+		};
+	};
+
+	extend({ ajax : ajax });
+
+	if (atom.plugins['dom']) {
+		atom.implement({
+			ajax : function (config) {
+				config = extend({}, config);
+
+				atom.ajax(extend(config, {
+					onLoad  : (config.onLoad  || function (res) {
+						this.get().innerHTML = res;
+					}).bind(this),
+					onError : (config.onError || emptyFn()).bind(this)
+				}));
+				return this;
+			}
+		});
+	}
+	
 })();
