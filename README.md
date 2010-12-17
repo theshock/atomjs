@@ -16,6 +16,9 @@ Supported browsers:
 
 Distributed under terms of LGPL.
 
+Documentation: see lower for description of Atom core and bundled plugins, or
+read documentation about [creating a plugin](plugins.md).
+
 Atom Core
 =========
 
@@ -67,7 +70,7 @@ Checks if `object` is Atom instance
 
 
 JavaScript 1.8.5 Compatiblity
-=============================
+-----------------------------
 
 Browsers, which do not have JavaScript 1.8.5 compatibility, will get those
 methods implemented:
@@ -84,9 +87,9 @@ Atom.Plugins.DOM
 
     atom();
     atom('tag .class');
-    atom({ tag   : 'tag' });
-    atom({ id    : 'id' });
-    atom({ Class : 'class' });
+    atom({tag: 'tag'});
+    atom({id: 'id'});
+    atom({Class: 'class'});
     atom(document.getElementsByTagName('tag'));
     atom(selector, context);
 
@@ -127,7 +130,6 @@ Optional arguments:
         width  : 400,
         height : 100
     });
-
 
 #### atom().each(fn)
 
@@ -209,6 +211,7 @@ Allows to compare two float numbers (which can't be done with `==`) with
     (1.15124124).equals(1.15124001); // false
     (1.15124124).equals(1.15124001, 3); // true (1.151 == 1.151)
 
+
 Atom.Plugins.Types.Array
 ========================
 
@@ -274,6 +277,7 @@ Support for traditional class-based OOP
     var cat = AnimalFactory.produce(['Tom']);
     var dog = Dog.factory.produce(['Max', 'dalmatian']);
 
+
 Atom.Plugins.Ajax
 =================
 
@@ -281,11 +285,11 @@ Atom.Plugins.Ajax
 
 Config parameters:
 
-* interval: 0. Repeat every `interval` seconds if it's greater than 0
-* type: 'plain'. One of 'plain' or 'json' (response automatically parsed as JSON)
-* method: 'post'. One of 'post', 'get', 'put', 'delete'
-* url: location.href. Request url
-* callbacks. One of 'onLoad', 'onError'
+* `interval`: 0. Repeat every `interval` seconds if it's greater than 0
+* `type`: `'plain'`. One of `'plain'` or `'json'` (response automatically parsed as JSON)
+* `method`: `'post'`. One of `'post'`, `'get'`, `'put'`, `'delete'`
+* `url`: `location.href`. Request url
+* `callbacks`. One of `'onLoad'`, `'onError'`
 
 Example:
 
