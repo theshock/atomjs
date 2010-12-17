@@ -142,7 +142,7 @@ Atom.Plugins.Types.Number
 Atom.Plugins.Types.Array
 ========================
 #### Array.contains(elem);
-Ищет в текущем массиве с помощью nano.contains:
+Ищет в текущем массиве:
 	[1,2,3].contains(1); // true
 
 
