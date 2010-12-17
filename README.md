@@ -122,6 +122,8 @@ Optional arguments:
 * `index` - index of node in current collection
 * `attrs` - properties to set on new element
 
+Example:
+
 	// creating Canvas in fifth div:
 	var atomCanvas = atom('div').create('canvas', 5);
 
