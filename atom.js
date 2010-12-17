@@ -434,6 +434,9 @@ atom.extend(Object, 'safe', {
 		config.headers = extend(extend({}, ajax.defaultHeaders), userConfig.headers);
 
 		var req = new XMLHttpRequest();
+		for (var i in config.headers) {
+			req.setRequestHeader(i, config.header[i]);
+		}
 		req.onreadystatechange = ajax.onready;
 		req.open(config.method.toUpperCase(), config.url, true);
 		req.send(null);
@@ -452,14 +455,13 @@ atom.extend(Object, 'safe', {
 		'X-Requested-With': 'XMLHttpRequest',
 		'Accept': 'text/javascript, text/html, application/xml, text/xml, */*'
 	};
-
 	ajax.onready = function (e) {
 		if (req.readyState == 4) {
 			if (req.status != 200) return config.onError(e);
 
 			var result = req.responseText;
 			if (config.type.toLowerCase() == 'json') {
-				result = JSON.parse(result, e);
+				result = JSON.parse(result);
 			}
 			if (config.interval > 0) setTimeout(function () {
 				atom.ajax(config);
