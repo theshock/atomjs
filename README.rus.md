@@ -2,7 +2,9 @@ Atom Core
 =========
 #### atom.extend(object, safe = false)
 Расширить класс Атома статичными свойствами
-Здесь и ниже необязательный параметр *Safe* указывает на то, что необходимо наследовать только те свойства, которые еще не реализованы.
+
+Необязательный параметр `safe` указывает на то, что необходимо наследовать
+только те свойства, которые еще не реализованы.
 
 #### atom.implement(object, safe = false)
 Расширить класс Атома динамичными свойствами(будут доступны в каждой сущности Атома)
@@ -37,12 +39,12 @@ Elem - елемент, который необходимо расширить с
 
 JavaScript 1.8.5 Compatiblity
 =============================
+
 В браузерах, которые не поддерживают JavaScript 1.8.5 реализованы следующие методы:
-<ul>
-	<li><a href="https://developer.mozilla.org/en/JavaScript/Reference/Global_Objects/Function/bind">Function.prototype.bind</a></li>
-	<li><a href="https://developer.mozilla.org/en/JavaScript/Reference/Global_Objects/Object/keys">Object.keys</a></li>
-	<li><a href="https://developer.mozilla.org/en/JavaScript/Reference/Global_Objects/Array/isArray">Array.isArray</a></li>
-</ul>
+
+* [Function.prototype.bind](https://developer.mozilla.org/en/JavaScript/Reference/Global_Objects/Function/bind)
+* [Object.keys](https://developer.mozilla.org/en/JavaScript/Reference/Global_Objects/Object/keys)
+* [Array.isArray](https://developer.mozilla.org/en/JavaScript/Reference/Global_Objects/Array/isArray)
 
 
 Atom.Plugins.DOM
