@@ -388,6 +388,12 @@ atom.extend(Object, 'safe', {
 			}
 			return this;
 		},
+		implement : function (object) {
+			for (var i in object) if (['parent', 'self'].indexOf(i) == -1) {
+				this.$class[prototype][i] = object[i];
+			}
+			return this;
+		},
 		mixin : function () {
 			var a = arguments, i = 0, l = a.length;
 			while(i < l) this.implement(a[i++][prototype]);
