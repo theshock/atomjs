@@ -1,1 +1,0 @@
-<?php echo rand(); print_r($_REQUEST);

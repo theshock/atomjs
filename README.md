@@ -230,6 +230,7 @@ onLoad, onError
 
 Atom.Plugins.Ajax + Atom.Plugins.Dom
 ====================================
+
 	atom('#newMsgs').ajax({ // update html of #newMsgs
 		interval : 15, // every 15 seconds
 		url : 'newMsgs.php'

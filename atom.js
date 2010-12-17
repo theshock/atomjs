@@ -423,7 +423,6 @@ atom.extend(Object, 'safe', {
 	atom.plugins['ajax'] = true;
 
 	var extend = atom.extend, emptyFn = function () { return function(){}; };
-	
 	var ajax = function (userConfig) {
 		var config     = extend(extend({}, ajax.defaultProps  ), userConfig);
 		config.headers = extend(extend({}, ajax.defaultHeaders), userConfig.headers);
