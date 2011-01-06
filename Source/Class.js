@@ -168,7 +168,7 @@ extend({ Class: Class });
 
 extend(atom.Class, {
 	abstractMethod: function (name) {
-		throw new Error('Abstract Method «' + this.$caller.name + '» called');
+		throw new Error('Abstract Method «' + this.$caller.$name + '» called');
 	}
 });
 })();
