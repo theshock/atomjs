@@ -1,7 +1,7 @@
 /*
 ---
 
-name: AtomJS Core
+name: Core
 
 description: The core of AtomJS.
 

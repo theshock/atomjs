@@ -1,13 +1,13 @@
 /*
 ---
 
-name: Array
+name: Function
 
 description: Contains Function Prototypes like context, periodical and delay.
 
 license: [GNU Lesser General Public License](http://opensource.org/licenses/lgpl-license.php)
 
-requires: atom
+requires: [atom, Array]
 
 provides: Function
 
