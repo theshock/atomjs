@@ -7,7 +7,7 @@ description: Contains Number Prototypes like limit, round, times, and ceil.
 
 license: [GNU Lesser General Public License](http://opensource.org/licenses/lgpl-license.php)
 
-requires: atom
+requires: [atom]
 
 provides: Number
 
