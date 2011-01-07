@@ -1,15 +1,15 @@
 /*
 ---
 
-name: Function
+name: "[AtomJS Plugin] Function"
 
-description: Contains Function Prototypes like context, periodical and delay.
+description: "Contains Function Prototypes like context, periodical and delay."
 
-license: [GNU Lesser General Public License](http://opensource.org/licenses/lgpl-license.php)
+license: "[GNU Lesser General Public License](http://opensource.org/licenses/lgpl-license.php)"
 
 requires: [atom, Array]
 
-provides: Function
+provides: [Function]
 
 ...
 */

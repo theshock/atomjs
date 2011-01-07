@@ -1,15 +1,15 @@
 /*
 ---
 
-name: Number
+name: "[AtomJS Plugin] Number"
 
-description: Contains Number Prototypes like limit, round, times, and ceil.
+description: "Contains Number Prototypes like limit, round, times, and ceil."
 
-license: [GNU Lesser General Public License](http://opensource.org/licenses/lgpl-license.php)
+license: "[GNU Lesser General Public License](http://opensource.org/licenses/lgpl-license.php)"
 
 requires: [atom]
 
-provides: Number
+provides: [Number]
 
 ...
 */

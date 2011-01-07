@@ -1,15 +1,15 @@
 /*
 ---
 
-name: AtomJS Plugin Ajax
+name: "[AtomJS Plugin] Ajax"
 
-description: todo
+description: "todo"
 
-license: [GNU Lesser General Public License](http://opensource.org/licenses/lgpl-license.php)
+license: "[GNU Lesser General Public License](http://opensource.org/licenses/lgpl-license.php)"
 
 requires: [atom]
 
-provides: atom.ajax
+provides: [atom.ajax]
 
 ...
 */
