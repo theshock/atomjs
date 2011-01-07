@@ -1,7 +1,7 @@
 /*
 ---
 
-name: [AtomJS Plugin] Ajax.Dom
+name: AtomJS Plugin Ajax.Dom
 
 description: todo
 

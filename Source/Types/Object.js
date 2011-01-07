@@ -7,7 +7,7 @@ description: Object generic methods
 
 license: [GNU Lesser General Public License](http://opensource.org/licenses/lgpl-license.php)
 
-requires: atom
+requires: [atom]
 
 provides: Object
 

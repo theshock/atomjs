@@ -1,13 +1,13 @@
 /*
 ---
 
-name: AtomJS Plugin: Dom
+name: AtomJS Plugin Dom
 
 description: todo
 
 license: [GNU Lesser General Public License](http://opensource.org/licenses/lgpl-license.php)
 
-requires: atom
+requires: [atom]
 
 inspiration:
   - [JQuery](http://jquery.org)
