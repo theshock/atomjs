@@ -1,21 +1,23 @@
 /*
 ---
 
-name: Core
+name: "[AtomJS Core]"
 
-description: The core of AtomJS.
+description: "The core of AtomJS."
 
-license: [GNU Lesser General Public License](http://opensource.org/licenses/lgpl-license.php)
+license: "[GNU Lesser General Public License](http://opensource.org/licenses/lgpl-license.php)"
 
-copyright: Copyright (c) 2010-2011 [Ponomarenko Pavel](shocksilien@gmail.com).
+copyright: "Copyright (c) 2010-2011 [Ponomarenko Pavel](shocksilien@gmail.com)."
 
-authors: The AtomJS production team
+authors: "The AtomJS production team"
+
+requires: []
 
 inspiration:
-  - [JQuery](http://jquery.com)
-  - [MooTools](http://mootools.net)
+  - "[JQuery](http://jquery.com)"
+  - "[MooTools](http://mootools.net)"
 
-provides: atom
+provides: [atom]
 
 ...
 */

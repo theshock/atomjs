@@ -1,18 +1,18 @@
 /*
 ---
 
-name: AtomJS Plugin Class
+name: "[AtomJS Plugin] Class"
 
-description: Contains the Class Function for easily creating, extending, and implementing reusable Classes.
+description: "Contains the Class Function for easily creating, extending, and implementing reusable Classes."
 
-license: [GNU Lesser General Public License](http://opensource.org/licenses/lgpl-license.php)
+license: "[GNU Lesser General Public License](http://opensource.org/licenses/lgpl-license.php)"
 
 requires: [atom]
 
 inspiration:
-  - [MooTools](http://mootools.net)
+  - "[MooTools](http://mootools.net)"
 
-provides: atom.Class
+provides: [atom.Class]
 
 ...
 */

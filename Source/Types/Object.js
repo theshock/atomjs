@@ -1,15 +1,15 @@
 /*
 ---
 
-name: Object
+name: "[AtomJS Plugin] Object"
 
-description: Object generic methods
+description: "Object generic methods"
 
-license: [GNU Lesser General Public License](http://opensource.org/licenses/lgpl-license.php)
+license: "[GNU Lesser General Public License](http://opensource.org/licenses/lgpl-license.php)"
 
 requires: [atom]
 
-provides: Object
+provides: [Object]
 
 ...
 */
