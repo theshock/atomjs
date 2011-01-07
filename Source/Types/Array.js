@@ -1,15 +1,15 @@
 /*
 ---
 
-name: Array
+name: "[AtomJS Plugin] Array"
 
-description: Contains Array Prototypes like include, contains, and erase.
+description: "Contains Array Prototypes like include, contains, and erase."
 
-license: [GNU Lesser General Public License](http://opensource.org/licenses/lgpl-license.php)
+license: "[GNU Lesser General Public License](http://opensource.org/licenses/lgpl-license.php)"
 
 requires: [atom]
 
-provides: Array
+provides: [Array]
 
 ...
 */
