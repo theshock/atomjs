@@ -14,27 +14,39 @@ provides: [String]
 ...
 */
 
+new function () {
+
+var substituteRE = /\\?\{([^{}]+)\}/g,
+	safeHtmlRE = /[<'&">]/g;
+	
+
+
 atom.implement(String, 'safe', {
-	safeHTML: function () {
-		return this.replace(/[<'&">]/g, function (symb) {
-			return {
-				'&'  : '&amp;',
-				'\'' : '&#039;',
-				'\"' : '&quot;',
-				'<'  : '&lt;',
-				'>'  : '&gt;'
-			}[symb];
+	safeHtml: function () {
+		return this.replaceAll(safeHtmlRE, {
+			'&'  : '&amp;',
+			'\'' : '&#039;',
+			'\"' : '&quot;',
+			'<'  : '&lt;',
+			'>'  : '&gt;'
 		});
 	},
 	repeat: function(times) {
 		return new Array(times + 1).join(this);
 	},
 	substitute: function(object, regexp){
-		return this.replace(regexp || (/\\?\{([^{}]+)\}/g), function(match, name){
+		return this.replace(regexp || (substituteRE), function(match, name){
 			return (match[0] == '\\') ? match.slice(1) : (object[name] || '');
 		});
 	},
 	replaceAll: function (find, replace) {
+		var type = atom.typeOf(find);
+		if (type == 'regexp') {
+			return this.replace(find, function (symb) { return replace[symb]; });
+		} else if (type == 'object') {
+			for (var i in find) this.replaceAll(i, find[i]);
+			return this;
+		}
 		return this.split(find).join(replace);
 	},
 	begins: function (w, caseInsensitive) {
@@ -47,4 +59,6 @@ atom.implement(String, 'safe', {
 	lcfirst : function () {
 		return this[0].toLowerCase() + this.substr(1);
 	}
-}); 
+});
+
+}();
