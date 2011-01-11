@@ -19,7 +19,7 @@ fwrite($stderr, "/**\n");
 fwrite($stderr, " * AtomJS\n * \n");
 fwrite($stderr, " * Included Components:\n");
 foreach ($files as $file){
-	fwrite($stderr, " * - $file: [" . implode(", ", $pkg->get_file_provides($file)) . "]\n");
+	fwrite($stderr, " * - $file\n");
 }
 fwrite($stderr, " */\n\n");
 

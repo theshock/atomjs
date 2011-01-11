@@ -1,7 +1,7 @@
 /*
 ---
 
-name: "[AtomJS Plugin] Dom"
+name: "Dom"
 
 description: "todo"
 

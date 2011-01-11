@@ -1,7 +1,7 @@
 /*
 ---
 
-name: "[AtomJS Plugin] Object"
+name: "Object"
 
 description: "Object generic methods"
 

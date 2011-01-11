@@ -1,7 +1,7 @@
 /*
 ---
 
-name: "[AtomJS Plugin] Function"
+name: "Function"
 
 description: "Contains Function Prototypes like context, periodical and delay."
 

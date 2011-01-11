@@ -2,8 +2,8 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" readonly="true" id="df5236b7-5c98-4601-bb96-828e992ebf70" name="Default" comment="" />
-    <ignored path=".idea/workspace.xml" />
     <ignored path="AtomJS.iws" />
+    <ignored path=".idea/workspace.xml" />
     <option name="TRACKING_ENABLED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -23,7 +23,17 @@
   </component>
   <component name="FileColors" enabled="true" enabledForTabs="true" />
   <component name="FileEditorManager">
-    <leaf />
+    <leaf>
+      <file leaf-file-name="build" pinned="false" current="true" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/build">
+          <provider selected="true" editor-type-id="text-editor">
+            <state line="21" column="31" selection-start="505" selection-end="505" vertical-scroll-proportion="0.5116009">
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+    </leaf>
   </component>
   <component name="FindManager">
     <FindUsagesManager>
@@ -40,6 +50,18 @@
         <option value="$PROJECT_DIR$/Source/Url.js" />
         <option value="$PROJECT_DIR$/Tests/index.html" />
         <option value="$PROJECT_DIR$/Source/Uri.js" />
+        <option value="$PROJECT_DIR$/Source/Dom.js" />
+        <option value="$PROJECT_DIR$/Source/Core.js" />
+        <option value="$PROJECT_DIR$/Source/Class.js" />
+        <option value="$PROJECT_DIR$/Source/Ajax.js" />
+        <option value="$PROJECT_DIR$/Source/Ajax.Dom.js" />
+        <option value="$PROJECT_DIR$/Source/Types/String.js" />
+        <option value="$PROJECT_DIR$/Source/Types/Object.js" />
+        <option value="$PROJECT_DIR$/Source/Types/Number.js" />
+        <option value="$PROJECT_DIR$/Source/Types/Function.js" />
+        <option value="$PROJECT_DIR$/Source/Types/Array.js" />
+        <option value="$PROJECT_DIR$/Source/package.yml" />
+        <option value="$PROJECT_DIR$/build" />
       </list>
     </option>
   </component>
@@ -69,7 +91,6 @@
       <sortByType />
     </navigator>
     <panes>
-      <pane id="Favorites" />
       <pane id="ProjectPane">
         <subPane>
           <PATH>
@@ -116,17 +137,36 @@
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
             </PATH_ELEMENT>
           </PATH>
+          <PATH>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="AtomJS" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="AtomJS" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="Source" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="Types" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+          </PATH>
         </subPane>
       </pane>
       <pane id="Scope" />
+      <pane id="Favorites" />
     </panes>
   </component>
   <component name="PropertiesComponent">
     <property name="options.splitter.main.proportions" value="0.3" />
     <property name="WebServerToolWindowFactoryState" value="false" />
     <property name="options.lastSelected" value="preferences.lookFeel" />
-    <property name="options.searchVisible" value="true" />
     <property name="options.splitter.details.proportions" value="0.2" />
+    <property name="options.searchVisible" value="true" />
   </component>
   <component name="PublishConfig" serverName="AtomJS" serverId="82b9b657-e85e-439d-9c4f-1371f57e25f1">
     <servers>
@@ -176,14 +216,14 @@
     <servers />
   </component>
   <component name="ToolWindowManager">
-    <frame x="298" y="0" width="1382" height="1012" extended-state="4" />
-    <editor active="false" />
+    <frame x="298" y="0" width="1382" height="1012" extended-state="5" />
+    <editor active="true" />
     <layout>
       <window_info id="Changes" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
       <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="1" side_tool="true" content_ui="tabs" />
       <window_info id="Dependency Viewer" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
-      <window_info id="Project" active="true" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.24962963" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
+      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.24962963" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
       <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.4" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
@@ -232,23 +272,102 @@
         <state line="0" column="0" selection-start="0" selection-end="0" vertical-scroll-proportion="0.0" />
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/Tests/index.html">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="551" column="26" selection-start="23339" selection-end="23339" vertical-scroll-proportion="0.69417477" />
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/Source/Uri.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="45" column="6" selection-start="579" selection-end="1218" vertical-scroll-proportion="0.71900827">
+        <state line="3" column="7" selection-start="15" selection-end="15" vertical-scroll-proportion="0.07438017">
           <folding />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/Tests/index.html">
+    <entry file="file://$PROJECT_DIR$/Source/Core.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="551" column="26" selection-start="23339" selection-end="23339" vertical-scroll-proportion="0.69417477">
+        <state line="3" column="7" selection-start="15" selection-end="15" vertical-scroll-proportion="0.073085845">
           <folding />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/Source/Dom.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="0" column="0" selection-start="0" selection-end="249" vertical-scroll-proportion="0.0" />
+        <state line="3" column="7" selection-start="15" selection-end="15" vertical-scroll-proportion="0.073085845">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/Source/Class.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="3" column="7" selection-start="15" selection-end="15" vertical-scroll-proportion="0.073085845">
+          <folding>
+            <marker date="1294719815000" expanded="true" signature="0:331" placeholder="/*...*/" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/Source/Ajax.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="3" column="7" selection-start="15" selection-end="15" vertical-scroll-proportion="0.06960557">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/Source/Ajax.Dom.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="29" column="12" selection-start="513" selection-end="513" vertical-scroll-proportion="0.70649654">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/Source/Types/String.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="3" column="7" selection-start="15" selection-end="15" vertical-scroll-proportion="0.06960557">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/Source/Types/Object.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="3" column="7" selection-start="15" selection-end="15" vertical-scroll-proportion="0.0">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/Source/Types/Number.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="3" column="7" selection-start="15" selection-end="15" vertical-scroll-proportion="0.0">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/Source/Types/Function.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="3" column="7" selection-start="15" selection-end="15" vertical-scroll-proportion="0.0">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/Source/Types/Array.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="3" column="7" selection-start="15" selection-end="15" vertical-scroll-proportion="0.07438017">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/Source/package.yml">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="0" column="13" selection-start="13" selection-end="13" vertical-scroll-proportion="0.0">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/build">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="21" column="31" selection-start="505" selection-end="505" vertical-scroll-proportion="0.5116009">
+          <folding />
+        </state>
       </provider>
     </entry>
   </component>

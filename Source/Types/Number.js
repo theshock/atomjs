@@ -1,7 +1,7 @@
 /*
 ---
 
-name: "[AtomJS Plugin] Number"
+name: "Number"
 
 description: "Contains Number Prototypes like limit, round, times, and ceil."
 

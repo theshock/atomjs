@@ -1,7 +1,7 @@
 /*
 ---
 
-name: "[AtomJS Plugin] String"
+name: "String"
 
 description: "Contains String Prototypes like repeat, substitute, replaceAll and begins."
 

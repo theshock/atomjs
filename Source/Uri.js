@@ -1,7 +1,7 @@
 /*
 ---
 
-name: "[AtomJS Plugin] Uri"
+name: "Uri"
 
 description: "Port of parseUri function"
 

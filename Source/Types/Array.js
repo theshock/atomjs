@@ -1,7 +1,7 @@
 /*
 ---
 
-name: "[AtomJS Plugin] Array"
+name: "Array"
 
 description: "Contains Array Prototypes like include, contains, and erase."
 

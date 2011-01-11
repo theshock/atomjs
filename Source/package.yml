@@ -1,4 +1,4 @@
-name: "AtomJS framework"
+name: "AtomJS"
 
 exports: "atom.js"
 

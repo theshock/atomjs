@@ -1,7 +1,7 @@
 /*
 ---
 
-name: "[AtomJS Plugin] Ajax.Dom"
+name: "Ajax.Dom"
 
 description: todo
 
@@ -27,7 +27,7 @@ atom.implement({
 		atom.ajax(atom.extend(config, {
 			onError: config.onError.bind(this),
 			onLoad : config.onLoad .bind(this)			
-		});
+		}));
 		return this;
 	}
 });
