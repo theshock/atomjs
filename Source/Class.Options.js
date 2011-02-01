@@ -23,6 +23,8 @@ atom.extend(atom.Class, {
 	Options: atom.Class({
 		setOptions: function(){
 			var options = this.options = atom.merge.apply(null, [{}, this.options].append(arguments));
+			console.log(this.options, [{}, this.options].append(arguments));
+			return this;
 			if (this.addEvent) for (var option in options){
 				if (atom.typeOf(options[option]) == 'function' && (/^on[A-Z]/).test(option)) {
 					this.addEvent(option, options[option]);

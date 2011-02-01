@@ -81,6 +81,8 @@ var reset = function(object){
 				F[prototype] = value;
 				object[key] = reset(new F);
 			}
+		} else {
+			object[key] = value;
 		}
 	}
 	return object;

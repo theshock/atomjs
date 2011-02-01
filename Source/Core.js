@@ -142,8 +142,10 @@ provides: atom
 		
 		for (var i = 1, l = arguments.length; i < l; i++){
 			var object = arguments[i];
-			for (var key in object) if (implementAccessors(object, source, key)) {
-				mergeOne(source, key, object[key]);
+			if (object) {
+				for (var key in object) if (!implementAccessors(object, source, key)) {
+					mergeOne(source, key, object[key]);
+				}
 			}
 		}
 		return source;
