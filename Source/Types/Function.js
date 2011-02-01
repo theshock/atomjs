@@ -37,7 +37,7 @@ new function () {
 			var fn = this;
 			args = args ? atom.toArray(args) : [];
 			return function(){
-				return fn.apply(bind === false || bind === Function.context ? this : bind, args.append(arguments));
+				return fn.apply((bind === false || bind === Function.context) ? this : bind, [].append(args, arguments));
 			};
 		}
 	});

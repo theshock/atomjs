@@ -112,7 +112,6 @@ atom.extend(Class, {
 					l = funcs.length,
 					i = 0;
 				for (;i < l; i++) fire.call(this, name, funcs[i], args, onfinish);
-				onfinish.invoke();
 			}
 			return this;
 		},
