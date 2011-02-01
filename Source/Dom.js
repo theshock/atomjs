@@ -7,12 +7,13 @@ description: "todo"
 
 license: "[GNU Lesser General Public License](http://opensource.org/licenses/lgpl-license.php)"
 
-requires: [atom]
+requires:
+	- atom
 
 inspiration:
   - "[JQuery](http://jquery.org)"
 
-provides: [atom.dom]
+provides: atom.dom
 
 ...
 */

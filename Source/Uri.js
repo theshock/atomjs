@@ -9,9 +9,10 @@ license: "MIT License"
 
 author: "Steven Levithan <stevenlevithan.com>"
 
-requires: [atom]
+requires:
+	- atom
 
-provides: [atom.uri]
+provides: atom.uri
 
 ...
 */

@@ -7,9 +7,12 @@ description: todo
 
 license: "[GNU Lesser General Public License](http://opensource.org/licenses/lgpl-license.php)"
 
-requires: [atom, atom.dom, atom.ajax]
+requires:
+	- atom
+	- atom.dom
+	- atom.ajax
 
-provides: [atom.ajax.dom]
+provides: atom.ajax.dom
 
 ...
 */

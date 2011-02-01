@@ -11,13 +11,11 @@ copyright: "Copyright (c) 2010-2011 [Ponomarenko Pavel](shocksilien@gmail.com)."
 
 authors: "The AtomJS production team"
 
-requires: []
-
 inspiration:
   - "[JQuery](http://jquery.com)"
   - "[MooTools](http://mootools.net)"
 
-provides: [atom]
+provides: atom
 
 ...
 */

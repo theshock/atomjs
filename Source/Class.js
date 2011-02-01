@@ -7,7 +7,8 @@ description: "Contains the Class Function for easily creating, extending, and im
 
 license: "[GNU Lesser General Public License](http://opensource.org/licenses/lgpl-license.php)"
 
-requires: [atom]
+requires:
+	- atom]
 
 inspiration:
   - "[MooTools](http://mootools.net)"
@@ -27,6 +28,11 @@ var atom = window.atom,
 	prototype = 'prototype';
 
 var Class = function (params) {
+	if (Class.$prototyping) {
+		reset(this);
+		return this;
+	}
+
 	if (typeOf(params) == 'function') params = {initialize: params};
 
 	var newClass = function(){
@@ -35,6 +41,7 @@ var Class = function (params) {
 		return this.initialize ? this.initialize.apply(this, arguments) : this;
 	};
 	extend(newClass, Class);
+	newClass[prototype] = getInstance(Class);
 	newClass
 		.implement(params, false)
 		.reserved(true, {
@@ -114,7 +121,7 @@ extend(Class, {
 			}
 
 			if (typeOf(value) == 'function'){
-				if (value.$hidden) break;
+				if (value.$hidden) continue;
 				this[prototype][key] = (retain) ? value : wrap(this, key, value);
 			} else {
 				atom.merge(this[prototype], key, value);
@@ -148,27 +155,33 @@ var getInstance = function(klass){
 	return proto;
 };
 
-Class.Mutators = {
-	Extends: function(parent){
-		if (parent == null) throw new TypeError('Cant extends from null');
-		this.extend(parent).reserved({ parent: parent });
-		this[prototype] = getInstance(parent);
-	},
+extend(Class, {
+	Mutators: {
+		Extends: function(parent){
+			if (parent == null) throw new TypeError('Cant extends from null');
+			this.extend(parent).reserved({ parent: parent });
+			this[prototype] = getInstance(parent);
+		},
 
-	Implements: function(items){
-		this.mixin.apply(this, items);
-	},
+		Implements: function(items){
+			this.mixin.apply(this, items);
+		},
 
-	Static: function(properties) {
-		this.extend(properties);
+		Static: function(properties) {
+			this.extend(properties);
+		}
+	},
+	abstractMethod: function (name) {
+		throw new Error('Abstract Method «' + this.$caller.$name + '» called');
+	},
+	protectedMethod: function (fn) {
+		return extend(fn, { $protected: true });
+	},
+	privateMethod: function (fn) {
+		return extend(fn, { $hidden: true });
 	}
-};
+});
 
 extend({ Class: Class });
 
-extend(atom.Class, {
-	abstractMethod: function (name) {
-		throw new Error('Abstract Method «' + this.$caller.$name + '» called');
-	}
-});
 })();

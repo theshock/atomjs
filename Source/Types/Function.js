@@ -7,9 +7,11 @@ description: "Contains Function Prototypes like context, periodical and delay."
 
 license: "[GNU Lesser General Public License](http://opensource.org/licenses/lgpl-license.php)"
 
-requires: [atom, Array]
+requires:
+	- atom
+	- Array
 
-provides: [Function]
+provides: Function
 
 ...
 */
@@ -25,7 +27,9 @@ new function () {
 			return function () {
 				atom.log.apply(atom, args || [this]);
 			};
-		}
+		},
+		// for pointing at "this" context in "context" method
+		context: {}
 	});
 
 	atom.implement(Function, 'safe', {
@@ -33,7 +37,7 @@ new function () {
 			var fn = this;
 			args = args ? atom.toArray(args) : [];
 			return function(){
-				return fn.apply(bind === false ? this : bind, args.append(arguments));
+				return fn.apply(bind === false || bind === Function.context ? this : bind, args.append(arguments));
 			};
 		}
 	});
@@ -54,7 +58,7 @@ new function () {
 		}
 	};
 	atom.implement(Function, 'safe', {
-		delay:      timeout.run.context(false, ['Timeout']),
-		periodical: timeout.run.context(false, ['Interval'])
+		delay:      timeout.run.context(Function.context, ['Timeout']),
+		periodical: timeout.run.context(Function.context, ['Interval'])
 	});
 }(); 

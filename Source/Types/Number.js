@@ -7,9 +7,10 @@ description: "Contains Number Prototypes like limit, round, times, and ceil."
 
 license: "[GNU Lesser General Public License](http://opensource.org/licenses/lgpl-license.php)"
 
-requires: [atom]
+requires:
+	- atom
 
-provides: [Number]
+provides: Number
 
 ...
 */
@@ -58,10 +59,11 @@ atom.implement(Number, 'safe', {
 	}
 });
 
-new function(math){
-	for (var i = math.length; i--;) if (!Number[math[i]]) {
-		Number.prototype[math[i]] = function() {
-			return Math[math[i]].apply(null, [this].concat(arguments));
+['abs','acos','asin','atan','atan2','ceil','cos','exp','floor','log','max','min','pow','sin','sqrt','tan']
+	.forEach(function(method) {
+		if (Number[method]) return;
+		
+		Number.prototype[method] = function(i) {
+			return Math[method].apply(null, [this].concat(arguments));
 		};
-	}
-}(['abs','acos','asin','atan','atan2','ceil','cos','exp','floor','log','max','min','pow','sin','sqrt','tan']);
+	});

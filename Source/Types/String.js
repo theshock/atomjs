@@ -7,9 +7,10 @@ description: "Contains String Prototypes like repeat, substitute, replaceAll and
 
 license: "[GNU Lesser General Public License](http://opensource.org/licenses/lgpl-license.php)"
 
-requires: [atom]
+requires:
+	- atom
 
-provides: [String]
+provides: String
 
 ...
 */

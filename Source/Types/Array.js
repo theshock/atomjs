@@ -7,9 +7,10 @@ description: "Contains Array Prototypes like include, contains, and erase."
 
 license: "[GNU Lesser General Public License](http://opensource.org/licenses/lgpl-license.php)"
 
-requires: [atom]
+requires:
+	- atom
 
-provides: [Array]
+provides: Array
 
 ...
 */
