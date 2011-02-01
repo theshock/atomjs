@@ -52,8 +52,8 @@ var Class = function (params) {
 			factory : (function() {
 				// Должно быть в конце, чтобы успел создаться прототип
 				function F(args) { return newClass.apply(this, args); }
-				F.prototype = newClass[prototype];
-				return function(args) { return new F(args); }
+				F[prototype] = newClass[prototype];
+				return function(args) { return new F(args || []); }
 			})()
 		});
 
