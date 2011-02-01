@@ -106,12 +106,14 @@ atom.extend(Class, {
 
 		fireEvent: function (name, args) {
 			name = removeOn(name);
-			var funcs = this.events[name],
-				onfinish = [],
-				l = funcs.length,
-				i = 0;
-			for (;i < l; i++) fire.call(this, name, funcs[i], args, onfinish);
-			onfinish.invoke();
+			var funcs = this.events[name];
+			if (funcs) {
+				var onfinish = [],
+					l = funcs.length,
+					i = 0;
+				for (;i < l; i++) fire.call(this, name, funcs[i], args, onfinish);
+				onfinish.invoke();
+			}
 			return this;
 		},
 		readyEvent: function (name, args) {
