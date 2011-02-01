@@ -10,7 +10,7 @@
 		<script src="atom.js"></script>
 	</head>
 	<body>
-		<h1 id="qunit-header">Atom Javascript framework test</h1>
+		<h1 id="qunit-header">Atom Javascript framework tests</h1>
 		<h2 id="qunit-banner"></h2>
 		<div id="qunit-testrunner-toolbar"></div>
 		<h2 id="qunit-userAgent"></h2>
@@ -49,7 +49,7 @@ test('JavaScript 1.8.5 Compatiblity', function(){
 	ok(  Array.isArray([]), ' Array.isArray([])' );
 	ok( !Array.isArray({}), '!Array.isArray({})' );
 
-	deepEqual( Object.keys({a:1,b:2,3:3}), ['3','a','b'], 'Object.keys({a:1,b:2,3:3})' );
+	deepEqual( Object.keys({a:1,b:2,3:3}), ['a','b','3'], 'Object.keys({a:1,b:2,3:3})' );
 });
 test('atom.typeOf', function(){
 	equal( atom.typeOf(document.body), 'element'  , 'atom.typeOf(document.body)');
@@ -311,6 +311,10 @@ test('Creating', function(){
 	var Foo = atom.Class({
 		name: null,
 		initialize: function (name) { this.name = name; },
+
+		obj : {
+			prop: {}
+		},
 		
 		property: 0,
 		setProperty: function(property) { this.property = property; },
@@ -327,6 +331,7 @@ test('Creating', function(){
 	});
 
 	var foo = new Foo('fooName');
+	var bar = new Foo('barName');
 
 	// instance
 	equal(typeof foo, 'object', 'typeof foo == "object"');
@@ -365,6 +370,8 @@ test('Creating', function(){
 	equal(foo.plain.name, 'plainName', 'foo.plain without changes');
 	equal(foo.object.name, 'objectName', 'foo.object without changes');
 	equal(foo.clonable.name, 'cloneName', 'foo.clonable without changes');
+
+	notEqual(foo.obj.prop, bar.obj.prop, 'Objects are cloned');
 });
 
 test('Extending', function(){
@@ -476,7 +483,6 @@ test('Extending', function(){
 	bar.etter = 9;
 	equal(bar._etter, 18, 'Property setter is implemented');
 	equal(bar.etter,  23, 'Property getter is implemented');
-
 	// Maybe in future ?
 	// bar.parentSetterTest = 2;
 	// equal(bar._parentSetterTest, 14, 'setter is overloaded and called from child');
@@ -546,11 +552,59 @@ test('Static', function(){
 	equal(bar.self.barStat, 'barStatValue', 'bar.self.barStat');
 });
 
+module('[Atom Plugins] Class Events');
+test('Events', function(){
+	// todo: write tests.
+	expect(2);
+
+	var Eventable = atom.Class({
+		Implements: [atom.Class.Events]
+	});
+
+	var eventable = new Eventable();
+
+	eventable.addEvent('foo', function (arg) {
+		ok(true, 'Event fired!');
+		equal(arg, 'bar', 'Argument is correct!');
+	});
+
+	eventable.fireEvent('foo', ['bar']);
+
+});
 
 module('[Atom Plugins] Uri');
 test('Uri', function(){
 	// todo: write tests. you can use some of this:
 	// http://stevenlevithan.com/demo/parseuri/js/
+	
+	var parse = atom.uri(
+		'http://usr:pwd@www.example.com:81/dir/dir.2/index.htm?q1=0&&test1&test2=value#top'
+	);
+
+	var tests = {
+		anchor: 'top',
+		query: 'q1=0&&test1&test2=value',
+		file: 'index.htm',
+		directory: '/dir/dir.2/',
+		path: '/dir/dir.2/index.htm',
+		relative: '/dir/dir.2/index.htm?q1=0&&test1&test2=value#top',
+		port: '81',
+		host: 'www.example.com',
+		password: 'pwd',
+		user: 'usr',
+		userInfo: 'usr:pwd',
+		authority: 'usr:pwd@www.example.com:81',
+		protocol: 'http',
+		source: 'http://usr:pwd@www.example.com:81/dir/dir.2/index.htm?q1=0&&test1&test2=value#top'
+	};
+
+	for (var prop in tests) equal(parse[prop], tests[prop], prop);
+
+	deepEqual(parse.queryKey, {
+		q1: '0',
+		test1: '',
+		test2: 'value'
+	});
 });
 
 });
