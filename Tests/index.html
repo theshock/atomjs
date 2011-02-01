@@ -553,6 +553,7 @@ test('Static', function(){
 });
 
 module('[Atom Plugins] Class Events');
+
 test('Events', function(){
 	// todo: write tests.
 	expect(2);
@@ -573,15 +574,23 @@ test('Events', function(){
 });
 
 module('[Atom Plugins] Uri');
-test('Uri', function(){
-	// todo: write tests. you can use some of this:
-	// http://stevenlevithan.com/demo/parseuri/js/
-	
-	var parse = atom.uri(
-		'http://usr:pwd@www.example.com:81/dir/dir.2/index.htm?q1=0&&test1&test2=value#top'
-	);
 
-	var tests = {
+var testUri = function (uri, tests) {
+	// based on http://stevenlevithan.com/demo/parseuri/js/
+
+	var parse = atom.uri(uri);
+
+	for (prop in tests) if (prop != 'queryKey') {
+		equal(parse[prop], tests[prop], prop);
+	}
+
+
+	if ('queryKey' in tests) deepEqual(parse.queryKey, tests.queryKey, 'queryKey');
+};
+
+test('Full path', function(){
+	var uri = 'http://usr:pwd@www.example.com:81/dir/dir.2/index.htm?q1=0&&test1&test2=value#top';
+	testUri( uri, {
 		anchor: 'top',
 		query: 'q1=0&&test1&test2=value',
 		file: 'index.htm',
@@ -595,15 +604,37 @@ test('Uri', function(){
 		userInfo: 'usr:pwd',
 		authority: 'usr:pwd@www.example.com:81',
 		protocol: 'http',
-		source: 'http://usr:pwd@www.example.com:81/dir/dir.2/index.htm?q1=0&&test1&test2=value#top'
-	};
+		source: uri,
+		queryKey: {
+			q1: '0',
+			test1: '',
+			test2: 'value'
+		}
+	});
+});
 
-	for (var prop in tests) equal(parse[prop], tests[prop], prop);
-
-	deepEqual(parse.queryKey, {
-		q1: '0',
-		test1: '',
-		test2: 'value'
+test('Relative path', function(){
+	var uri = '/dir/dir.2/index.htm?q1=0&&test1&test2=value#top';
+	testUri( uri, {
+		anchor: 'top',
+		query: 'q1=0&&test1&test2=value',
+		file: 'index.htm',
+		directory: '/dir/dir.2/',
+		path: '/dir/dir.2/index.htm',
+		relative: '/dir/dir.2/index.htm?q1=0&&test1&test2=value#top',
+		port: '',
+		host: '',
+		password: '',
+		user: '',
+		userInfo: '',
+		authority: '',
+		protocol: '',
+		source: uri,
+		queryKey: {
+			q1: '0',
+			test1: '',
+			test2: 'value'
+		}
 	});
 });
 
