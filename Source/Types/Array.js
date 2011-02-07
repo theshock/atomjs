@@ -32,7 +32,7 @@ atom.extend(Array, 'safe', {
 				args[0] : atom.toArray(args);
 	},
 	fill: function (array, fill) {
-		var array = Array.isArray(array) ? array : new Array(1 * array);
+		array = Array.isArray(array) ? array : new Array(1 * array);
 		for (var i = array.length; i--;) array[i] = fill;
 		return array;
 	},
