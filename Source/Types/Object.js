@@ -44,17 +44,18 @@ atom.extend(Object, 'safe', {
 	},
 	min: function (obj) {
 		var min = null, key = null;
-		for (var i in obj) if (min == null || min[i] < max) {
+		for (var i in obj) if (min == null || obj[i] < min) {
 			key = i;
 			min = obj[i];
 		}
 		return key;
 	},
 	deepEquals: function (first, second) {
+		var callee = arguments.callee;
 		for (var i in first) {
 			var f = first[i], s = second[i];
 			if (typeof f == 'object') {
-				if (!s || !arguments.callee(f, s)) return false;
+				if (!s || !callee(f, s)) return false;
 			} else if (f != s) {
 				return false;
 			}
