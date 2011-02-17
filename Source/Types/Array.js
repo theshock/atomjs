@@ -25,11 +25,14 @@ atom.extend(Array, 'safe', {
 		} while (from <= to);
 		return result;
 	},
+	from: atom.toArray,
 	pickFrom: function (args) {
-		return args
+		return Array.from(
+			   args
 			&& args.length == 1
 			&& ['array', 'arguments'].contains(atom.typeOf(args[0])) ?
-				args[0] : atom.toArray(args);
+				args[0] : args
+		);
 	},
 	fill: function (array, fill) {
 		array = Array.isArray(array) ? array : new Array(1 * array);
