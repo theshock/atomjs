@@ -102,28 +102,27 @@ provides: atom
 		}
 		return false;
 	};
-
 	var clone = function (object) {
 		var type = typeOf(object);
-		return type in clone ? clone[type](object) : object;
+		return type in clone.types ? clone.types[type](object) : object;
 	};
-	clone.array = function (array) {
-		var i = array.length, c = new Array(i);
-		while (i--) if (!implementAccessors(array, c, i)) {
-			c[i] = clone(array[i]);
+	clone.types = {
+		array: function (array) {
+			var i = array.length, c = new Array(i);
+			while (i--) c[i] = clone(array[i]);
+			return c;
+		},
+		object: function (object) {
+			if ('clone' in object) {
+				return typeof object.clone == 'function' ?
+					object.clone() : object.clone;
+			}
+			var c = {};
+			for (var key in object) if (!implementAccessors(object, c, key)) {
+				c[key] = clone(object[key]);
+			}
+			return c;
 		}
-		return c;
-	};
-	clone.object = function (object) {
-		if ('clone' in object) {
-			return typeof object.clone == 'function' ?
-				object.clone() : object.clone;
-		}
-		var c = {};
-		for (var key in object) if (!implementAccessors(object, c, key)) {
-			c[key] = clone(object[key]);
-		}
-		return c;
 	};
 
 	var mergeOne = function(source, key, current){
@@ -150,7 +149,7 @@ provides: atom
 		}
 		return source;
 	};
-
+	
 	var extend = atom.extend = function (elem, safe, from) {
 		return innerExtend(arguments, atom, false);
 	};
