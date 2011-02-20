@@ -109,7 +109,6 @@ atom.extend(Class, {
 		},
 
 		fireEvent: function (name, args) {
-			if (name == 'libcanvasSet') console.log('fire', name);
 			name = removeOn(name);
 			var funcs = this.events[name];
 			if (funcs) {
