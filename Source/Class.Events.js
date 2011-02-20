@@ -39,15 +39,17 @@ var removeOn = function(string){
 var nextTick = function (fn) {
 	if (!nextTick.id) {
 		nextTick.id = setTimeout(function () {
-			nextTick.id = 0;
 			nextTick.fn.invoke();
-			nextTick.fn = [];
+			nextTick.reset();
 		}, 1);
 	}
 	nextTick.fn.push(fn);
 };
-nextTick.fn = [];
-nextTick.id = 0;
+nextTick.reset = function () {
+	this.fn = [];
+	this.id = 0;
+};
+nextTick.reset();
 
 atom.extend(Class, {
 	Events: Class({
