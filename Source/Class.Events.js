@@ -37,17 +37,18 @@ var removeOn = function(string){
 };
 
 var nextTick = function (fn) {
-	if (!nextTick.id) {
-		nextTick.id = setTimeout(function () {
-			nextTick.fn.invoke();
-			nextTick.reset();
-		}, 1);
-	}
 	nextTick.fn.push(fn);
+	if (!nextTick.id) {
+		nextTick.id = function () {
+			nextTick.reset().invoke();
+		}.delay(1);
+	}
 };
 nextTick.reset = function () {
-	this.fn = [];
-	this.id = 0;
+	var fn = nextTick.fn;
+	nextTick.fn = [];
+	nextTick.id = 0;
+	return fn;
 };
 nextTick.reset();
 
@@ -108,6 +109,7 @@ atom.extend(Class, {
 		},
 
 		fireEvent: function (name, args) {
+			if (name == 'libcanvasSet') console.log('fire', name);
 			name = removeOn(name);
 			var funcs = this.events[name];
 			if (funcs) {
@@ -122,7 +124,7 @@ atom.extend(Class, {
 		readyEvent: function (name, args) {
 			name = removeOn(name);
 			this.events.$ready[name] = args;
-			nextTick(this.fireEvent.bind(this, name, args));
+			nextTick(this.fireEvent.context(this, [name, args]));
 			return this;
 		}
 	})
