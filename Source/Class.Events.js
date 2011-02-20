@@ -41,6 +41,7 @@ var nextTick = function (fn) {
 		nextTick.id = setTimeout(function () {
 			nextTick.id = 0;
 			nextTick.fn.invoke();
+			nextTick.fn = [];
 		}, 1);
 	}
 	nextTick.fn.push(fn);
@@ -53,9 +54,6 @@ atom.extend(Class, {
 		events: { $ready: {} },
 
 		addEvent: function(name, fn) {
-			if (name == 'ready') {
-				debugger;
-			}
 			var i, l, onfinish = [];
 			if (arguments.length == 1 && typeof name != 'string') {
 				for (i in name) {
