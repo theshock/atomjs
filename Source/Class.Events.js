@@ -53,6 +53,9 @@ atom.extend(Class, {
 		events: { $ready: {} },
 
 		addEvent: function(name, fn) {
+			if (name == 'ready') {
+				debugger;
+			}
 			var i, l, onfinish = [];
 			if (arguments.length == 1 && typeof name != 'string') {
 				for (i in name) {
@@ -74,7 +77,7 @@ atom.extend(Class, {
 					this.events[name].include(fn);
 
 					var ready = this.events.$ready[name];
-					if (ready) fire.call(this, name, fn, ready, onfinish);
+					if (ready) fire.apply(this, [name, fn, ready, onfinish]);
 					onfinish.invoke();
 				}
 			}
@@ -112,6 +115,7 @@ atom.extend(Class, {
 					l = funcs.length,
 					i = 0;
 				for (;i < l; i++) fire.call(this, name, funcs[i], args, onfinish);
+				onfinish.invoke();
 			}
 			return this;
 		},

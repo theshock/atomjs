@@ -123,7 +123,11 @@ extend(Class, {
 			}
 
 			if (typeOf(value) == 'function'){
-				if (value.$hidden) continue;
+				if (value.$hidden == 'next') {
+					value.$hidden = true
+				} else if (value.$hidden) {
+					continue;
+				}
 				this[prototype][key] = (retain) ? value : wrap(this, key, value);
 			} else {
 				atom.merge(this[prototype], key, value);
@@ -180,7 +184,7 @@ extend(Class, {
 		return extend(fn, { $protected: true });
 	},
 	privateMethod: function (fn) {
-		return extend(fn, { $hidden: true });
+		return extend(fn, { $hidden: 'next' });
 	}
 });
 
