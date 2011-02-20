@@ -122,8 +122,8 @@ atom.extend(Class, {
 		},
 		readyEvent: function (name, args) {
 			name = removeOn(name);
-			this.events.$ready[name] = args;
-			nextTick(this.fireEvent.context(this, [name, args]));
+			this.events.$ready[name] = args || [];
+			nextTick(this.fireEvent.context(this, [name, args || []]));
 			return this;
 		}
 	})
