@@ -63,7 +63,7 @@ atom.implement(Number, 'safe', {
 	.forEach(function(method) {
 		if (Number[method]) return;
 		
-		Number.prototype[method] = function(i) {
-			return Math[method].apply(null, [this].concat(arguments));
+		Number.prototype[method] = function() {
+			return Math[method].apply(null, [this].append(arguments));
 		};
 	});
