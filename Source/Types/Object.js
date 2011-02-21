@@ -28,6 +28,11 @@ atom.extend(Object, 'safe', {
 		}
 		return newObj;
 	},
+	keys: function (obj) {
+		var keys = [];
+		for (var i in obj) keys.push(i);
+		return keys;
+	},
 	isDefined: function (obj) {
 		return typeof obj != 'undefined';
 	},
