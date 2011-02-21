@@ -107,13 +107,28 @@ var wrap = function(self, key, method){
 var lambda = function (value) { return function () { return value; }};
 
 extend(Class, {
-	extend: function (object) {
+	extend: function (name, fn) {
+		if (typeof name == 'string') {
+			var object = {};
+			object[name] = fn;
+		} else {
+			object = name;
+		}
+
 		for (var i in object) if (!accessors(object, this, i)) {
 			 this[i] = object[i];
 		}
 		return this;
 	},
-	implement: function(params, retain){
+	implement: function(name, fn, retain){
+		if (typeof name == 'string') {
+			var params = {};
+			params[name] = fn;
+		} else {
+			params = name;
+			retain = fn;
+		}
+
 		for (var key in params) if (!accessors(params, this[prototype], key)) {
 			var value = params[key];
 
