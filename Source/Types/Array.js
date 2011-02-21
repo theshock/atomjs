@@ -131,8 +131,11 @@ atom.implement(Array, 'safe', {
 		return [].combine(this);
 	},
 	associate: function(keys){
-		var obj = {}, length = Math.min(this.length, keys.length);
-		for (var i = 0; i < length; i++) obj[keys[i]] = this[i];
+		var obj = {}, length = this.length, i, isFn = typeof keys == 'function';
+		if (isFn) length = Math.min(length, keys.length);
+		for (i = 0; i < length; i++) {
+			obj[keys[i]] = isFn ? keys(this[i], i) : this[i];
+		}
 		return obj;
 	},
 	clean: function (){
