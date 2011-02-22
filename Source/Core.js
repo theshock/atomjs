@@ -66,16 +66,17 @@ provides: atom
 
 	var typeOf = function (item) {
 		if (item == null) return 'null';
-		
+
+		if (item instanceof Atom) return 'atom';
+
 		var string = toString.call(item);
 		for (var i in typeOf.types) if (i == string) return typeOf.types[i];
 
 		if (item.nodeName){
 			if (item.nodeType == 1) return 'element';
 			if (item.nodeType == 3) return typeOf.textnodeRE.test(item.nodeValue) ? 'textnode' : 'whitespace';
-		} else if (typeof item.length == 'number'){
-			if (item instanceof Atom) return 'atom';
-			if (item.callee) return 'arguments';
+		} else if (item.callee && typeof item.length == 'number'){
+			return 'arguments';
 		}
 		return typeof item;
 	};
