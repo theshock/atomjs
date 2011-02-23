@@ -67,15 +67,16 @@ provides: atom
 	var typeOf = function (item) {
 		if (item == null) return 'null';
 
+		if (item instanceof Atom) return 'atom';
+
 		var string = toString.call(item);
 		for (var i in typeOf.types) if (i == string) return typeOf.types[i];
 
 		if (item.nodeName){
 			if (item.nodeType == 1) return 'element';
 			if (item.nodeType == 3) return typeOf.textnodeRE.test(item.nodeValue) ? 'textnode' : 'whitespace';
-		} else if (typeof item.length == 'number'){
-			if (item instanceof Atom) return 'atom';
-			if (item.callee) return 'arguments';
+		} else if (item.callee && typeof item.length == 'number'){
+			return 'arguments';
 		}
 		return typeof item;
 	};
@@ -102,28 +103,27 @@ provides: atom
 		}
 		return false;
 	};
-
 	var clone = function (object) {
 		var type = typeOf(object);
-		return type in clone ? clone[type](object) : object;
+		return type in clone.types ? clone.types[type](object) : object;
 	};
-	clone.array = function (array) {
-		var i = array.length, c = new Array(i);
-		while (i--) if (!implementAccessors(array, c, i)) {
-			c[i] = clone(array[i]);
+	clone.types = {
+		array: function (array) {
+			var i = array.length, c = new Array(i);
+			while (i--) c[i] = clone(array[i]);
+			return c;
+		},
+		object: function (object) {
+			if ('clone' in object) {
+				return typeof object.clone == 'function' ?
+					object.clone() : object.clone;
+			}
+			var c = {};
+			for (var key in object) if (!implementAccessors(object, c, key)) {
+				c[key] = clone(object[key]);
+			}
+			return c;
 		}
-		return c;
-	};
-	clone.object = function (object) {
-		if ('clone' in object) {
-			return typeof object.clone == 'function' ?
-				object.clone() : object.clone;
-		}
-		var c = {};
-		for (var key in object) if (!implementAccessors(object, c, key)) {
-			c[key] = clone(object[key]);
-		}
-		return c;
 	};
 
 	var mergeOne = function(source, key, current){
@@ -142,8 +142,10 @@ provides: atom
 
 		for (var i = 1, l = arguments.length; i < l; i++){
 			var object = arguments[i];
-			for (var key in object) if (implementAccessors(object, source, key)) {
-				mergeOne(source, key, object[key]);
+			if (object) {
+				for (var key in object) if (!implementAccessors(object, source, key)) {
+					mergeOne(source, key, object[key]);
+				}
 			}
 		}
 		return source;
@@ -564,8 +566,8 @@ var Class = function (params) {
 			factory : (function() {
 				// Должно быть в конце, чтобы успел создаться прототип
 				function F(args) { return newClass.apply(this, args); }
-				F.prototype = newClass[prototype];
-				return function(args) { return new F(args); }
+				F[prototype] = newClass[prototype];
+				return function(args) { return new F(args || []); }
 			})()
 		});
 
@@ -593,6 +595,8 @@ var reset = function(object){
 				F[prototype] = value;
 				object[key] = reset(new F);
 			}
+		} else {
+			object[key] = value;
 		}
 	}
 	return object;
@@ -617,13 +621,28 @@ var wrap = function(self, key, method){
 var lambda = function (value) { return function () { return value; }};
 
 extend(Class, {
-	extend: function (object) {
+	extend: function (name, fn) {
+		if (typeof name == 'string') {
+			var object = {};
+			object[name] = fn;
+		} else {
+			object = name;
+		}
+
 		for (var i in object) if (!accessors(object, this, i)) {
 			 this[i] = object[i];
 		}
 		return this;
 	},
-	implement: function(params, retain){
+	implement: function(name, fn, retain){
+		if (typeof name == 'string') {
+			var params = {};
+			params[name] = fn;
+		} else {
+			params = name;
+			retain = fn;
+		}
+
 		for (var key in params) if (!accessors(params, this[prototype], key)) {
 			var value = params[key];
 
@@ -633,7 +652,11 @@ extend(Class, {
 			}
 
 			if (typeOf(value) == 'function'){
-				if (value.$hidden) continue;
+				if (value.$hidden == 'next') {
+					value.$hidden = true
+				} else if (value.$hidden) {
+					continue;
+				}
 				this[prototype][key] = (retain) ? value : wrap(this, key, value);
 			} else {
 				atom.merge(this[prototype], key, value);
@@ -690,7 +713,7 @@ extend(Class, {
 		return extend(fn, { $protected: true });
 	},
 	privateMethod: function (fn) {
-		return extend(fn, { $hidden: true });
+		return extend(fn, { $hidden: 'next' });
 	}
 });
 
@@ -737,16 +760,20 @@ var removeOn = function(string){
 };
 
 var nextTick = function (fn) {
-	if (!nextTick.id) {
-		nextTick.id = setTimeout(function () {
-			nextTick.id = 0;
-			nextTick.fn.invoke();
-		}, 1);
-	}
 	nextTick.fn.push(fn);
+	if (!nextTick.id) {
+		nextTick.id = function () {
+			nextTick.reset().invoke();
+		}.delay(1);
+	}
 };
-nextTick.fn = [];
-nextTick.id = 0;
+nextTick.reset = function () {
+	var fn = nextTick.fn;
+	nextTick.fn = [];
+	nextTick.id = 0;
+	return fn;
+};
+nextTick.reset();
 
 atom.extend(Class, {
 	Events: Class({
@@ -774,7 +801,7 @@ atom.extend(Class, {
 					this.events[name].include(fn);
 
 					var ready = this.events.$ready[name];
-					if (ready) fire.call(this, name, fn, ready, onfinish);
+					if (ready) fire.apply(this, [name, fn, ready, onfinish]);
 					onfinish.invoke();
 				}
 			}
@@ -806,18 +833,20 @@ atom.extend(Class, {
 
 		fireEvent: function (name, args) {
 			name = removeOn(name);
-			var funcs = this.events[name],
-				onfinish = [],
-				l = funcs.length,
-				i = 0;
-			for (;i < l; i++) fire.call(this, name, funcs[i], args, onfinish);
-			onfinish.invoke();
+			var funcs = this.events[name];
+			if (funcs) {
+				var onfinish = [],
+					l = funcs.length,
+					i = 0;
+				for (;i < l; i++) fire.call(this, name, funcs[i], args || [], onfinish);
+				onfinish.invoke();
+			}
 			return this;
 		},
 		readyEvent: function (name, args) {
 			name = removeOn(name);
-			this.events.$ready[name] = args;
-			nextTick(this.fireEvent.bind(this, name, args));
+			this.events.$ready[name] = args || [];
+			nextTick(this.fireEvent.context(this, [name, args || []]));
 			return this;
 		}
 	})
@@ -849,7 +878,8 @@ provides: atom.Class.Options
 atom.extend(atom.Class, {
 	Options: atom.Class({
 		setOptions: function(){
-			var options = this.options = Object.merge.apply(null, [{}, this.options].append(arguments));
+			var args = [{}, this.options].append(arguments);
+			var options = this.options = atom.merge.apply(null, args);
 			if (this.addEvent) for (var option in options){
 				if (atom.typeOf(options[option]) == 'function' && (/^on[A-Z]/).test(option)) {
 					this.addEvent(option, options[option]);
@@ -937,14 +967,17 @@ atom.extend(Array, 'safe', {
 		} while (from <= to);
 		return result;
 	},
+	from: atom.toArray,
 	pickFrom: function (args) {
-		return args
+		return Array.from(
+			   args
 			&& args.length == 1
 			&& ['array', 'arguments'].contains(atom.typeOf(args[0])) ?
-				args[0] : atom.toArray(args);
+				args[0] : args
+		);
 	},
 	fill: function (array, fill) {
-		var array = Array.isArray(array) ? array : new Array(1 * array);
+		array = Array.isArray(array) ? array : new Array(1 * array);
 		for (var i = array.length; i--;) array[i] = fill;
 		return array;
 	},
@@ -1040,8 +1073,11 @@ atom.implement(Array, 'safe', {
 		return [].combine(this);
 	},
 	associate: function(keys){
-		var obj = {}, length = Math.min(this.length, keys.length);
-		for (var i = 0; i < length; i++) obj[keys[i]] = this[i];
+		var obj = {}, length = this.length, i, isFn = typeof keys == 'function';
+		if (isFn) length = Math.min(length, keys.length);
+		for (i = 0; i < length; i++) {
+			obj[keys[i]] = isFn ? keys(this[i], i) : this[i];
+		}
 		return obj;
 	},
 	clean: function (){
@@ -1111,7 +1147,7 @@ new function () {
 			var fn = this;
 			args = args ? atom.toArray(args) : [];
 			return function(){
-				return fn.apply(bind === false || bind === Function.context ? this : bind, args.append(arguments));
+				return fn.apply((bind === false || bind === Function.context) ? this : bind, [].append(args, arguments));
 			};
 		}
 	});
@@ -1203,8 +1239,8 @@ atom.implement(Number, 'safe', {
 	.forEach(function(method) {
 		if (Number[method]) return;
 
-		Number.prototype[method] = function(i) {
-			return Math[method].apply(null, [this].concat(arguments));
+		Number.prototype[method] = function() {
+			return Math[method].apply(null, [this].append(arguments));
 		};
 	});
 
@@ -1239,6 +1275,11 @@ atom.extend(Object, 'safe', {
 		}
 		return newObj;
 	},
+	keys: function (obj) {
+		var keys = [];
+		for (var i in obj) keys.push(i);
+		return keys;
+	},
 	isDefined: function (obj) {
 		return typeof obj != 'undefined';
 	},
@@ -1255,17 +1296,18 @@ atom.extend(Object, 'safe', {
 	},
 	min: function (obj) {
 		var min = null, key = null;
-		for (var i in obj) if (min == null || min[i] < max) {
+		for (var i in obj) if (min == null || obj[i] < min) {
 			key = i;
 			min = obj[i];
 		}
 		return key;
 	},
 	deepEquals: function (first, second) {
+		var callee = arguments.callee;
 		for (var i in first) {
 			var f = first[i], s = second[i];
 			if (typeof f == 'object') {
-				if (!s || !arguments.callee(f, s)) return false;
+				if (!s || !callee(f, s)) return false;
 			} else if (f != s) {
 				return false;
 			}

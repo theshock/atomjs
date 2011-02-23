@@ -426,11 +426,21 @@ test('Extending', function(){
 		setParentProperty: function(parentProperty) { this.parent(parentProperty + 3); },
 		getParentProperty: function() { return this.parent() + 4; }
 	});
+	
+	/*
+		var Zyx = atom.Class({
+			Implements: [Foo],
+			// test calling implemented "parent" function
+			setParentProperty: function(parentProperty) { this.parent(parentProperty + 3); },
+			getParentProperty: function() { return this.parent() + 4; }
+		});
+	*/
 
 
 	var foo = new Foo('fooName');
 	var bar = new Bar('barName');
 	var qux = new Qux('quxName');
+	var zyx = new Zyx('zyxName');
 
 	// instanceof
 	ok(  foo instanceof Foo , '  foo instanceof Foo');
@@ -468,6 +478,13 @@ test('Extending', function(){
 	bar.setParentProperty(7);
 	equal(bar.parentProperty, 10, 'Bar.parentProperty new value (overloaded)');
 	equal(bar.getParentProperty(), 14, 'Bar.getParentProperty() new value (overloaded)');
+
+	// Mathod "parent" (from mixin)
+	equal(zyx.parentProperty, 1, 'Bar.parentProperty default value');
+	equal(zyx.getParentProperty(), 5, 'Bar.getParentProperty() overloaded');
+	zyx.setParentProperty(7);
+	equal(zyx.parentProperty, 10, 'Bar.parentProperty new value (overloaded)');
+	equal(zyx.getParentProperty(), 14, 'Bar.getParentProperty() new value (overloaded)');
 
 	// chain of .parent
 	equal(qux.parentProperty, 1, 'Qux.parentProperty default value');

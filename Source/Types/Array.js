@@ -131,10 +131,10 @@ atom.implement(Array, 'safe', {
 		return [].combine(this);
 	},
 	associate: function(keys){
-		var obj = {}, length = this.length, i, isFn = typeof keys == 'function';
-		if (isFn) length = Math.min(length, keys.length);
+		var obj = {}, length = this.length, i, isFn = atom.typeOf(keys) == 'function';
+		if (!isFn) length = Math.min(length, keys.length);
 		for (i = 0; i < length; i++) {
-			obj[keys[i]] = isFn ? keys(this[i], i) : this[i];
+			obj[(isFn ? this : keys)[i]] = isFn ? keys(this[i], i) : this[i];
 		}
 		return obj;
 	},
