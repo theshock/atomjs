@@ -21,8 +21,7 @@ provides: atom
 */
 
 (function () {
-	var win = window,
-	    doc = win.document,
+	var global = window || GLOBAL,
 	    prototype = 'prototype',
 	    apply = 'apply',
 		toString = Object[prototype].toString;
@@ -32,7 +31,7 @@ provides: atom
 		return atom.initialize[apply](this, arguments);
 	};
 
-	var atom = window.atom = function () {
+	var atom = global.atom = function () {
 		return new atomFactory(arguments);
 	};
 
