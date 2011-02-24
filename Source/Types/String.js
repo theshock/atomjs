@@ -21,6 +21,10 @@ var substituteRE = /\\?\{([^{}]+)\}/g,
 	safeHtmlRE = /[<'&">]/g,
 	UID = Date.now();
 
+String.uniqueID = function () {
+	return (UID++).toString(36);
+};
+
 
 atom.implement(String, 'safe', {
 	safeHtml: function () {
@@ -31,9 +35,6 @@ atom.implement(String, 'safe', {
 			'<'  : '&lt;',
 			'>'  : '&gt;'
 		});
-	},
-	uniqueID: function () {
-		return (UID++).toString(36);
 	},
 	repeat: function(times) {
 		return new Array(times + 1).join(this);
