@@ -129,4 +129,4 @@ atom.extend(Class, {
 	})
 });
 
-}
+};

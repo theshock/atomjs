@@ -20,7 +20,7 @@ provides: atom
 ...
 */
 
-new function () {
+(function () {
 	var prototype = 'prototype',
 	    apply = 'apply',
 		toString = Object[prototype].toString;
@@ -218,4 +218,4 @@ new function () {
 			return Object[prototype].toString.call(o) === '[object Array]';
 		}
 	});
-};
+})();
