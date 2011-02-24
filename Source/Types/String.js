@@ -25,7 +25,6 @@ String.uniqueID = function () {
 	return (UID++).toString(36);
 };
 
-
 atom.implement(String, 'safe', {
 	safeHtml: function () {
 		return this.replaceAll(safeHtmlRE, {
