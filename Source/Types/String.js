@@ -18,8 +18,8 @@ provides: String
 new function () {
 
 var substituteRE = /\\?\{([^{}]+)\}/g,
-	safeHtmlRE = /[<'&">]/g;
-	
+	safeHtmlRE = /[<'&">]/g,
+	UID = Date.now();
 
 
 atom.implement(String, 'safe', {
@@ -31,6 +31,9 @@ atom.implement(String, 'safe', {
 			'<'  : '&lt;',
 			'>'  : '&gt;'
 		});
+	},
+	uniqueID: function () {
+		return (UID++).toString(36);
 	},
 	repeat: function(times) {
 		return new Array(times + 1).join(this);
