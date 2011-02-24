@@ -166,6 +166,9 @@ extend(Class, {
 			target.__defineGetter__(name, lambda(props[name]));
 		}
 		return this;
+	},
+	isInstance: function (object) {
+		return object instanceof this;
 	}
 });
 

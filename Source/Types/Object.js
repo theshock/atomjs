@@ -33,6 +33,11 @@ atom.extend(Object, 'safe', {
 		for (var i in obj) keys.push(i);
 		return keys;
 	},
+	values: function (obj) {
+		var values = [];
+		for (var i in obj) values.push(obj[i]);
+		return values;
+	},
 	isDefined: function (obj) {
 		return typeof obj != 'undefined';
 	},
