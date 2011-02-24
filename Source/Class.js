@@ -21,7 +21,7 @@ provides: [atom.Class]
 
 (function(){
 
-var atom = window.atom,
+var atom = this.atom,
 	typeOf = atom.typeOf,
 	extend = atom.extend,
 	accessors = atom.implementAccessors,

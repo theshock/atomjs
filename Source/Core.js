@@ -20,8 +20,8 @@ provides: atom
 ...
 */
 
-(function () {
-	var global = window || GLOBAL,
+new function () {
+	var global = this.window || this.GLOBAL,
 	    prototype = 'prototype',
 	    apply = 'apply',
 		toString = Object[prototype].toString;
@@ -219,4 +219,4 @@ provides: atom
 			return Object[prototype].toString.call(o) === '[object Array]';
 		}
 	});
-})();
+});
