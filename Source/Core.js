@@ -162,10 +162,9 @@ provides: atom
 			return Array[prototype].slice.call(elem);
 		},
 		log: function () {
-			var console = win.console;
-			if (console && console.log) {
+			try {
 				return console.log[apply](console, arguments);
-			} else return false;
+			} catch (e) { return false; }
 		},
 		isAtom: function (elem) {
 			return elem && elem instanceof Atom;
