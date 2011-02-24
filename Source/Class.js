@@ -8,7 +8,7 @@ description: "Contains the Class Function for easily creating, extending, and im
 license: "[GNU Lesser General Public License](http://opensource.org/licenses/lgpl-license.php)"
 
 requires:
-	- atom]
+	- atom
 
 inspiration:
   - "[MooTools](http://mootools.net)"
