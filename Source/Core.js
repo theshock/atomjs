@@ -219,4 +219,4 @@ new function () {
 			return Object[prototype].toString.call(o) === '[object Array]';
 		}
 	});
-});
+};
