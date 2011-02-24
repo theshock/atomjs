@@ -13,16 +13,15 @@ requires:
 inspiration:
   - "[MooTools](http://mootools.net)"
 
-provides: [atom.Class]
+provides: Class
 
 ...
 */
 
 
-(function(){
+(function(atom){
 
-var atom = this.atom,
-	typeOf = atom.typeOf,
+var typeOf = atom.typeOf,
 	extend = atom.extend,
 	accessors = atom.implementAccessors,
 	prototype = 'prototype';
@@ -208,4 +207,4 @@ extend(Class, {
 
 extend({ Class: Class });
 
-})();
+})(atom);

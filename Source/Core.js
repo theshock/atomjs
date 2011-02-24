@@ -21,8 +21,7 @@ provides: atom
 */
 
 new function () {
-	var global = this.window || this.GLOBAL,
-	    prototype = 'prototype',
+	var prototype = 'prototype',
 	    apply = 'apply',
 		toString = Object[prototype].toString;
 
@@ -31,7 +30,7 @@ new function () {
 		return atom.initialize[apply](this, arguments);
 	};
 
-	var atom = global.atom = function () {
+	var atom = (this.window || GLOBAL).atom = function () {
 		return new atomFactory(arguments);
 	};
 

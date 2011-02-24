@@ -9,12 +9,12 @@ license: "[GNU Lesser General Public License](http://opensource.org/licenses/lgp
 
 requires:
 	- atom
-	- atom.Class
+	- Class
 
 inspiration:
   - "[MooTools](http://mootools.net)"
 
-provides: atom.Class.Events
+provides: Class.Events
 
 ...
 */

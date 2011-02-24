@@ -13,11 +13,11 @@ requires:
 inspiration:
   - "[JQuery](http://jquery.org)"
 
-provides: atom.dom
+provides: dom
 
 ...
 */
-(function () {
+new function () {
 	var win = window,
 	    doc = win.document,
 		tagNameRE = /^[-_a-z0-9]+$/i,
@@ -184,4 +184,4 @@ provides: atom.dom
 			});
 		}
 	});
-})();
+}

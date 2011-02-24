@@ -9,10 +9,10 @@ license: "[GNU Lesser General Public License](http://opensource.org/licenses/lgp
 
 requires:
 	- atom
-	- atom.dom
-	- atom.ajax
+	- dom
+	- ajax
 
-provides: atom.ajax.dom
+provides: ajax.dom
 
 ...
 */

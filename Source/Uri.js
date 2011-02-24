@@ -12,7 +12,7 @@ author: "Steven Levithan <stevenlevithan.com>"
 requires:
 	- atom
 
-provides: atom.uri
+provides: uri
 
 ...
 */
