@@ -39,7 +39,7 @@ atom.implement(String, 'safe', {
 		return new Array(times + 1).join(this);
 	},
 	substitute: function(object, regexp){
-		return this.replace(regexp || (substituteRE), function(match, name){
+		return this.replace(regexp || substituteRE, function(match, name){
 			return (match[0] == '\\') ? match.slice(1) : (object[name] || '');
 		});
 	},
