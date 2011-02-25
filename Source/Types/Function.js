@@ -17,6 +17,10 @@ provides: Function
 */
 
 new function () {
+	var getContext = function (bind, self) {
+		return (bind === false || bind === Function.context) ? self : bind;
+	};
+	
 	atom.extend(Function, 'safe', {
 		lambda : function (value) {
 			var returnThis = (arguments.length == 0);
@@ -37,7 +41,13 @@ new function () {
 			var fn = this;
 			args = args ? atom.toArray(args) : [];
 			return function(){
-				return fn.apply((bind === false || bind === Function.context) ? this : bind, [].append(args, arguments));
+				return fn.apply(getContext(bind, this), [].append(args, arguments));
+			};
+		},
+		only: function(numberOfArgs, bind) {
+			var fn = this;
+			return function() {
+				return fn.apply(getContext(bind, this), [].slice.call(arguments,0,numberOfArgs))
 			};
 		}
 	});
