@@ -90,6 +90,9 @@ provides: atom
 			key = to;
 			to  = null;
 		}
+		
+		// #todo: implement with getOwnPropertyDescriptor && defineProperty
+		
 		var g = from.__lookupGetter__(key), s = from.__lookupSetter__(key);
 
 		if ( g || s ) {
