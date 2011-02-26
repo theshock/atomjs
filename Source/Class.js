@@ -75,7 +75,7 @@ var reset = function(object){
 			if ('clone' in value) {
 				object[key] = (typeof value.clone == 'function') ?
 					value.clone() : value.clone;
-			} else if (typeOf(value) == 'object') {
+			} else { // if (typeOf(value) == 'object') {
 				var F = function(){};
 				F[prototype] = value;
 				object[key] = reset(new F);
