@@ -200,7 +200,7 @@ extend(Class, {
 	protectedMethod: function (fn) {
 		return extend(fn, { $protected: true });
 	},
-	privateMethod: function (fn) {
+	hiddenMethod: function (fn) {
 		return extend(fn, { $hidden: 'next' });
 	}
 });
