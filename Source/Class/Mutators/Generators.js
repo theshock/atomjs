@@ -10,6 +10,10 @@ license: "[GNU Lesser General Public License](http://opensource.org/licenses/lgp
 authors:
 	- "Shock <shocksilien@gmail.com>"
 
+requires:
+	- atom
+	- Class
+
 provides: Class.Mutators.Generators
 
 ...
