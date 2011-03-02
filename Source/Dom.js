@@ -39,6 +39,10 @@ new function () {
 				r[args[0]] = args[1];
 				return r;
 			}
+		},
+		prevent = function (e) {
+			e.preventDefault();
+			return false;
 		};
 
 	atom.extend({
@@ -137,7 +141,8 @@ new function () {
 			return this.each(function (elem) {
 				for (var i in events) {
 					if (elem == doc && i == 'load') elem = win;
-					elem.addEventListener(i, events[i].bind(this), false);
+					var fn = events[i] === false ? prevent : events[i].bind(this);
+					elem.addEventListener(i, fn, false);
 				}
 			}.bind(this));
 		},
