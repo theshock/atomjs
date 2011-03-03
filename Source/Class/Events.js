@@ -54,7 +54,7 @@ nextTick.reset();
 
 atom.extend(Class, {
 	Events: Class({
-		events: { $ready: {} },
+		_events: { $ready: {} },
 
 		addEvent: function(name, fn) {
 			var i, l, onfinish = [];
@@ -73,11 +73,11 @@ atom.extend(Class, {
 				} else if (!fn) {
 					throw new TypeError('Function is empty');
 				} else {
-					Object.ifEmpty(this.events, name, []);
+					Object.ifEmpty(this._events, name, []);
 
-					this.events[name].include(fn);
+					this._events[name].include(fn);
 
-					var ready = this.events.$ready[name];
+					var ready = this._events.$ready[name];
 					if (ready) fire.apply(this, [name, fn, ready, onfinish]);
 					onfinish.invoke();
 				}
@@ -100,9 +100,9 @@ atom.extend(Class, {
 					throw new TypeError('Event name «$ready» is reserved');
 				}
 				if (arguments.length == 1) {
-					this.events[name] = [];
-				} else if (name in this.events) {
-					this.events[name].erase(fn);
+					this._events[name] = [];
+				} else if (name in this._events) {
+					this._events[name].erase(fn);
 				}
 			}
 			return this;
@@ -110,7 +110,7 @@ atom.extend(Class, {
 
 		fireEvent: function (name, args) {
 			name = removeOn(name);
-			var funcs = this.events[name];
+			var funcs = this._events[name];
 			if (funcs) {
 				var onfinish = [],
 					l = funcs.length,
@@ -123,7 +123,7 @@ atom.extend(Class, {
 		readyEvent: function (name, args) {
 			nextTick(function () {
 				name = removeOn(name);
-				this.events.$ready[name] = args || [];
+				this._events.$ready[name] = args || [];
 				this.fireEvent(name, args || []);
 			}.context(this));
 			return this;
