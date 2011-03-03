@@ -107,7 +107,10 @@ atom.extend(Class, {
 			}
 			return this;
 		},
-
+		isEventAdded: function (name) {
+			var e = this._events[name];
+			return !!(e && e.length);
+		},
 		fireEvent: function (name, args) {
 			name = removeOn(name);
 			var funcs = this._events[name];
