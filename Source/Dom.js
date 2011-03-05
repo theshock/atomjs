@@ -155,7 +155,7 @@ new function () {
 			});
 		},
 		wrap : function (wrapper) {
-			wrapper = atom(into).get();
+			wrapper = atom(wrapper).get();
 			var obj = this.get();
 			obj.parentNode.replaceChild(wrapper, obj);
 			wrapper.appendChild(obj);

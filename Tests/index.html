@@ -16,6 +16,7 @@
 		<h2 id="qunit-userAgent"></h2>
 		<ol id="qunit-tests"></ol>
 		<div id="qunit-fixture">
+			<code>ccc</code>
 			<h1>The standard Lorem Ipsum passage, used since the 1500s</h1>
 			<p>"Lorem ipsum dolor sit <a class="foo" href="#">amet</a>, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum."</p>
 			<h1>Section 1.10.32 of "de Finibus Bonorum et Malorum", written by Cicero in 45 BC</h1>
@@ -30,7 +31,7 @@
 	</body>
 	<script>
 jQuery(function(){
-
+	
 var undefined;
 	/******************************************
 	 * [Atom Core]
@@ -426,21 +427,11 @@ test('Extending', function(){
 		setParentProperty: function(parentProperty) { this.parent(parentProperty + 3); },
 		getParentProperty: function() { return this.parent() + 4; }
 	});
-	
-	/*
-		var Zyx = atom.Class({
-			Implements: [Foo],
-			// test calling implemented "parent" function
-			setParentProperty: function(parentProperty) { this.parent(parentProperty + 3); },
-			getParentProperty: function() { return this.parent() + 4; }
-		});
-	*/
 
 
 	var foo = new Foo('fooName');
 	var bar = new Bar('barName');
 	var qux = new Qux('quxName');
-	var zyx = new Zyx('zyxName');
 
 	// instanceof
 	ok(  foo instanceof Foo , '  foo instanceof Foo');
@@ -478,13 +469,6 @@ test('Extending', function(){
 	bar.setParentProperty(7);
 	equal(bar.parentProperty, 10, 'Bar.parentProperty new value (overloaded)');
 	equal(bar.getParentProperty(), 14, 'Bar.getParentProperty() new value (overloaded)');
-
-	// Mathod "parent" (from mixin)
-	equal(zyx.parentProperty, 1, 'Bar.parentProperty default value');
-	equal(zyx.getParentProperty(), 5, 'Bar.getParentProperty() overloaded');
-	zyx.setParentProperty(7);
-	equal(zyx.parentProperty, 10, 'Bar.parentProperty new value (overloaded)');
-	equal(zyx.getParentProperty(), 14, 'Bar.getParentProperty() new value (overloaded)');
 
 	// chain of .parent
 	equal(qux.parentProperty, 1, 'Qux.parentProperty default value');

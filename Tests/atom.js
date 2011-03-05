@@ -21,9 +21,7 @@ provides: atom
 */
 
 (function () {
-	var win = window,
-	    doc = win.document,
-	    prototype = 'prototype',
+	var prototype = 'prototype',
 	    apply = 'apply',
 		toString = Object[prototype].toString;
 
@@ -32,7 +30,7 @@ provides: atom
 		return atom.initialize[apply](this, arguments);
 	};
 
-	var atom = window.atom = function () {
+	var atom = (this.window || GLOBAL).atom = function () {
 		return new atomFactory(arguments);
 	};
 
@@ -56,7 +54,7 @@ provides: atom
 		var ext = proto ? elem[prototype] : elem;
 		for (var i in from) {
 			if (safe && i in ext) continue;
-
+			
 			if ( !implementAccessors(from, ext, i) ) {
 				ext[i] = i == 'prototype' ? from[i] : clone(from[i]);
 			}
@@ -92,6 +90,9 @@ provides: atom
 			key = to;
 			to  = null;
 		}
+		
+		// #todo: implement with getOwnPropertyDescriptor && defineProperty
+		
 		var g = from.__lookupGetter__(key), s = from.__lookupSetter__(key);
 
 		if ( g || s ) {
@@ -139,7 +140,7 @@ provides: atom
 	};
 	var merge = function(source, k, v){
 		if (typeOf(k) == 'string') return mergeOne(source, k, v);
-
+		
 		for (var i = 1, l = arguments.length; i < l; i++){
 			var object = arguments[i];
 			if (object) {
@@ -150,7 +151,7 @@ provides: atom
 		}
 		return source;
 	};
-
+	
 	var extend = atom.extend = function (elem, safe, from) {
 		return innerExtend(arguments, atom, false);
 	};
@@ -164,10 +165,9 @@ provides: atom
 			return Array[prototype].slice.call(elem);
 		},
 		log: function () {
-			var console = win.console;
-			if (console && console.log) {
+			try {
 				return console.log[apply](console, arguments);
-			} else return false;
+			} catch (e) { return false; }
 		},
 		isAtom: function (elem) {
 			return elem && elem instanceof Atom;
@@ -237,11 +237,11 @@ requires:
 inspiration:
   - "[JQuery](http://jquery.org)"
 
-provides: atom.dom
+provides: dom
 
 ...
 */
-(function () {
+new function () {
 	var win = window,
 	    doc = win.document,
 		tagNameRE = /^[-_a-z0-9]+$/i,
@@ -263,6 +263,10 @@ provides: atom.dom
 				r[args[0]] = args[1];
 				return r;
 			}
+		},
+		prevent = function (e) {
+			e.preventDefault();
+			return false;
 		};
 
 	atom.extend({
@@ -361,7 +365,8 @@ provides: atom.dom
 			return this.each(function (elem) {
 				for (var i in events) {
 					if (elem == doc && i == 'load') elem = win;
-					elem.addEventListener(i, events[i].bind(this), false);
+					var fn = events[i] === false ? prevent : events[i].bind(this);
+					elem.addEventListener(i, fn, false);
 				}
 			}.bind(this));
 		},
@@ -372,6 +377,13 @@ provides: atom.dom
 					fn.apply(this, arguments);
 				}
 			});
+		},
+		wrap : function (wrapper) {
+			wrapper = atom(wrapper).get();
+			var obj = this.get();
+			obj.parentNode.replaceChild(wrapper, obj);
+			wrapper.appendChild(obj);
+			return this;
 		},
 		ready : function (full, fn) {
 			if (arguments[length] == 1) {
@@ -408,7 +420,7 @@ provides: atom.dom
 			});
 		}
 	});
-})();
+};
 
 /*
 ---
@@ -422,7 +434,7 @@ license: "[GNU Lesser General Public License](http://opensource.org/licenses/lgp
 requires:
 	- atom
 
-provides: atom.ajax
+provides: ajax
 
 ...
 */
@@ -485,10 +497,10 @@ license: "[GNU Lesser General Public License](http://opensource.org/licenses/lgp
 
 requires:
 	- atom
-	- atom.dom
-	- atom.ajax
+	- dom
+	- ajax
 
-provides: atom.ajax.dom
+provides: ajax.dom
 
 ...
 */
@@ -505,12 +517,61 @@ atom.implement({
 
 		atom.ajax(atom.extend(config, {
 			onError: config.onError.bind(this),
-			onLoad : config.onLoad .bind(this)
+			onLoad : config.onLoad .bind(this)			
 		}));
 		return this;
 	}
 });
 
+
+/*
+---
+
+name: "Uri"
+
+description: "Port of parseUri function"
+
+license: "MIT License"
+
+author: "Steven Levithan <stevenlevithan.com>"
+
+requires:
+	- atom
+
+provides: uri
+
+...
+*/
+atom.extend({
+	uri: atom.extend(function (str) {
+		var	o   = atom.uri.options,
+			m   = o.parser[o.strictMode ? "strict" : "loose"].exec(str || window.location.href),
+			uri = {},
+			i   = 14;
+
+		while (i--) uri[o.key[i]] = m[i] || "";
+
+		uri[o.q.name] = {};
+		uri[o.key[12]].replace(o.q.parser, function ($0, $1, $2) {
+			if ($1) uri[o.q.name][$1] = $2;
+		});
+
+		return uri;
+	}, {
+		options: {
+			strictMode: false,
+			key: ["source","protocol","authority","userInfo","user","password","host","port","relative","path","directory","file","query","anchor"],
+			q:   {
+				name:   "queryKey",
+				parser: /(?:^|&)([^&=]*)=?([^&]*)/g
+			},
+			parser: {
+				strict: /^(?:([^:\/?#]+):)?(?:\/\/((?:(([^:@]*)(?::([^:@]*))?)?@)?([^:\/?#]*)(?::(\d*))?))?((((?:[^?#\/]*\/)*)([^?#]*))(?:\?([^#]*))?(?:#(.*))?)/,
+				loose:  /^(?:(?![^:@]+:[^:@\/]*@)([^:\/?#.]+):)?(?:\/\/)?((?:(([^:@]*)(?::([^:@]*))?)?@)?([^:\/?#]*)(?::(\d*))?)(((\/(?:[^?#](?![^?#\/]*\.[^?#\/.]+(?:[?#]|$)))*\/?)?([^?#\/]*))(?:\?([^#]*))?(?:#(.*))?)/
+			}
+		}
+	})
+});
 
 /*
 ---
@@ -522,21 +583,20 @@ description: "Contains the Class Function for easily creating, extending, and im
 license: "[GNU Lesser General Public License](http://opensource.org/licenses/lgpl-license.php)"
 
 requires:
-	- atom]
+	- atom
 
 inspiration:
   - "[MooTools](http://mootools.net)"
 
-provides: [atom.Class]
+provides: Class
 
 ...
 */
 
 
-(function(){
+(function(atom){
 
-var atom = window.atom,
-	typeOf = atom.typeOf,
+var typeOf = atom.typeOf,
 	extend = atom.extend,
 	accessors = atom.implementAccessors,
 	prototype = 'prototype';
@@ -590,7 +650,7 @@ var reset = function(object){
 			if ('clone' in value) {
 				object[key] = (typeof value.clone == 'function') ?
 					value.clone() : value.clone;
-			} else if (typeOf(value) == 'object') {
+			} else { // if (typeOf(value) == 'object') {
 				var F = function(){};
 				F[prototype] = value;
 				object[key] = reset(new F);
@@ -605,7 +665,7 @@ var reset = function(object){
 var wrap = function(self, key, method){
 	// if method is already wrapped
 	if (method.$origin) method = method.$origin;
-
+	
 	var wrapper = extend(function(){
 		if (method.$protected && !this.$caller) throw new Error('The method «' + key + '» is protected.');
 		var current = this.$caller;
@@ -614,7 +674,7 @@ var wrap = function(self, key, method){
 		this.$caller = current;
 		return result;
 	}, {$owner: self, $origin: method, $name: key});
-
+	
 	return wrapper;
 };
 
@@ -680,6 +740,9 @@ extend(Class, {
 			target.__defineGetter__(name, lambda(props[name]));
 		}
 		return this;
+	},
+	isInstance: function (object) {
+		return object instanceof this;
 	}
 });
 
@@ -712,14 +775,14 @@ extend(Class, {
 	protectedMethod: function (fn) {
 		return extend(fn, { $protected: true });
 	},
-	privateMethod: function (fn) {
+	hiddenMethod: function (fn) {
 		return extend(fn, { $hidden: 'next' });
 	}
 });
 
 extend({ Class: Class });
 
-})();
+})(atom);
 
 /*
 ---
@@ -732,12 +795,12 @@ license: "[GNU Lesser General Public License](http://opensource.org/licenses/lgp
 
 requires:
 	- atom
-	- atom.Class
+	- Class
 
 inspiration:
   - "[MooTools](http://mootools.net)"
 
-provides: atom.Class.Events
+provides: Class.Events
 
 ...
 */
@@ -747,14 +810,14 @@ new function () {
 var Class = atom.Class;
 
 var fire = function (name, fn, args, onfinish) {
-	var result = fn.apply(this, args || []);
+	var result = fn.apply(this, Array.from(args || []));
 	if (typeof result == 'string' && result.toLowerCase() == 'removeevent') {
 		onfinish.push(this.removeEvent.context(this, [name, fn]));
 	}
 };
 
 var removeOn = function(string){
-	return string.replace(/^on([A-Z])/, function(full, first){
+	return (string || '').replace(/^on([A-Z])/, function(full, first){
 		return first.toLowerCase();
 	});
 };
@@ -777,7 +840,7 @@ nextTick.reset();
 
 atom.extend(Class, {
 	Events: Class({
-		events: { $ready: {} },
+		_events: { $ready: {} },
 
 		addEvent: function(name, fn) {
 			var i, l, onfinish = [];
@@ -796,11 +859,11 @@ atom.extend(Class, {
 				} else if (!fn) {
 					throw new TypeError('Function is empty');
 				} else {
-					Object.ifEmpty(this.events, name, []);
+					Object.ifEmpty(this._events, name, []);
 
-					this.events[name].include(fn);
+					this._events[name].include(fn);
 
-					var ready = this.events.$ready[name];
+					var ready = this._events.$ready[name];
 					if (ready) fire.apply(this, [name, fn, ready, onfinish]);
 					onfinish.invoke();
 				}
@@ -823,17 +886,20 @@ atom.extend(Class, {
 					throw new TypeError('Event name «$ready» is reserved');
 				}
 				if (arguments.length == 1) {
-					this.events[name] = [];
-				} else if (name in this.events) {
-					this.events[name].erase(fn);
+					this._events[name] = [];
+				} else if (name in this._events) {
+					this._events[name].erase(fn);
 				}
 			}
 			return this;
 		},
-
+		isEventAdded: function (name) {
+			var e = this._events[name];
+			return !!(e && e.length);
+		},
 		fireEvent: function (name, args) {
 			name = removeOn(name);
-			var funcs = this.events[name];
+			var funcs = this._events[name];
 			if (funcs) {
 				var onfinish = [],
 					l = funcs.length,
@@ -844,15 +910,17 @@ atom.extend(Class, {
 			return this;
 		},
 		readyEvent: function (name, args) {
-			name = removeOn(name);
-			this.events.$ready[name] = args || [];
-			nextTick(this.fireEvent.context(this, [name, args || []]));
+			nextTick(function () {
+				name = removeOn(name);
+				this._events.$ready[name] = args || [];
+				this.fireEvent(name, args || []);
+			}.context(this));
 			return this;
 		}
 	})
 });
 
-}();
+};
 
 /*
 ---
@@ -865,12 +933,12 @@ license: "[GNU Lesser General Public License](http://opensource.org/licenses/lgp
 
 requires:
 	- atom
-	- atom.Class
+	- Class
 
 inspiration:
   - "[MooTools](http://mootools.net)"
 
-provides: atom.Class.Options
+provides: Class.Options
 
 ...
 */
@@ -887,55 +955,6 @@ atom.extend(atom.Class, {
 				}
 			}
 			return this;
-		}
-	})
-});
-
-/*
----
-
-name: "Uri"
-
-description: "Port of parseUri function"
-
-license: "MIT License"
-
-author: "Steven Levithan <stevenlevithan.com>"
-
-requires:
-	- atom
-
-provides: atom.uri
-
-...
-*/
-atom.extend({
-	uri: atom.extend(function (str) {
-		var	o   = atom.uri.options,
-			m   = o.parser[o.strictMode ? "strict" : "loose"].exec(str || window.location.href),
-			uri = {},
-			i   = 14;
-
-		while (i--) uri[o.key[i]] = m[i] || "";
-
-		uri[o.q.name] = {};
-		uri[o.key[12]].replace(o.q.parser, function ($0, $1, $2) {
-			if ($1) uri[o.q.name][$1] = $2;
-		});
-
-		return uri;
-	}, {
-		options: {
-			strictMode: false,
-			key: ["source","protocol","authority","userInfo","user","password","host","port","relative","path","directory","file","query","anchor"],
-			q:   {
-				name:   "queryKey",
-				parser: /(?:^|&)([^&=]*)=?([^&]*)/g
-			},
-			parser: {
-				strict: /^(?:([^:\/?#]+):)?(?:\/\/((?:(([^:@]*)(?::([^:@]*))?)?@)?([^:\/?#]*)(?::(\d*))?))?((((?:[^?#\/]*\/)*)([^?#]*))(?:\?([^#]*))?(?:#(.*))?)/,
-				loose:  /^(?:(?![^:@]+:[^:@\/]*@)([^:\/?#.]+):)?(?:\/\/)?((?:(([^:@]*)(?::([^:@]*))?)?@)?([^:\/?#]*)(?::(\d*))?)(((\/(?:[^?#](?![^?#\/]*\.[^?#\/.]+(?:[?#]|$)))*\/?)?([^?#\/]*))(?:\?([^#]*))?(?:#(.*))?)/
-			}
 		}
 	})
 });
@@ -1073,10 +1092,10 @@ atom.implement(Array, 'safe', {
 		return [].combine(this);
 	},
 	associate: function(keys){
-		var obj = {}, length = this.length, i, isFn = typeof keys == 'function';
-		if (isFn) length = Math.min(length, keys.length);
+		var obj = {}, length = this.length, i, isFn = atom.typeOf(keys) == 'function';
+		if (!isFn) length = Math.min(length, keys.length);
 		for (i = 0; i < length; i++) {
-			obj[keys[i]] = isFn ? keys(this[i], i) : this[i];
+			obj[(isFn ? this : keys)[i]] = isFn ? keys(this[i], i) : this[i];
 		}
 		return obj;
 	},
@@ -1127,6 +1146,10 @@ provides: Function
 */
 
 new function () {
+	var getContext = function (bind, self) {
+		return (bind === false || bind === Function.context) ? self : bind;
+	};
+	
 	atom.extend(Function, 'safe', {
 		lambda : function (value) {
 			var returnThis = (arguments.length == 0);
@@ -1147,7 +1170,13 @@ new function () {
 			var fn = this;
 			args = args ? atom.toArray(args) : [];
 			return function(){
-				return fn.apply((bind === false || bind === Function.context) ? this : bind, [].append(args, arguments));
+				return fn.apply(getContext(bind, this), [].append(args, arguments));
+			};
+		},
+		only: function(numberOfArgs, bind) {
+			var fn = this;
+			return function() {
+				return fn.apply(getContext(bind, this), [].slice.call(arguments,0,numberOfArgs))
 			};
 		}
 	});
@@ -1171,7 +1200,7 @@ new function () {
 		delay:      timeout.run.context(Function.context, ['Timeout']),
 		periodical: timeout.run.context(Function.context, ['Interval'])
 	});
-}();
+}(); 
 
 
 /*
@@ -1238,7 +1267,7 @@ atom.implement(Number, 'safe', {
 ['abs','acos','asin','atan','atan2','ceil','cos','exp','floor','log','max','min','pow','sin','sqrt','tan']
 	.forEach(function(method) {
 		if (Number[method]) return;
-
+		
 		Number.prototype[method] = function() {
 			return Math[method].apply(null, [this].append(arguments));
 		};
@@ -1279,6 +1308,11 @@ atom.extend(Object, 'safe', {
 		var keys = [];
 		for (var i in obj) keys.push(i);
 		return keys;
+	},
+	values: function (obj) {
+		var values = [];
+		for (var i in obj) values.push(obj[i]);
+		return values;
 	},
 	isDefined: function (obj) {
 		return typeof obj != 'undefined';
@@ -1345,9 +1379,12 @@ provides: String
 new function () {
 
 var substituteRE = /\\?\{([^{}]+)\}/g,
-	safeHtmlRE = /[<'&">]/g;
+	safeHtmlRE = /[<'&">]/g,
+	UID = Date.now();
 
-
+String.uniqueID = function () {
+	return (UID++).toString(36);
+};
 
 atom.implement(String, 'safe', {
 	safeHtml: function () {
@@ -1363,7 +1400,7 @@ atom.implement(String, 'safe', {
 		return new Array(times + 1).join(this);
 	},
 	substitute: function(object, regexp){
-		return this.replace(regexp || (substituteRE), function(match, name){
+		return this.replace(regexp || substituteRE, function(match, name){
 			return (match[0] == '\\') ? match.slice(1) : (object[name] || '');
 		});
 	},
@@ -1392,3 +1429,39 @@ atom.implement(String, 'safe', {
 }();
 
 
+/*
+---
+
+name: "Class.Mutators.Generators"
+
+description: "Provides Generators mutator"
+
+license: "[GNU Lesser General Public License](http://opensource.org/licenses/lgpl-license.php)"
+
+authors:
+	- "Shock <shocksilien@gmail.com>"
+
+requires:
+	- atom
+	- Class
+
+provides: Class.Mutators.Generators
+
+...
+*/
+
+new function () {
+
+var getter = function (key, fn) {
+	return function() {
+		var pr = '_' + key, obj = this;
+		return pr in obj ? obj[pr] : (obj[pr] = fn.call(obj));
+	};
+};
+
+atom.Class.Mutators.Generators = function(properties) {
+	for (var i in properties) this.prototype.__defineGetter__(i, getter(i, properties[i]));
+};
+
+};
+ 
