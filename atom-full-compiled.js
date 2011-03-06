@@ -378,6 +378,13 @@ new function () {
 				}
 			});
 		},
+		wrap : function (wrapper) {
+			wrapper = atom(wrapper).get();
+			var obj = this.get();
+			obj.parentNode.replaceChild(wrapper, obj);
+			wrapper.appendChild(obj);
+			return this;
+		},
 		ready : function (full, fn) {
 			if (arguments[length] == 1) {
 				fn   = full;
