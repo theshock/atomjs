@@ -124,7 +124,7 @@ new function () {
 				return this.get().getAttribute(attr[0]);
 			}
 			return this.each(function (elem) {
-				atom.extend(elem, attr);
+				for (var i in attr) elem.setAttribute(i, attr[i]);
 			});
 		},
 		css : function (css) {
