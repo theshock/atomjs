@@ -248,6 +248,7 @@ new function () {
 		classNameRE = /^\.[-_a-z0-9]+$/i,
 		idRE = /^#[-_a-z0-9]+$/i,
 		toArray = atom.toArray,
+		isArray = Array.isArray,
 		length = 'length',
 		getElement = 'getElement',
 		getElementById = getElement + 'ById',
@@ -286,7 +287,7 @@ new function () {
 			this.elems = (sel instanceof HTMLCollection) ? toArray(sel)
 				: (typeof sel == 'string') ? atom.findByString(context, sel)
 				: (atom.isAtom(sel))       ? sel.elems
-				: (Array.isArray(sel))     ? sel
+				: (isArray(sel))     ? sel
 				:      atom.find(context, sel);
 			return this;
 		},
@@ -348,7 +349,7 @@ new function () {
 				return this.get().getAttribute(attr[0]);
 			}
 			return this.each(function (elem) {
-				atom.extend(elem, attr);
+				for (var i in attr) elem.setAttribute(i, attr[i]);
 			});
 		},
 		css : function (css) {
@@ -409,6 +410,33 @@ new function () {
 			});
 			atom(to).get()[appendChild](fr);
 			return this;
+		},
+		addClass: function (classNames) {
+			if (!classNames) return this;
+			
+			if (!isArray(classNames)) classNames = [classNames];
+			
+			return this.each(function (elem) {
+				var property = elem.className, current = ' ' + property + ' ';
+				
+				for (var i = classNames.length; i--;) {
+					var c = ' ' + classNames[i];
+					if (current.indexOf(c + ' ') < 0) property += c;
+				}
+				
+				elem.className = property.trim();
+			});
+		},
+		removeClass: function (classNames) {
+			if (!isArray(classNames) && classNames) classNames = [classNames];
+			
+			return this.each(function (elem) {
+				var current = ' ' + elem.className + ' ';
+				for (var i = classNames.length; i--;) {
+					current = current.replace(' ' + classNames[i] + ' ', ' ');
+				}
+				elem.className = current.trim();
+			});
 		},
 		log : function () {
 			atom.log.apply(atom, arguments[length] ? arguments : ['atom', this.elems]);
