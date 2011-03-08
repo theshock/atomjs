@@ -24,7 +24,8 @@ provides: Class
 var typeOf = atom.typeOf,
 	extend = atom.extend,
 	accessors = atom.implementAccessors,
-	prototype = 'prototype';
+	prototype = 'prototype',
+	lambda    = function (value) { return function () { return value; }};
 
 var Class = function (params) {
 	if (Class.$prototyping) {
@@ -102,8 +103,6 @@ var wrap = function(self, key, method){
 	
 	return wrapper;
 };
-
-var lambda = function (value) { return function () { return value; }};
 
 extend(Class, {
 	extend: function (name, fn) {
