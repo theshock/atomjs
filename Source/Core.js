@@ -76,11 +76,14 @@ provides: atom
 		} else if (item.callee && typeof item.length == 'number'){
 			return 'arguments';
 		}
-		return typeof item;
+		
+		var t = typeof item;
+		
+		return (t == 'object' && atom.Class && item instanceof atom.Class) ? 'class' : t;
 	};
 	typeOf.textnodeRE = /\S/;
 	typeOf.types = {};
-	['Boolean', 'Number', 'String', 'Function', 'Array', 'Date', 'RegExp'].forEach(function(name) {
+	['Boolean', 'Number', 'String', 'Function', 'Array', 'Date', 'RegExp', 'Class'].forEach(function(name) {
 		typeOf.types['[object ' + name + ']'] = name.toLowerCase();
 	});
 
