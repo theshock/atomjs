@@ -141,14 +141,14 @@ new function () {
 			});
 		},
 		bind : function () {
-			var events = setter(arguments);
+			var events = setter(arguments), bind = this;
 			return this.each(function (elem) {
 				for (var i in events) {
 					if (elem == doc && i == 'load') elem = win;
-					var fn = events[i] === false ? prevent : events[i].bind(this);
+					var fn = events[i] === false ? prevent : events[i].bind(bind);
 					elem.addEventListener(i, fn, false);
 				}
-			}.bind(this));
+			});
 		},
 		// todo: unbind
 		delegate : function (tagName, event, fn) {
