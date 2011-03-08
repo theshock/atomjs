@@ -98,12 +98,15 @@ new function () {
 		get body() {
 			return this.find('body');
 		},
+		get first() {
+			return this.elems[0];
+		},
 		html : function (value) {
 			if (arguments.length) {
-				this.get().innerHTML = value;
+				this.first.innerHTML = value;
 				return this;
 			} else {
-				return this.get().innerHTML;
+				return this.first.innerHTML;
 			}
 		},
 		create : function (tagName, index, attr) {
@@ -122,7 +125,7 @@ new function () {
 		attr : function (attr) {
 			attr = setter(arguments);
 			if (typeof attr[0] == 'string') {
-				return this.get().getAttribute(attr[0]);
+				return this.first.getAttribute(attr[0]);
 			}
 			return this.each(function (elem) {
 				for (var i in attr) elem.setAttribute(i, attr[i]);
@@ -131,7 +134,7 @@ new function () {
 		css : function (css) {
 			css = setter(arguments);
 			if (typeof css[0] == 'string') {
-				return this.get().style[css[0]];
+				return this.first.style[css[0]];
 			}
 			return this.each(function (elem) {
 				atom.extend(elem.style, css);
@@ -156,10 +159,10 @@ new function () {
 			});
 		},
 		wrap : function (wrapper) {
-			wrapper = atom(wrapper).get();
-			var obj = this.get();
+			wrapper = atom(wrapper).first;
+			var obj = this.first;
 			obj.parentNode.replaceChild(wrapper, obj);
-			wrapper.appendChild(obj);
+			wrapper[appendChild](obj);
 			return this;
 		},
 		ready : function (full, fn) {
@@ -184,7 +187,7 @@ new function () {
 			this.each(function (elem) {
 				fr[appendChild](elem);
 			});
-			atom(to).get()[appendChild](fr);
+			atom(to).first[appendChild](fr);
 			return this;
 		},
 		addClass: function (classNames) {
