@@ -48,8 +48,9 @@ atom.implement(String, 'safe', {
 		if (type == 'regexp') {
 			return this.replace(find, function (symb) { return replace[symb]; });
 		} else if (type == 'object') {
-			for (var i in find) this.replaceAll(i, find[i]);
-			return this;
+			var result = this
+			for (var i in find) result = result.replaceAll(i, find[i]);
+			return result;
 		}
 		return this.split(find).join(replace);
 	},
