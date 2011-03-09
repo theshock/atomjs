@@ -86,7 +86,7 @@ new function () {
 			return (result.length == 1 && result[0] == null) ? [] : result;
 		},
 		isDomElement: function (elem) {
-			return elem.nodeName;
+			return elem && elem.nodeName;
 		}
 	}).implement({
 		get : function (index) {
