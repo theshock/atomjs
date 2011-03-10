@@ -173,9 +173,12 @@ new function () {
 		},
 		wrap : function (wrapper) {
 			wrapper = atom(wrapper).first;
+			return this.replaceWith(wrapper).appendTo(wrapper);
+		},
+		replaceWith: function (element) {
+			element = atom(element).first;
 			var obj = this.first;
-			obj.parentNode.replaceChild(wrapper, obj);
-			wrapper[appendChild](obj);
+			obj.parentNode.replaceChild(element, obj);
 			return this;
 		},
 		ready : function (full, fn) {
