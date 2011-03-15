@@ -271,6 +271,13 @@ new function () {
 		prevent = function (e) {
 			e.preventDefault();
 			return false;
+		},
+		ignoreCssPostfix = {
+			"zIndex": true,
+			"fontWeight": true,
+			"opacity": true,
+			"zoom": true,
+			"lineHeight": true
 		};
 
 	atom.extend({
@@ -364,7 +371,13 @@ new function () {
 				return this.first.style[css[0]];
 			}
 			return this.each(function (elem) {
-				atom.extend(elem.style, css);
+				for (var i in css) {
+					var value = css[i];
+					if (typeof value == 'number' && !ignoreCssPostfix[i]) {
+						value += 'px';
+					}
+					elem.style[i] = value;
+				}
 			});
 		},
 		bind : function () {
@@ -387,9 +400,12 @@ new function () {
 		},
 		wrap : function (wrapper) {
 			wrapper = atom(wrapper).first;
+			return this.replaceWith(wrapper).appendTo(wrapper);
+		},
+		replaceWith: function (element) {
+			element = atom(element).first;
 			var obj = this.first;
-			obj.parentNode.replaceChild(wrapper, obj);
-			wrapper[appendChild](obj);
+			obj.parentNode.replaceChild(element, obj);
 			return this;
 		},
 		ready : function (full, fn) {
