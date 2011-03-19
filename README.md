@@ -47,10 +47,10 @@ Extend `object` with `parent` properties
 
 Extend `object.prototype` with `parent` properties.
 
-	nano.implement(child, parent);
+	atom.implement(child, parent);
 
 	// extend Function with .bind property if not implemented yet
-	nano.implement(Function, true, { bind : function () { /* code */} });
+	atom.implement(Function, true, { bind : function () { /* code */} });
 
 #### atom.toArray(arrayLikeObject)
 
