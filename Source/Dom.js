@@ -82,19 +82,23 @@ new function () {
 			if (arguments.length == 2) return atom(context).find(sel);
 
 			if (typeof sel == 'function' && !atom.isAtom(sel)) {
-				this.elems = [context];
-				return this.ready(sel);
+				// onDomReady
+				var fn = sel.bind(this, atom)
+				domReady ? setTimeout(fn, 1) : onDomReady.push(fn);
+				return this;
 			}
+			
 			this.elems = (sel instanceof HTMLCollection) ? toArray(sel)
 				: (typeof sel == 'string') ? atom.findByString(context, sel)
 				: (atom.isAtom(sel))       ? sel.elems
-				: (isArray(sel))     ? sel
-				:      atom.find(context, sel);
+				: (isArray(sel))           ? sel
+				:                            atom.find(context, sel);
+				
 			return this;
 		},
 		findByString : function (context, sel) {
 			var find = atom.find;
-			// sel.id, sel.tag, sel.Class is deprecated
+			// sel.id, sel.tag, sel.Class is deprecated, will be removed soon
 			return sel.match(idRE)     ? find(context, { id: sel.substr(1) }) :
 				sel.match(classNameRE) ? find(context, { Class: sel.substr(1) }) :
 				sel.match(tagNameRE)   ? find(context, { tag: sel }) :
@@ -103,7 +107,7 @@ new function () {
 		find : function (context, sel) {
 			if (!sel) return context == null ? [] : [context];
 
-			// sel.id, sel.tag, sel.Class is deprecated
+			// sel.id, sel.tag, sel.Class is deprecated, will be removed soon
 			var result = atom.isDomElement(sel) ? [sel]
 				:  typeof sel == 'string' ? atom.findByString(context, sel)
 				: (sel.id   ) ?        [context[getElementById](sel.id) ]
@@ -199,11 +203,6 @@ new function () {
 			element = atom(element).first;
 			var obj = this.first;
 			obj.parentNode.replaceChild(element, obj);
-			return this;
-		},
-		ready : function (fn) {
-			fn = fn.bind(this, atom)
-			domReady ? setTimeout(fn, 1) : onDomReady.push(fn);
 			return this;
 		},
 		find : function (selector) {
