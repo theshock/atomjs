@@ -258,6 +258,7 @@ new function () {
 		getElementsByClassName = getElement + 'sByClassName',
 		getElementsByTagName = getElement + 'sByTagName',
 		querySelectorAll = 'querySelectorAll',
+		addEventListener = 'addEventListener',
 		appendChild = 'appendChild',
 		setter = function (args) {
 			if (args.length == 1) {
@@ -273,12 +274,29 @@ new function () {
 			return false;
 		},
 		ignoreCssPostfix = {
-			"zIndex": true,
-			"fontWeight": true,
-			"opacity": true,
-			"zoom": true,
-			"lineHeight": true
+			zIndex: true,
+			fontWeight: true,
+			opacity: true,
+			zoom: true,
+			lineHeight: true
+		},
+		domReady = false,
+		onDomReady = [];
+	
+	new function () {
+		var ready = function () {
+			if (domReady) return;
+			
+			domReady = true;
+			
+			for (var i = 0, l = onDomReady[length]; i < l; onDomReady[i++]());
+			
+			onDomReady = [];
 		};
+		
+		doc[addEventListener]('DOMContentLoaded', ready, false);
+		win[addEventListener]('load', ready, false);
+	};
 
 	atom.extend({
 		initialize : function (sel, context) {
@@ -291,18 +309,23 @@ new function () {
 			if (arguments.length == 2) return atom(context).find(sel);
 
 			if (typeof sel == 'function' && !atom.isAtom(sel)) {
-				this.elems = [context];
-				return this.ready(sel);
+				// onDomReady
+				var fn = sel.bind(this, atom)
+				domReady ? setTimeout(fn, 1) : onDomReady.push(fn);
+				return this;
 			}
+			
 			this.elems = (sel instanceof HTMLCollection) ? toArray(sel)
 				: (typeof sel == 'string') ? atom.findByString(context, sel)
 				: (atom.isAtom(sel))       ? sel.elems
-				: (isArray(sel))     ? sel
-				:      atom.find(context, sel);
+				: (isArray(sel))           ? sel
+				:                            atom.find(context, sel);
+				
 			return this;
 		},
 		findByString : function (context, sel) {
 			var find = atom.find;
+			// sel.id, sel.tag, sel.Class is deprecated, will be removed soon
 			return sel.match(idRE)     ? find(context, { id: sel.substr(1) }) :
 				sel.match(classNameRE) ? find(context, { Class: sel.substr(1) }) :
 				sel.match(tagNameRE)   ? find(context, { tag: sel }) :
@@ -311,6 +334,7 @@ new function () {
 		find : function (context, sel) {
 			if (!sel) return context == null ? [] : [context];
 
+			// sel.id, sel.tag, sel.Class is deprecated, will be removed soon
 			var result = atom.isDomElement(sel) ? [sel]
 				:  typeof sel == 'string' ? atom.findByString(context, sel)
 				: (sel.id   ) ?        [context[getElementById](sel.id) ]
@@ -386,7 +410,7 @@ new function () {
 				for (var i in events) {
 					if (elem == doc && i == 'load') elem = win;
 					var fn = events[i] === false ? prevent : events[i].bind(bind);
-					elem.addEventListener(i, fn, false);
+					elem[addEventListener](i, fn, false);
 				}
 			});
 		},
@@ -407,13 +431,6 @@ new function () {
 			var obj = this.first;
 			obj.parentNode.replaceChild(element, obj);
 			return this;
-		},
-		ready : function (full, fn) {
-			if (arguments[length] == 1) {
-				fn   = full;
-				full = false;
-			}
-			return this.bind(full ? 'load' : 'DOMContentLoaded', fn.bind(this, atom));
 		},
 		find : function (selector) {
 			var result = [];
