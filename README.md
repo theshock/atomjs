@@ -87,9 +87,6 @@ Atom.Plugins.DOM
 
 	atom();
 	atom('tag .class');
-	atom({tag: 'tag'});
-	atom({id: 'id'});
-	atom({Class: 'class'});
 	atom(document.getElementsByTagName('tag'));
 	atom(selector, context);
 
@@ -97,9 +94,6 @@ Atom.Plugins.DOM
 
 	atom(function () {
 		// DOMContentLoaded
-	});
-	atom().ready(true, function () {
-		// document.onload
 	});
 
 #### atom().body
@@ -110,6 +104,7 @@ Atom.Plugins.DOM
 
 Returns html-element from current collection
 
+	atom('img').first;  // first image on a page
 	atom('img').get();  // first image on a page
 	atom('img').get(5); // fifth image on a page
 
