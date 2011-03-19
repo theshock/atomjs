@@ -31,6 +31,7 @@ new function () {
 		getElementsByClassName = getElement + 'sByClassName',
 		getElementsByTagName = getElement + 'sByTagName',
 		querySelectorAll = 'querySelectorAll',
+		addEventListener = 'addEventListener',
 		appendChild = 'appendChild',
 		setter = function (args) {
 			if (args.length == 1) {
@@ -46,12 +47,29 @@ new function () {
 			return false;
 		},
 		ignoreCssPostfix = {
-			"zIndex": true,
-			"fontWeight": true,
-			"opacity": true,
-			"zoom": true,
-			"lineHeight": true
+			zIndex: true,
+			fontWeight: true,
+			opacity: true,
+			zoom: true,
+			lineHeight: true
+		},
+		domReady = false,
+		onDomReady = [];
+	
+	new function () {
+		var ready = function () {
+			if (domReady) return;
+			
+			domReady = true;
+			
+			for (var i = 0, l = onDomReady[length]; i < l; onDomReady[i++]());
+			
+			onDomReady = [];
 		};
+		
+		doc[addEventListener]('DOMContentLoaded', ready, false);
+		win[addEventListener]('load', ready, false);
+	};
 
 	atom.extend({
 		initialize : function (sel, context) {
@@ -76,6 +94,7 @@ new function () {
 		},
 		findByString : function (context, sel) {
 			var find = atom.find;
+			// sel.id, sel.tag, sel.Class is deprecated
 			return sel.match(idRE)     ? find(context, { id: sel.substr(1) }) :
 				sel.match(classNameRE) ? find(context, { Class: sel.substr(1) }) :
 				sel.match(tagNameRE)   ? find(context, { tag: sel }) :
@@ -160,7 +179,7 @@ new function () {
 				for (var i in events) {
 					if (elem == doc && i == 'load') elem = win;
 					var fn = events[i] === false ? prevent : events[i].bind(bind);
-					elem.addEventListener(i, fn, false);
+					elem[addEventListener](i, fn, false);
 				}
 			});
 		},
@@ -182,8 +201,10 @@ new function () {
 			obj.parentNode.replaceChild(element, obj);
 			return this;
 		},
-		ready : function (full, fn) {
-			return this.bind('DOMContentLoaded', fn.bind(this, atom));
+		ready : function (fn) {
+			fn = fn.bind(this, atom)
+			domReady ? setTimeout(fn, 1) : onDomReady.push(fn);
+			return this;
 		},
 		find : function (selector) {
 			var result = [];
