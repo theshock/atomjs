@@ -84,6 +84,7 @@ new function () {
 		find : function (context, sel) {
 			if (!sel) return context == null ? [] : [context];
 
+			// sel.id, sel.tag, sel.Class is deprecated
 			var result = atom.isDomElement(sel) ? [sel]
 				:  typeof sel == 'string' ? atom.findByString(context, sel)
 				: (sel.id   ) ?        [context[getElementById](sel.id) ]
@@ -182,11 +183,7 @@ new function () {
 			return this;
 		},
 		ready : function (full, fn) {
-			if (arguments[length] == 1) {
-				fn   = full;
-				full = false;
-			}
-			return this.bind(full ? 'load' : 'DOMContentLoaded', fn.bind(this, atom));
+			return this.bind('DOMContentLoaded', fn.bind(this, atom));
 		},
 		find : function (selector) {
 			var result = [];
