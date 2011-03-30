@@ -1467,7 +1467,7 @@ atom.implement(String, 'safe', {
 	},
 	substitute: function(object, regexp){
 		return this.replace(regexp || substituteRE, function(match, name){
-			return (match[0] == '\\') ? match.slice(1) : (object[name] == null ? object[name] : '');
+			return (match[0] == '\\') ? match.slice(1) : (object[name] == null ? '' : object[name]);
 		});
 	},
 	replaceAll: function (find, replace) {
@@ -1475,7 +1475,7 @@ atom.implement(String, 'safe', {
 		if (type == 'regexp') {
 			return this.replace(find, function (symb) { return replace[symb]; });
 		} else if (type == 'object') {
-			var result = this
+			var result = this;
 			for (var i in find) result = result.replaceAll(i, find[i]);
 			return result;
 		}
