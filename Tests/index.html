@@ -143,9 +143,12 @@ test('Get', function(){
 asyncTest('onDomReady', 1, function () {
 	atom.dom(function () {
 		ok('onready runned');
-		start();
 	});
 
+	setTimeout(function () {
+		// it has 1 sec for onDomReady
+		start();
+	}, 1000);
 });
 
 	/******************************************
