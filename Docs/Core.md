@@ -4,11 +4,10 @@ JavaScript 1.8.5 Compatiblity
 Browsers, which do not have JavaScript 1.8.5 compatibility, will get those
 methods implemented:
 
-<ul>
-<li>[Function.prototype.bind](https://developer.mozilla.org/en/JavaScript/Reference/Global_Objects/Function/bind)</li>
-<li>[Object.keys](https://developer.mozilla.org/en/JavaScript/Reference/Global_Objects/Object/keys)</li>
-<li>[Array.isArray](https://developer.mozilla.org/en/JavaScript/Reference/Global_Objects/Array/isArray)</li>
-</ul>
+* [Function.prototype.bind](https://developer.mozilla.org/en/JavaScript/Reference/Global_Objects/Function/bind) d</li>
+* [Object.keys](https://developer.mozilla.org/en/JavaScript/Reference/Global_Objects/Object/keys) </li>
+* [Array.isArray](https://developer.mozilla.org/en/JavaScript/Reference/Global_Objects/Array/isArray)
+*
 
 Atom Core
 =========
