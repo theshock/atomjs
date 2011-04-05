@@ -323,8 +323,8 @@ new function () {
 		var elems = this.elems =
 			  sel instanceof HTMLCollection ? toArray(sel)
 			: typeof sel == 'string' ? dom.query(context, sel)
-			: sel instanceof dom     ? sel.elems
-			: isArray(sel)           ? sel
+			: sel instanceof dom     ? toArray(sel.elems)
+			: isArray(sel)           ? toArray(sel)
 			:                          dom.find(context, sel);
 
 		if (elems.length == 1 && elems[0] == null) {
@@ -364,8 +364,22 @@ new function () {
 		get : function (index) {
 			return this.elems[index * 1 || 0];
 		},
+		filter: function (sel) {
+			if (sel.match(tagNameRE)) var tag = sel;
+			if (sel.match(idRE     )) var id  = sel.substr(1);
+			return new dom(this.elems.filter(function (elem) {
+				return tag ? elem.tagName == tag :
+				       id  ? elem.id      == id :
+				  elem.parentNode && toArray(
+				    elem.parentNode.querySelectorAll(sel)
+				  ).indexOf(elem) >= 0;
+			}));
+		},
+		is: function (selector) {
+			return this.filter(selector).length > 0;
+		},
 		html : function (value) {
-			if (arguments.length) {
+			if (value !== undefined) {
 				this.first.innerHTML = value;
 				return this;
 			} else {
@@ -419,26 +433,16 @@ new function () {
 				}
 			});
 		},
-		unbind: function () {
-			var events = setter(arguments), bind = this;
-			return this.each(function (elem) {
-				for (var i in events) {
-					if (elem == doc && i == 'load') elem = win;
-					var fn = events[i] === false ? prevent : events[i].bind(bind);
-					elem[addEventListener](i, fn, false);
-				}
-			});
-		},
 		// todo: unbind
-		delegate : function (tagName, event, fn) {
+		delegate : function (selector, event, fn) {
 			return this.bind(event, function (e) {
-				if (e.target.tagName.toLowerCase() == tagName.toLowerCase()) {
+				if (new dom(e).is(selector)) {
 					fn.apply(this, arguments);
 				}
 			});
 		},
 		wrap : function (wrapper) {
-			wrapper = dom(wrapper).first;
+			wrapper = new dom(wrapper).first;
 			return this.replaceWith(wrapper).appendTo(wrapper);
 		},
 		replaceWith: function (element) {
@@ -689,35 +693,33 @@ var typeOf = atom.typeOf,
 
 var Class = function (params) {
 	if (Class.$prototyping) {
-		reset(this);
 		return this;
 	}
 
 	if (typeOf(params) == 'function') params = {initialize: params};
 
-	var newClass = function(){
-		reset(this);
-		if (newClass.$prototyping) return this;
+	var Constructor = function(){
+		if (Constructor.$prototyping) return this;
 		return this.initialize ? this.initialize.apply(this, arguments) : this;
 	};
-	extend(newClass, Class);
-	newClass[prototype] = getInstance(Class);
-	newClass
+	extend(Constructor, Class);
+	Constructor[prototype] = getInstance(Class);
+	Constructor
 		.implement(params, false)
 		.reserved(true, {
 			parent: parent,
-			self  : newClass
+			self  : Constructor
 		})
 		.reserved({
 			factory : (function() {
 				// Должно быть в конце, чтобы успел создаться прототип
-				function F(args) { return newClass.apply(this, args); }
-				F[prototype] = newClass[prototype];
-				return function(args) { return new F(args || []); }
+				function Factory(args) { return Constructor.apply(this, args); }
+				Factory[prototype] = Constructor[prototype];
+				return function(args) { return new Factory(args || []); }
 			})()
 		});
 
-	return newClass;
+	return Constructor;
 };
 
 var parent = function(){
@@ -727,25 +729,6 @@ var parent = function(){
 		previous = parent && parent[prototype][name];
 	if (!previous) throw new Error('The method «' + name + '» has no parent.');
 	return previous.apply(this, arguments);
-};
-
-var reset = function(object){
-	for (var key in object) if (!accessors(object, key)) {
-		var value = object[key];
-		if (value && typeof value == 'object') {
-			if ('clone' in value) {
-				object[key] = (typeof value.clone == 'function') ?
-					value.clone() : value.clone;
-			} else { // if (typeOf(value) == 'object') {
-				var F = function(){};
-				F[prototype] = value;
-				object[key] = reset(new F);
-			}
-		} else {
-			object[key] = value;
-		}
-	}
-	return object;
 };
 
 var wrap = function(self, key, method){
@@ -906,6 +889,10 @@ var removeOn = function(string){
 	});
 };
 
+var initEvents = function (object) {
+	if (!object._events) object._events = { $ready: {} };
+};
+
 var nextTick = function (fn) {
 	nextTick.fn.push(fn);
 	if (!nextTick.id) {
@@ -924,9 +911,9 @@ nextTick.reset();
 
 atom.extend(Class, {
 	Events: Class({
-		_events: { $ready: {} },
-
 		addEvent: function(name, fn) {
+			initEvents(this);
+
 			var i, l, onfinish = [];
 			if (arguments.length == 1 && typeof name != 'string') {
 				for (i in name) {
@@ -955,6 +942,8 @@ atom.extend(Class, {
 			return this;
 		},
 		removeEvent: function (name, fn) {
+			initEvents(this);
+
 			if (arguments.length == 1 && typeof name != 'string') {
 				for (i in name) {
 					this.addEvent(i, name[i]);
@@ -978,10 +967,14 @@ atom.extend(Class, {
 			return this;
 		},
 		isEventAdded: function (name) {
+			initEvents(this);
+			
 			var e = this._events[name];
 			return !!(e && e.length);
 		},
 		fireEvent: function (name, args) {
+			initEvents(this);
+			
 			name = removeOn(name);
 			var funcs = this._events[name];
 			if (funcs) {
@@ -994,6 +987,8 @@ atom.extend(Class, {
 			return this;
 		},
 		readyEvent: function (name, args) {
+			initEvents(this);
+			
 			nextTick(function () {
 				name = removeOn(name);
 				this._events.$ready[name] = args || [];
@@ -1030,6 +1025,8 @@ provides: Class.Options
 atom.extend(atom.Class, {
 	Options: atom.Class({
 		setOptions: function(){
+			if (!this.options) this.options = {};
+
 			var args = [{}, this.options].append(arguments);
 			var options = this.options = atom.merge.apply(null, args);
 			if (this.addEvent) for (var option in options){
