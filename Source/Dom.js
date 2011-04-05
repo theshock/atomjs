@@ -97,8 +97,8 @@ new function () {
 		var elems = this.elems =
 			  sel instanceof HTMLCollection ? toArray(sel)
 			: typeof sel == 'string' ? dom.query(context, sel)
-			: sel instanceof dom     ? sel.elems
-			: isArray(sel)           ? sel
+			: sel instanceof dom     ? toArray(sel.elems)
+			: isArray(sel)           ? toArray(sel)
 			:                          dom.find(context, sel);
 
 		if (elems.length == 1 && elems[0] == null) {
@@ -153,7 +153,7 @@ new function () {
 			return this.filter(selector).length > 0;
 		},
 		html : function (value) {
-			if (arguments.length) {
+			if (value === undefined) {
 				this.first.innerHTML = value;
 				return this;
 			} else {
@@ -207,16 +207,6 @@ new function () {
 				}
 			});
 		},
-		unbind: function () {
-			var events = setter(arguments), bind = this;
-			return this.each(function (elem) {
-				for (var i in events) {
-					if (elem == doc && i == 'load') elem = win;
-					var fn = events[i] === false ? prevent : events[i].bind(bind);
-					elem[addEventListener](i, fn, false);
-				}
-			});
-		},
 		// todo: unbind
 		delegate : function (selector, event, fn) {
 			return this.bind(event, function (e) {
@@ -226,7 +216,7 @@ new function () {
 			});
 		},
 		wrap : function (wrapper) {
-			wrapper = dom(wrapper).first;
+			wrapper = new dom(wrapper).first;
 			return this.replaceWith(wrapper).appendTo(wrapper);
 		},
 		replaceWith: function (element) {
