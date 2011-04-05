@@ -149,6 +149,9 @@ new function () {
 				  ).indexOf(elem) >= 0;
 			}));
 		},
+		is: function (selector) {
+			return this.filter(selector).length > 0;
+		},
 		html : function (value) {
 			if (arguments.length) {
 				this.first.innerHTML = value;
@@ -215,9 +218,9 @@ new function () {
 			});
 		},
 		// todo: unbind
-		delegate : function (tagName, event, fn) {
+		delegate : function (selector, event, fn) {
 			return this.bind(event, function (e) {
-				if (e.target.tagName.toLowerCase() == tagName.toLowerCase()) {
+				if (new dom(e).is(selector)) {
 					fn.apply(this, arguments);
 				}
 			});
