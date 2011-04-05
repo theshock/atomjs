@@ -153,7 +153,7 @@ new function () {
 			return this.filter(selector).length > 0;
 		},
 		html : function (value) {
-			if (value === undefined) {
+			if (value !== undefined) {
 				this.first.innerHTML = value;
 				return this;
 			} else {
