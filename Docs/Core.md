@@ -11,7 +11,7 @@ methods implemented:
 Atom Core
 =========
 
-## atom.extend(object = atom, safe = false, from)
+### atom.extend(object = atom, safe = false, from)
 
 Extend `object` with `from` properties.
 
@@ -37,7 +37,7 @@ Extend `object` with `from` properties.
 	});
 
 
-## atom.implement(object = atom, safe = false, from)
+### atom.implement(object = atom, safe = false, from)
 
 Extend `object.prototype` with `from` properties.
 
@@ -56,25 +56,25 @@ Extend `object.prototype` with `from` properties.
 #### Example: extend Function with .bind property if not implemented yet
 	atom.implement(Function, true, { bind : function () { /* code */} });
 
-## atom.toArray(arrayLikeObject)
+### atom.toArray(arrayLikeObject)
 
 Cast `arrayLikeObject` to `Array`
 	var args = atom.toArray(arguments);
 
-## atom.log(arg1, [arg2, ...])
+### atom.log(arg1, [arg2, ...])
 
 Safe alias for `console.log`
 
-## atom.isAtom(object)
+### atom.isAtom(object)
 
 Checks if `object` is Atom instance
 	atom.isAtom(atom()); // true
 
-## atom.clone(object)
+### atom.clone(object)
 Returns clone of object
 	var cloneArray = atom.clone(oldArray);
 
-## atom.typeOf(object)
+### atom.typeOf(object)
 Returns type of object:
 	
 	atom.typeOf(document.body) == 'element'
