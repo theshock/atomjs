@@ -15,20 +15,20 @@ Atom Core
 
 Extend `object` with `from` properties.
 
-#### Example: config
+##### Example: config
 	config = atom.extend({
 		// default values for config
 		a : 15,
 		b : 20
 	}, config);
 
-#### Example: extending atom
+##### Example: extending atom
 	atom.extend({
 		value: 123
 	});
 	alert(atom.value); // 123
 
-#### Example: safe extending
+##### Example: safe extending
 	// extend Array with .contains property if not implemented yet
 	atom.extend(Array, 'safe', {
 		contains: function (elem) {
@@ -41,10 +41,10 @@ Extend `object` with `from` properties.
 
 Extend `object.prototype` with `from` properties.
 
-#### Example: class extends
+##### Example: class extends
 	atom.implement(child, parent);
 
-#### Example: expanding atom
+##### Example: expanding atom
 	atom.implement({
 		test: function () {
 			alert(123);
@@ -53,7 +53,7 @@ Extend `object.prototype` with `from` properties.
 	var a = atom();
 	a.test(); // 123
 
-#### Example: extend Function with .bind property if not implemented yet
+##### Example: extend Function with .bind property if not implemented yet
 	atom.implement(Function, true, { bind : function () { /* code */} });
 
 ### atom.toArray(arrayLikeObject)
@@ -77,16 +77,16 @@ Returns clone of object
 ### atom.typeOf(object)
 Returns type of object:
 	
-	atom.typeOf(document.body) == 'element'
-	atom.typeOf(function(){})  == 'function'
-	atom.typeOf(new Date())    == 'date'
-	atom.typeOf(null)          == 'null'
-	atom.typeOf(arguments)     == 'arguments'
-	atom.typeOf(/abc/i)        == 'regexp'
-	atom.typeOf([])            == 'array'
-	atom.typeOf({})            == 'object'
-	atom.typeOf(15)            == 'number'
-	atom.typeOf(true)          == 'boolean'
+	atom.typeOf( document.body ) == 'element'
+	atom.typeOf(  function(){} ) == 'function'
+	atom.typeOf(    new Date() ) == 'date'
+	atom.typeOf(          null ) == 'null'
+	atom.typeOf(     arguments ) == 'arguments'
+	atom.typeOf(        /abc/i ) == 'regexp'
+	atom.typeOf(            [] ) == 'array'
+	atom.typeOf(            {} ) == 'object'
+	atom.typeOf(            15 ) == 'number'
+	atom.typeOf(          true ) == 'boolean'
 
 	var MyClass = atom.Class({});
-	atom.typeOf(new MyClass()) == 'class'
+	atom.typeOf( new MyClass() ) == 'class'
