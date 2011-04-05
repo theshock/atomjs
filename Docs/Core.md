@@ -1,5 +1,5 @@
 JavaScript 1.8.5 Compatiblity
------------------------------
+=============================
 
 Browsers, which do not have JavaScript 1.8.5 compatibility, will get those
 methods implemented:
@@ -9,7 +9,7 @@ methods implemented:
 * [Array.isArray](https://developer.mozilla.org/en/JavaScript/Reference/Global_Objects/Array/isArray)
 
 Atom Core
------------------------------
+=========
 
 ## atom.extend(object = atom, safe = false, from)
 
