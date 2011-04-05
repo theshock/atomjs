@@ -175,8 +175,8 @@ provides: atom
 		implementAccessors: implementAccessors, // getter+setter
 		typeOf: typeOf,
 		clone: clone,
-		merge: merge,
-		plugins : {}
+		/** @deprecated */
+		merge: merge
 	});
 
 	var atomFactory = function (args) {

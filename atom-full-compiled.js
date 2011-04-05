@@ -175,8 +175,8 @@ provides: atom
 		implementAccessors: implementAccessors, // getter+setter
 		typeOf: typeOf,
 		clone: clone,
-		merge: merge,
-		plugins : {}
+		/** @deprecated */
+		merge: merge
 	});
 
 	var atomFactory = function (args) {
@@ -410,6 +410,16 @@ new function () {
 			});
 		},
 		bind : function () {
+			var events = setter(arguments), bind = this;
+			return this.each(function (elem) {
+				for (var i in events) {
+					if (elem == doc && i == 'load') elem = win;
+					var fn = events[i] === false ? prevent : events[i].bind(bind);
+					elem[addEventListener](i, fn, false);
+				}
+			});
+		},
+		unbind: function () {
 			var events = setter(arguments), bind = this;
 			return this.each(function (elem) {
 				for (var i in events) {
