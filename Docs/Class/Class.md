@@ -56,16 +56,22 @@ Wrapper for native prototype-based OOP
 
 ### Properties
 `self` You can use property "self" to get the link to the class as in methods `logStatic` and `isSelf`
+
 `parent` You can use method `parent` to call method with the same name of the parent
+
 `factory` You can use static factory property to create instance of object with array of arguments
+
 	new Point(3, 8);
 	// equals to
 	Point.factory([3, 8]);
 
 ### Methods
 Available some methods helpers:
+
 `abstractMethod`, witch thrown mistake if is not overriden
+
 `protectedMethod`, witch can be called only with parents
+
 `hiddenMethod`, witch not implemented in children (not equals to private)
 
 	var MyClass = atom.Class({
