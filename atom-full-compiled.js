@@ -299,7 +299,9 @@ new function () {
 	};
 
 	var dom = function (sel, context) {
-		if (! (this instanceof dom)) return new dom(sel, context);
+		if (! (this instanceof dom)) {
+			return new dom(sel, context);
+		}
 
 		if (!arguments[length]) {
 			this.elems = [doc];
@@ -311,18 +313,23 @@ new function () {
 		}
 		context = context || doc;
 
-		if (typeof sel == 'function' && !sel instanceof dom) {
+		if (typeof sel == 'function' && !(sel instanceof dom)) {
 			// onDomReady
 			var fn = sel.bind(this, atom, dom);
 			domReady ? setTimeout(fn, 1) : onDomReady.push(fn);
 			return this;
 		}
 
-		this.elems = (sel instanceof HTMLCollection) ? toArray(sel)
-			: (typeof sel == 'string') ? dom.query(context, sel)
-			: (sel instanceof dom)     ? sel.elems
-			: (isArray(sel))           ? sel
-			:                            dom.find(context, sel);
+		var elems = this.elems =
+			  sel instanceof HTMLCollection ? toArray(sel)
+			: typeof sel == 'string' ? dom.query(context, sel)
+			: sel instanceof dom     ? sel.elems
+			: isArray(sel)           ? sel
+			:                          dom.find(context, sel);
+
+		if (elems.length == 1 && elems[0] == null) {
+			elems.length = 0;
+		}
 
 		return this;
 	};
@@ -339,6 +346,9 @@ new function () {
 			var result = sel.nodeName ? [sel]
 				: typeof sel == 'string' ? dom.query(context, sel) : [context];
 			return (result.length == 1 && result[0] == null) ? [] : result;
+		},
+		isElement: function (node) {
+			return !!(node && node.nodeName);
 		}
 	});
 	atom.implement(dom, {
