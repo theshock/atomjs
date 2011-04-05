@@ -105,7 +105,7 @@ Set attribute for every element in current collection
 
 Destroy current collection
 
-	atom.dom('div').destroy();afind
+	atom.dom('div').destroy();
 
 #### atom.dom().filter(selector)
 

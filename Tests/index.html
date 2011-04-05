@@ -320,10 +320,8 @@ test('Creating', function(){
 
 	var Foo = atom.Class({
 		name: null,
-		initialize: function (name) { this.name = name; },
-
-		obj : {
-			prop: {}
+		initialize: function (name) {
+			this.name = name;
 		},
 		
 		property: 0,
@@ -332,12 +330,7 @@ test('Creating', function(){
 
 		_etter: 0,
 		set etter(etter) { this._etter = etter * 2; },
-		get etter() { return this._etter + 5; },
-
-		array: ['first'],
-		plain: new Plain('plainName'),
-		object: { name:'objectName' },
-		clonable: new Clonable('clonableName')
+		get etter() { return this._etter + 5; }
 	});
 
 	var foo = new Foo('fooName');
@@ -360,28 +353,6 @@ test('Creating', function(){
 	foo.etter = 9;
 	equal(foo._etter, 18, 'Property setter');
 	equal(foo.etter, 23, 'Property getter');
-
-	// objects cloning
-	equal(foo.array[0], 'first', 'foo.array default value');
-	equal(foo.plain.name, 'plainName', 'foo.plain default value');
-	equal(foo.object.name, 'objectName', 'foo.object default value');
-	equal(foo.clonable.name, 'cloneName', 'foo.clonable default value');
-	// ok(foo.plain instanceof Plain, 'foo.plain instanceof Plain'); // how ? important?
-	ok(foo.clonable instanceof Clonable, 'foo.clonable instanceof Clonable');
-
-	// object are independent
-	var secondFoo = new Foo();
-	secondFoo.array[0] = 'secondFoo.array';
-	secondFoo.plain.name = 'secondFoo.plain';
-	secondFoo.object.name = 'secondFoo.object';
-	secondFoo.clonable.name = 'secondFoo.clonable';
-
-	equal(foo.array[0], 'first', 'foo.array without changes');
-	equal(foo.plain.name, 'plainName', 'foo.plain without changes');
-	equal(foo.object.name, 'objectName', 'foo.object without changes');
-	equal(foo.clonable.name, 'cloneName', 'foo.clonable without changes');
-
-	notEqual(foo.obj.prop, bar.obj.prop, 'Objects are cloned');
 });
 
 test('Extending', function(){
