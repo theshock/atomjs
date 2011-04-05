@@ -36,6 +36,10 @@ var removeOn = function(string){
 	});
 };
 
+var initEvents = function (object) {
+	if (!object._events) object._events = { $ready: {} };
+};
+
 var nextTick = function (fn) {
 	nextTick.fn.push(fn);
 	if (!nextTick.id) {
@@ -54,9 +58,9 @@ nextTick.reset();
 
 atom.extend(Class, {
 	Events: Class({
-		_events: { $ready: {} },
-
 		addEvent: function(name, fn) {
+			initEvents(this);
+
 			var i, l, onfinish = [];
 			if (arguments.length == 1 && typeof name != 'string') {
 				for (i in name) {
@@ -85,6 +89,8 @@ atom.extend(Class, {
 			return this;
 		},
 		removeEvent: function (name, fn) {
+			initEvents(this);
+
 			if (arguments.length == 1 && typeof name != 'string') {
 				for (i in name) {
 					this.addEvent(i, name[i]);
@@ -108,10 +114,14 @@ atom.extend(Class, {
 			return this;
 		},
 		isEventAdded: function (name) {
+			initEvents(this);
+			
 			var e = this._events[name];
 			return !!(e && e.length);
 		},
 		fireEvent: function (name, args) {
+			initEvents(this);
+			
 			name = removeOn(name);
 			var funcs = this._events[name];
 			if (funcs) {
@@ -124,6 +134,8 @@ atom.extend(Class, {
 			return this;
 		},
 		readyEvent: function (name, args) {
+			initEvents(this);
+			
 			nextTick(function () {
 				name = removeOn(name);
 				this._events.$ready[name] = args || [];
