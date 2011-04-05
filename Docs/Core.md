@@ -11,24 +11,24 @@ methods implemented:
 Atom Core
 =========
 
-### atom.extend(object = atom, safe = false, from)
+## atom.extend(object = atom, safe = false, from)
 
 Extend `object` with `from` properties.
 
-##### Example: config
+#### Example: config
 	config = atom.extend({
 		// default values for config
 		a : 15,
 		b : 20
 	}, config);
 
-##### Example: extending atom
+#### Example: extending atom
 	atom.extend({
 		value: 123
 	});
 	alert(atom.value); // 123
 
-##### Example: safe extending
+#### Example: safe extending
 	// extend Array with .contains property if not implemented yet
 	atom.extend(Array, 'safe', {
 		contains: function (elem) {
@@ -37,14 +37,14 @@ Extend `object` with `from` properties.
 	});
 
 
-### atom.implement(object = atom, safe = false, from)
+## atom.implement(object = atom, safe = false, from)
 
 Extend `object.prototype` with `from` properties.
 
-##### Example: class extends
+#### Example: class extends
 	atom.implement(child, parent);
 
-##### Example: expanding atom
+#### Example: expanding atom
 	atom.implement({
 		test: function () {
 			alert(123);
@@ -53,28 +53,28 @@ Extend `object.prototype` with `from` properties.
 	var a = atom();
 	a.test(); // 123
 
-##### Example: extend Function with .bind property if not implemented yet
+#### Example: extend Function with .bind property if not implemented yet
 	atom.implement(Function, true, { bind : function () { /* code */} });
 
-### atom.toArray(arrayLikeObject)
+## atom.toArray(arrayLikeObject)
 
 Cast `arrayLikeObject` to `Array`
 	var args = atom.toArray(arguments);
 
-### atom.log(arg1, [arg2, ...])
+## atom.log(arg1, [arg2, ...])
 
 Safe alias for `console.log`
 
-### atom.isAtom(object)
+## atom.isAtom(object)
 
 Checks if `object` is Atom instance
 	atom.isAtom(atom()); // true
 
-### atom.clone(object)
+## atom.clone(object)
 Returns clone of object
 	var cloneArray = atom.clone(oldArray);
 
-### atom.typeOf(object)
+## atom.typeOf(object)
 Returns type of object:
 	
 	atom.typeOf( document.body ) == 'element'
