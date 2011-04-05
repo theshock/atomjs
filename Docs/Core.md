@@ -1,14 +1,3 @@
-JavaScript 1.8.5 Compatiblity
-=============================
-
-Browsers, which do not have JavaScript 1.8.5 compatibility, will get those
-methods implemented:
-
-* [Function.prototype.bind](https://developer.mozilla.org/en/JavaScript/Reference/Global_Objects/Function/bind)
-* [Object.keys](https://developer.mozilla.org/en/JavaScript/Reference/Global_Objects/Object/keys)
-* [Array.isArray](https://developer.mozilla.org/en/JavaScript/Reference/Global_Objects/Array/isArray)
-*
-
 Atom Core
 =========
 
@@ -77,7 +66,7 @@ Returns clone of object
 
 ## atom.typeOf(object)
 Returns type of object:
-	
+
 	atom.typeOf( document.body ) == 'element'
 	atom.typeOf(  function(){} ) == 'function'
 	atom.typeOf(    new Date() ) == 'date'
@@ -91,3 +80,13 @@ Returns type of object:
 
 	var MyClass = atom.Class({});
 	atom.typeOf( new MyClass() ) == 'class'
+
+JavaScript 1.8.5 Compatiblity
+=============================
+
+Browsers, which do not have JavaScript 1.8.5 compatibility, will get those
+methods implemented:
+
+* [Function.prototype.bind](https://developer.mozilla.org/en/JavaScript/Reference/Global_Objects/Function/bind)
+* [Object.keys](https://developer.mozilla.org/en/JavaScript/Reference/Global_Objects/Object/keys)
+* [Array.isArray](https://developer.mozilla.org/en/JavaScript/Reference/Global_Objects/Array/isArray)
