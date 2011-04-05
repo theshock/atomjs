@@ -68,11 +68,11 @@ Wrapper for native prototype-based OOP
 ### Methods
 Available some methods helpers:
 
-`abstractMethod`, witch thrown mistake if is not overriden
+`abstractMethod`, which thrown mistake if is not overriden
 
-`protectedMethod`, witch can be called only with parents
+`protectedMethod`, which can be called only with parents
 
-`hiddenMethod`, witch not implemented in children (not equals to private)
+`hiddenMethod`, which not implemented in children (not equals to private)
 
 	var MyClass = atom.Class({
 		abstr: atom.Class.abstractMethod,
