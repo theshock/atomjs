@@ -52,11 +52,11 @@ provides: atom
 		} else throw new TypeError();
 
 		var ext = proto ? elem[prototype] : elem;
-		for (var i in from) {
+		for (var i in from) if (i != 'constructor') {
 			if (safe && i in ext) continue;
-			
+
 			if ( !implementAccessors(from, ext, i) ) {
-				ext[i] = i == 'prototype' ? from[i] : clone(from[i]);
+				ext[i] = clone(from[i]);
 			}
 		}
 		return elem;
@@ -73,13 +73,13 @@ provides: atom
 		if (item.nodeName){
 			if (item.nodeType == 1) return 'element';
 			if (item.nodeType == 3) return typeOf.textnodeRE.test(item.nodeValue) ? 'textnode' : 'whitespace';
-		} else if (item.callee && typeof item.length == 'number'){
+		} else if (item && item.callee && typeof item.length == 'number'){
 			return 'arguments';
 		}
 		
-		var t = typeof item;
+		var type = typeof item;
 		
-		return (t == 'object' && atom.Class && item instanceof atom.Class) ? 'class' : t;
+		return (type == 'object' && atom.Class && item instanceof atom.Class) ? 'class' : type;
 	};
 	typeOf.textnodeRE = /\S/;
 	typeOf.types = {};
@@ -93,7 +93,6 @@ provides: atom
 			key = to;
 			to  = null;
 		}
-		
 		// #todo: implement with getOwnPropertyDescriptor && defineProperty
 		
 		var g = from.__lookupGetter__(key), s = from.__lookupSetter__(key);
@@ -118,10 +117,8 @@ provides: atom
 			return c;
 		},
 		object: function (object) {
-			if ('clone' in object) {
-				return typeof object.clone == 'function' ?
-					object.clone() : object.clone;
-			}
+			if (typeof object.clone == 'function') return object.clone();
+			
 			var c = {};
 			for (var key in object) if (!implementAccessors(object, c, key)) {
 				c[key] = clone(object[key]);
@@ -182,9 +179,11 @@ provides: atom
 		plugins : {}
 	});
 
-	var atomFactory = atom.extend(function (args) {
+	var atomFactory = function (args) {
 		return Atom[apply](this, args);
-	}, { prototype : Atom[prototype] });
+	};
+	atomFactory[prototype] = Atom[prototype];
+
 
 	// JavaScript 1.8.5 Compatiblity
 	atom.implement(Function, 'safe', {

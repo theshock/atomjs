@@ -7,7 +7,7 @@
 		<script src="jquery.js"></script>
 		<script src="qunit.js"></script>
 		<!-- Connect AtomJS framework here -->
-		<script src="atom.js"></script>
+		<script src="../atom-full-compiled.js"></script>
 	</head>
 	<body>
 		<h1 id="qunit-header">Atom Javascript framework tests</h1>
@@ -40,7 +40,6 @@ module('[Atom Core]');
 
 test('Initialize', function(){
 	ok( atom, 'atom' );
-	ok( atom.isAtom(atom()), 'atom.isAtom(atom())' );
 });
 test('JavaScript 1.8.5 Compatiblity', function(){
 	equal( typeof (function(){}.bind) , 'function', 'typeof function(){}.bind' );
@@ -50,14 +49,13 @@ test('JavaScript 1.8.5 Compatiblity', function(){
 	ok(  Array.isArray([]), ' Array.isArray([])' );
 	ok( !Array.isArray({}), '!Array.isArray({})' );
 
-	deepEqual( Object.keys({a:1,b:2,3:3}), ['a','b','3'], 'Object.keys({a:1,b:2,3:3})' );
+	deepEqual( Object.keys({3:3,a:1,b:2}), ['3','a','b'], 'Object.keys({a:1,b:2,3:3})' );
 });
 test('atom.typeOf', function(){
 	equal( atom.typeOf(document.body), 'element'  , 'atom.typeOf(document.body)');
 	equal( atom.typeOf(function(){}) , 'function' , 'atom.typeOf(function(){})');
 	equal( atom.typeOf(new Date())   , 'date'     , 'atom.typeOf(new Date())');
 	equal( atom.typeOf(null)     , 'null'     , 'atom.typeOf(null)');
-	equal( atom.typeOf(atom())   , 'atom'     , 'atom.typeOf(atom())');
 	equal( atom.typeOf(arguments), 'arguments', 'atom.typeOf(arguments)');
 	equal( atom.typeOf(/abc/i)   , 'regexp'   , 'atom.typeOf(/abc/i)');
 	equal( atom.typeOf([])       , 'array'    , 'atom.typeOf([])');
@@ -129,16 +127,13 @@ module('[Atom Plugins] Dom');
 test('Get', function(){
 	var ID = 'qunit-fixture', $ID = '#' + ID,
 		win = window, doc = win.document,
-		getElement = 'getElement',
-		byId = getElement + 'ById',
-		byTag = getElement + 'sByTagName',
-		byClass = getElement + 'sByClassName',
-		wrapper = doc[byId](ID);
-	
-	strictEqual(atom().get(), doc, 'atom() is document');
-	strictEqual(atom('unknownTag').length, 0, 'atom("unknownTag") returns nothing');
-	strictEqual(atom($ID + ' p').length , wrapper[byTag]('p').length    , 'atom("#cid p") right length');
-	strictEqual(atom('.foo', $ID).length, wrapper[byClass]('foo').length, 'atom(".foo", "#cid") right length');
+		wrapper = doc.getElementById(ID);
+
+
+	strictEqual(atom.dom().get(), doc, 'atom.dom() is document');
+	strictEqual(atom.dom('unknownTag').length, 0, 'atom.dom("unknownTag") returns nothing');
+	strictEqual(atom.dom($ID + ' p').length , wrapper.getElementsByTagName('p').length    , 'atom.dom("#cid p") right length');
+	strictEqual(atom.dom('.foo', $ID).length, wrapper.getElementsByClassName('foo').length, 'atom.dom(".foo", "#cid") right length');
 	// todo: [qtest] full of DOM plugin
 });
 

@@ -18,8 +18,9 @@ provides: dom
 ...
 */
 new function () {
-	var win = window,
-	    doc = win.document,
+	var undefined,
+		win = window,
+		doc = win.document,
 		tagNameRE = /^[-_a-z0-9]+$/i,
 		classNameRE = /^\.[-_a-z0-9]+$/i,
 		idRE = /^#[-_a-z0-9]+$/i,
@@ -71,66 +72,61 @@ new function () {
 		win[addEventListener]('load', ready, false);
 	};
 
-	atom.extend({
-		initialize : function (sel, context) {
-			if (!arguments[length]) {
-				this.elems = [doc];
-				return this;
-			}
+	var dom = function (sel, context) {
+		if (! (this instanceof dom)) return new dom(sel, context);
 
-			context = context || doc;
-			if (arguments.length == 2) return atom(context).find(sel);
-
-			if (typeof sel == 'function' && !atom.isAtom(sel)) {
-				// onDomReady
-				var fn = sel.bind(this, atom)
-				domReady ? setTimeout(fn, 1) : onDomReady.push(fn);
-				return this;
-			}
-			
-			this.elems = (sel instanceof HTMLCollection) ? toArray(sel)
-				: (typeof sel == 'string') ? atom.findByString(context, sel)
-				: (atom.isAtom(sel))       ? sel.elems
-				: (isArray(sel))           ? sel
-				:                            atom.find(context, sel);
-				
+		if (!arguments[length]) {
+			this.elems = [doc];
 			return this;
+		}
+
+		if (context !== undefined) {
+			return new dom(context || doc).find(sel);
+		}
+		context = context || doc;
+
+		if (typeof sel == 'function' && !sel instanceof dom) {
+			// onDomReady
+			var fn = sel.bind(this, atom, dom);
+			domReady ? setTimeout(fn, 1) : onDomReady.push(fn);
+			return this;
+		}
+
+		this.elems = (sel instanceof HTMLCollection) ? toArray(sel)
+			: (typeof sel == 'string') ? dom.query(context, sel)
+			: (sel instanceof dom)     ? sel.elems
+			: (isArray(sel))           ? sel
+			:                            dom.find(context, sel);
+
+		return this;
+	};
+	atom.extend(dom, {
+		query : function (context, sel) {
+			return sel.match(idRE)        ?        [context[getElementById        ](sel.substr(1))] :
+			       sel.match(classNameRE) ? toArray(context[getElementsByClassName](sel.substr(1))) :
+			       sel.match(tagNameRE)   ? toArray(context[getElementsByTagName  ](sel)) :
+			                                toArray(context[querySelectorAll      ](sel));
 		},
-		findByString : function (context, sel) {
-			var find = atom.find;
-			// sel.id, sel.tag, sel.Class is deprecated, will be removed soon
-			return sel.match(idRE)     ? find(context, { id: sel.substr(1) }) :
-				sel.match(classNameRE) ? find(context, { Class: sel.substr(1) }) :
-				sel.match(tagNameRE)   ? find(context, { tag: sel }) :
-					toArray(context[querySelectorAll](sel));
-		},
-		find : function (context, sel) {
+		find: function (context, sel) {
 			if (!sel) return context == null ? [] : [context];
 
-			// sel.id, sel.tag, sel.Class is deprecated, will be removed soon
-			var result = atom.isDomElement(sel) ? [sel]
-				:  typeof sel == 'string' ? atom.findByString(context, sel)
-				: (sel.id   ) ?        [context[getElementById](sel.id) ]
-				: (sel.tag  ) ? toArray(context[getElementsByTagName](sel.tag))
-				: (sel.Class) ? toArray(context[getElementsByClassName](sel.Class))
-				:                      [context];
+			var result = sel.nodeName ? [sel]
+				: typeof sel == 'string' ? dom.query(context, sel) : [context];
 			return (result.length == 1 && result[0] == null) ? [] : result;
-		},
-		isDomElement: function (elem) {
-			return elem && elem.nodeName;
 		}
-	}).implement({
-		get : function (index) {
-			return this.elems[index * 1 || 0];
-		},
+	});
+	atom.implement(dom, {
 		get length() {
-			return this.elems.length;
+			return this.elems ? this.elems.length : 0;
 		},
 		get body() {
 			return this.find('body');
 		},
 		get first() {
 			return this.elems[0];
+		},
+		get : function (index) {
+			return this.elems[index * 1 || 0];
 		},
 		html : function (value) {
 			if (arguments.length) {
@@ -145,7 +141,7 @@ new function () {
 				attr  = index;
 				index = 0;
 			}
-			var elem = atom(this.get(index).createElement(tagName));
+			var elem = dom(this.get(index).createElement(tagName));
 			if (attr) elem.attr(attr);
 			return elem;
 		},
@@ -196,11 +192,11 @@ new function () {
 			});
 		},
 		wrap : function (wrapper) {
-			wrapper = atom(wrapper).first;
+			wrapper = dom(wrapper).first;
 			return this.replaceWith(wrapper).appendTo(wrapper);
 		},
 		replaceWith: function (element) {
-			element = atom(element).first;
+			element = dom(element).first;
 			var obj = this.first;
 			obj.parentNode.replaceChild(element, obj);
 			return this;
@@ -208,40 +204,40 @@ new function () {
 		find : function (selector) {
 			var result = [];
 			this.each(function (elem) {
-				var found = atom.find(elem, selector);
+				var found = dom.find(elem, selector);
 				for (var i = 0, l = found[length]; i < l; i++) {
 					if (result.indexOf(found[i]) === -1) result.push(found[i]);
 				}
 			});
-			return atom(result);
+			return new dom(result);
 		},
 		appendTo : function (to) {
 			var fr = doc.createDocumentFragment();
 			this.each(function (elem) {
 				fr[appendChild](elem);
 			});
-			atom(to).first[appendChild](fr);
+			dom(to).first[appendChild](fr);
 			return this;
 		},
 		addClass: function (classNames) {
 			if (!classNames) return this;
-			
+
 			if (!isArray(classNames)) classNames = [classNames];
-			
+
 			return this.each(function (elem) {
 				var property = elem.className, current = ' ' + property + ' ';
-				
+
 				for (var i = classNames.length; i--;) {
 					var c = ' ' + classNames[i];
 					if (current.indexOf(c + ' ') < 0) property += c;
 				}
-				
+
 				elem.className = property.trim();
 			});
 		},
 		removeClass: function (classNames) {
 			if (!isArray(classNames) && classNames) classNames = [classNames];
-			
+
 			return this.each(function (elem) {
 				var current = ' ' + elem.className + ' ';
 				for (var i = classNames.length; i--;) {
@@ -251,13 +247,16 @@ new function () {
 			});
 		},
 		log : function () {
-			atom.log.apply(atom, arguments[length] ? arguments : ['atom', this.elems]);
+			atom.log.apply(atom, arguments[length] ? arguments : ['atom.dom', this.elems]);
 			return this;
 		},
 		destroy : function () {
 			return this.each(function (elem) {
 				elem.parentNode.removeChild(elem);
 			});
-		}
+		},
+		constructor: dom
 	});
+
+	atom.extend({ dom: dom });
 };
