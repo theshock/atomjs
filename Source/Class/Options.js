@@ -20,10 +20,13 @@ provides: Class.Options
 */
 
 atom.Class.Options = atom.Class({
+	options: {},
 	setOptions: function(){
 		if (!this.options) {
-			var def = this.self.defaultOptions;
-			this.options = def ? atom.clone(def) : {};
+			this.options = {};
+		} else if (this.options == this.self.prototype.options) {
+			// it shouldn't be link to static options
+			this.options = atom.clone(this.options);
 		}
 
 		if (arguments.length) {
