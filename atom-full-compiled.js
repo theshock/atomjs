@@ -692,11 +692,9 @@ var typeOf = atom.typeOf,
 	lambda    = function (value) { return function () { return value; }};
 
 var Class = function (params) {
-	if (Class.$prototyping) {
-		return this;
-	}
+	if (Class.$prototyping) return this;
 
-	if (typeOf(params) == 'function') params = {initialize: params};
+	if (typeOf(params) == 'function') params = { initialize: params };
 
 	var Constructor = function(){
 		if (Constructor.$prototyping) return this;
@@ -711,12 +709,11 @@ var Class = function (params) {
 			self  : Constructor
 		})
 		.reserved({
-			factory : (function() {
-				// Должно быть в конце, чтобы успел создаться прототип
+			factory : new function() {
 				function Factory(args) { return Constructor.apply(this, args); }
 				Factory[prototype] = Constructor[prototype];
 				return function(args) { return new Factory(args || []); }
-			})()
+			}
 		});
 
 	return Constructor;
@@ -724,8 +721,8 @@ var Class = function (params) {
 
 var parent = function(){
 	if (!this.$caller) throw new Error('The method «parent» cannot be called.');
-	var name = this.$caller.$name,
-		parent = this.$caller.$owner.parent,
+	var name     = this.$caller.$name,
+		parent   = this.$caller.$owner.parent,
 		previous = parent && parent[prototype][name];
 	if (!previous) throw new Error('The method «' + name + '» has no parent.');
 	return previous.apply(this, arguments);
@@ -735,14 +732,17 @@ var wrap = function(self, key, method){
 	// if method is already wrapped
 	if (method.$origin) method = method.$origin;
 	
-	var wrapper = extend(function(){
+	var wrapper = function() {
 		if (method.$protected && !this.$caller) throw new Error('The method «' + key + '» is protected.');
 		var current = this.$caller;
 		this.$caller = wrapper;
 		var result = method.apply(this, arguments);
 		this.$caller = current;
 		return result;
-	}, {$owner: self, $origin: method, $name: key});
+	};
+	wrapper.$owner  = self;
+	wrapper.$origin = method;
+	wrapper.$name   = key;
 	
 	return wrapper;
 };
@@ -786,7 +786,7 @@ extend(Class, {
 				}
 				this[prototype][key] = (retain) ? value : wrap(this, key, value);
 			} else {
-				atom.merge(this[prototype], key, value);
+				this[prototype][key] = atom.clone(value);
 			}
 		}
 		return this;
@@ -797,7 +797,7 @@ extend(Class, {
 		}.bind(this));
 		return this;
 	},
-	reserved: function (toProto, props) { // use carefull !!
+	reserved: function (toProto, props) { // use careful !!
 		if (arguments.length == 1) {
 			props = toProto;
 			toProto = false;
@@ -836,7 +836,7 @@ extend(Class, {
 			this.extend(properties);
 		}
 	},
-	abstractMethod: function (name) {
+	abstractMethod: function () {
 		throw new Error('Abstract Method «' + this.$caller.$name + '» called');
 	},
 	protectedMethod: function (fn) {
@@ -1022,22 +1022,29 @@ provides: Class.Options
 ...
 */
 
-atom.extend(atom.Class, {
-	Options: atom.Class({
-		setOptions: function(){
-			if (!this.options) this.options = {};
-
-			var args = [{}, this.options].append(arguments);
-			var options = this.options = atom.merge.apply(null, args);
-			if (this.addEvent) for (var option in options){
-				if (atom.typeOf(options[option]) == 'function' && (/^on[A-Z]/).test(option)) {
-					this.addEvent(option, options[option]);
-					delete options[option];
-				}
-			}
-			return this;
+atom.Class.Options = atom.Class({
+	options: {},
+	setOptions: function(){
+		if (!this.options) {
+			this.options = {};
+		} else if (this.options == this.self.prototype.options) {
+			// it shouldn't be link to static options
+			this.options = atom.clone(this.options);
 		}
-	})
+
+		for (var a = arguments, i = 0, l = a.length; i < l;) {
+			atom.extend(this.options, a[i++]);
+		}
+		var options = this.options;
+		
+		if (this.addEvent) for (var option in options){
+			if (atom.typeOf(options[option]) == 'function' && (/^on[A-Z]/).test(option)) {
+				this.addEvent(option, options[option]);
+				delete options[option];
+			}
+		}
+		return this;
+	}
 });
 
 /*
@@ -1077,7 +1084,7 @@ atom.extend(Array, 'safe', {
 		);
 	},
 	fill: function (array, fill) {
-		array = Array.isArray(array) ? array : new Array(1 * array);
+		array = Array.isArray(array) ? array : new Array(array * 1);
 		for (var i = array.length; i--;) array[i] = fill;
 		return array;
 	},
