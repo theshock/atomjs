@@ -28,21 +28,21 @@ provides: atom
 		slice     = [].slice;
 
 	var atom = global.atom = function () {
-		return atom.initialize[apply](this, arguments);
+		if (atom.initialize) return atom.initialize[apply](this, arguments);
 	};
 
 	var innerExtend = function (proto) {
 		return function () {
 			var args = arguments, L = args.length, elem, safe, from;
-			if (L === 3) {
+			if (L == 3) {
 				elem = args[0];
 				safe = args[1];
 				from = args[2];
-			} else if (L === 2) {
+			} else if (L == 2) {
 				elem = args[0];
 				safe = false;
 				from = args[1];
-			} else if (L === 1) {
+			} else if (L == 1) {
 				elem = atom;
 				safe = false;
 				from = args[0];
@@ -68,7 +68,7 @@ provides: atom
 
 		if (item.nodeName){
 			if (item.nodeType == 1) return 'element';
-			if (item.nodeType == 3) return typeOf.textnodeRE.test(item.nodeValue) ? 'textnode' : 'whitespace';
+			if (item.nodeType == 3) return /\S/.test(item.nodeValue) ? 'textnode' : 'whitespace';
 		} else if (item && item.callee && typeof item.length == 'number'){
 			return 'arguments';
 		}
@@ -77,7 +77,6 @@ provides: atom
 		
 		return (type == 'object' && atom.Class && item instanceof atom.Class) ? 'class' : type;
 	};
-	typeOf.textnodeRE = /\S/;
 	typeOf.types = {};
 	['Boolean', 'Number', 'String', 'Function', 'Array', 'Date', 'RegExp', 'Class'].forEach(function(name) {
 		typeOf.types['[object ' + name + ']'] = name.toLowerCase();
@@ -123,10 +122,9 @@ provides: atom
 		}
 	};
 	
-	var extend = atom.extend = innerExtend(false);
+	atom.extend = innerExtend(false);
 
-	extend({
-		initialize: function () {},
+	atom.extend({
 		implement: innerExtend(true),
 		toArray: function (elem) {
 			return slice.call(elem);
@@ -173,7 +171,7 @@ provides: atom
 	// https://developer.mozilla.org/en/JavaScript/Reference/Global_Objects/Array/isArray
 	if (!Array.isArray) {
 		Array.isArray = function(o) {
-			return toString.call(o) === '[object Array]';
+			return o && toString.call(o) === '[object Array]';
 		};
 	}
 })(Object, Array);
