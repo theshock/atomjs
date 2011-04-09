@@ -1,3 +1,4 @@
+# atom.Class
 
 Wrapper for native prototype-based OOP
 
