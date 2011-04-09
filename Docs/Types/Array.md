@@ -50,8 +50,52 @@ Make hash from array-like object
 
 # Dynamic Array methods
 
-### Array.contains(elem)
-
-Checks if `elem` is present in `Array`
+### contains
+	array.contains(elem)
+Tests an array for the presence of an item.
 
 	[1,2,3].contains(1); // true
+
+### include
+	array.include(elem)
+Pushes the passed element into the array if it's not already present (case and type sensitive).
+
+	[1,2,3].include(1); // [1,2,3]
+	[1,2,3].include(4); // [1,2,3,4]
+
+### append
+	array.append(Array array1, Array array2 ...)
+
+Appends the passed array to the end of the current array.
+
+	var myOtherArray = ['green', 'yellow'];
+	['red', 'blue'].append(myOtherArray); // returns ['red', 'blue', 'green', 'yellow'];
+	myOtheArray; // is now ['red', 'blue', 'green', 'yellow'];
+
+	[0, 1, 2].append([3, [4]]); // [0, 1, 2, 3, [4]]
+
+### erase
+	array.erase(item);
+Removes all occurrences of an item from the array.
+
+	[1,2,3,1].erase(1); // [2,3]
+
+### toKeys
+### combine
+### last
+### random
+### pick
+### invoke
+### shuffle
+### sortBy
+### min
+### max
+### average
+### sum
+### unique
+### associate
+### clean
+### empty
+### clone
+### hexToRgb
+### rgbToHex
