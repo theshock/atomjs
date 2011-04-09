@@ -1,12 +1,12 @@
 # Static Function methods
 
-### lambda
-### log
-### context (property)
+### lambda(value)
+### log(value)
+### context
 
 # Dynamic Function methods
 
-### context
-### delay
-### periodical
-### only
+### context(context, arguments)
+### delay(time, context, args)
+### periodical(time, context, args)
+### only(numberOfArgs, context)
