@@ -28,7 +28,7 @@ provides: atom
 		slice     = [].slice;
 
 	var atom = global.atom = function () {
-		return atom.initialize[apply](this, arguments);
+		if (atom.initialize) return atom.initialize[apply](this, arguments);
 	};
 
 	var innerExtend = function (proto) {
@@ -122,10 +122,9 @@ provides: atom
 		}
 	};
 	
-	var extend = atom.extend = innerExtend(false);
+	atom.extend = innerExtend(false);
 
-	extend({
-		initialize: function () {},
+	atom.extend({
 		implement: innerExtend(true),
 		toArray: function (elem) {
 			return slice.call(elem);
@@ -172,7 +171,7 @@ provides: atom
 	// https://developer.mozilla.org/en/JavaScript/Reference/Global_Objects/Array/isArray
 	if (!Array.isArray) {
 		Array.isArray = function(o) {
-			return toString.call(o) === '[object Array]';
+			return o && toString.call(o) === '[object Array]';
 		};
 	}
 })(Object, Array);
