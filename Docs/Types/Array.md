@@ -80,22 +80,22 @@ Removes all occurrences of an item from the array.
 
 	[1,2,3,1].erase(1); // [2,3]
 
-### toKeys
-### combine
-### last
-### random
-### pick
-### invoke
-### shuffle
-### sortBy
-### min
-### max
-### average
-### sum
-### unique
-### associate
-### clean
-### empty
-### clone
-### hexToRgb
-### rgbToHex
+### toKeys()
+### combine(array)
+### last()
+### random()
+### pick()
+### invoke(context|methodName, arguments)
+### shuffle()
+### sortBy(propertyName)
+### min()
+### max()
+### average()
+### sum()
+### unique()
+### associate(array keys)
+### clean()
+### empty()
+### clone()
+### hexToRgb()
+### rgbToHex()
