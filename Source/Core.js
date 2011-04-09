@@ -142,9 +142,6 @@ provides: atom
 		log: function () {
 			if (global.console) console.log[apply](console, arguments);
 		},
-		isAtom: function (elem) {
-			return elem && elem instanceof Atom;
-		},
 		implementAccessors: implementAccessors, // getter+setter
 		typeOf: typeOf,
 		clone: clone
