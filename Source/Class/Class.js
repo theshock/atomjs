@@ -122,7 +122,7 @@ extend(Class, {
 				}
 				this[prototype][key] = (retain) ? value : wrap(this, key, value);
 			} else {
-				atom.merge(this[prototype], key, value);
+				this[prototype][key] = atom.clone(value);
 			}
 		}
 		return this;
