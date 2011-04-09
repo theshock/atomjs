@@ -126,31 +126,6 @@ provides: atom
 			return c;
 		}
 	};
-
-	var mergeOne = function(source, key, current){
-		switch (typeOf(current)){
-			case 'object':
-				if (typeOf(source[key]) == 'object') merge(source[key], current);
-				else source[key] = clone(current);
-			break;
-			case 'array': source[key] = clone(current); break;
-			default: source[key] = current;
-		}
-		return source;
-	};
-	var merge = function(source, k, v){
-		if (typeOf(k) == 'string') return mergeOne(source, k, v);
-		
-		for (var i = 1, l = arguments.length; i < l; i++){
-			var object = arguments[i];
-			if (object) {
-				for (var key in object) if (!implementAccessors(object, source, key)) {
-					mergeOne(source, key, object[key]);
-				}
-			}
-		}
-		return source;
-	};
 	
 	var extend = atom.extend = function (elem, safe, from) {
 		return innerExtend(arguments, atom, false);
@@ -174,9 +149,7 @@ provides: atom
 		},
 		implementAccessors: implementAccessors, // getter+setter
 		typeOf: typeOf,
-		clone: clone,
-		/** @deprecated */
-		merge: merge
+		clone: clone
 	});
 
 	var atomFactory = function (args) {
