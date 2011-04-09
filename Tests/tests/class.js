@@ -187,11 +187,11 @@ test('Factory', function(){
 	ok(  bar instanceof Foo , '  bar instanceof Foo');
 	ok(  bar instanceof Bar , '  bar instanceof Bar');
 
-	equals(foo.firstname, 'fooFN', 'foo.firstname');
-	equals(foo.lastname , 'fooLN', 'foo.lastname');
-	equals(bar.firstname, 'barFN', 'bar.firstname');
-	equals(bar.lastname , 'barLN', 'bar.lastname');
-	equals(bar.surname  , 'barSN', 'bar.surname');
+	equal(foo.firstname, 'fooFN', 'foo.firstname');
+	equal(foo.lastname , 'fooLN', 'foo.lastname');
+	equal(bar.firstname, 'barFN', 'bar.firstname');
+	equal(bar.lastname , 'barLN', 'bar.lastname');
+	equal(bar.surname  , 'barSN', 'bar.surname');
 });
 
 test('Static', function(){
@@ -221,7 +221,7 @@ test('Static', function(){
 	equal(bar.self.barStat, 'barStatValue', 'bar.self.barStat');
 });
 
-module('[Atom Plugins] Class Events');
+module('[Atom Plugins] Class Plugins');
 
 test('Events', function(){
 	// todo: write tests.
@@ -239,8 +239,34 @@ test('Events', function(){
 	});
 
 	eventable.fireEvent('foo', ['bar']);
-
 });
 
+test('Options', function(){
+	var Foo = atom.Class({
+		Implements: [ atom.Class.Options ]
+	});
+
+	var foo = new Foo();
+	var fooOptions = { a: 15, b: 31, c: { m : 12 } };
+	deepEqual(foo.options, {}, 'Empty options object');
+	foo.setOptions(fooOptions);
+	deepEqual(foo.options, fooOptions, 'Recursive setting options');
+	notEqual (foo.options, fooOptions, 'Options cloned');
+	fooOptions.b = 3;
+	fooOptions.d = 4;
+	foo.setOptions({ b : 3 } , { d : 4 });
+	deepEqual(foo.options, fooOptions, 'Several arguments added');
+
+	var Bar = atom.Class({
+		Implements: [ atom.Class.Options ],
+		options: { k: 15 }
+	});
+	var bar  = new Bar();
+	var bar2 = new Bar();
+	bar.setOptions({ z: 5 });
+
+	deepEqual( bar.options, { k: 15, z: 5 }, 'default options linked success');
+	deepEqual(bar2.options, { k: 15 },       'options cloned');
+});
 
 };
