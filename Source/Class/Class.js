@@ -60,8 +60,8 @@ var Class = function (params) {
 
 var parent = function(){
 	if (!this.$caller) throw new Error('The method «parent» cannot be called.');
-	var name = this.$caller.$name,
-		parent = this.$caller.$owner.parent,
+	var name     = this.$caller.$name,
+		parent   = this.$caller.$owner.parent,
 		previous = parent && parent[prototype][name];
 	if (!previous) throw new Error('The method «' + name + '» has no parent.');
 	return previous.apply(this, arguments);
@@ -71,14 +71,17 @@ var wrap = function(self, key, method){
 	// if method is already wrapped
 	if (method.$origin) method = method.$origin;
 	
-	var wrapper = extend(function(){
+	var wrapper = function() {
 		if (method.$protected && !this.$caller) throw new Error('The method «' + key + '» is protected.');
 		var current = this.$caller;
 		this.$caller = wrapper;
 		var result = method.apply(this, arguments);
 		this.$caller = current;
 		return result;
-	}, {$owner: self, $origin: method, $name: key});
+	};
+	wrapper.$owner  = self;
+	wrapper.$origin = method;
+	wrapper.$name   = key;
 	
 	return wrapper;
 };
