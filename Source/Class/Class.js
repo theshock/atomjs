@@ -28,11 +28,9 @@ var typeOf = atom.typeOf,
 	lambda    = function (value) { return function () { return value; }};
 
 var Class = function (params) {
-	if (Class.$prototyping) {
-		return this;
-	}
+	if (Class.$prototyping) return this;
 
-	if (typeOf(params) == 'function') params = {initialize: params};
+	if (typeOf(params) == 'function') params = { initialize: params };
 
 	var Constructor = function(){
 		if (Constructor.$prototyping) return this;
@@ -47,12 +45,11 @@ var Class = function (params) {
 			self  : Constructor
 		})
 		.reserved({
-			factory : (function() {
-				// Должно быть в конце, чтобы успел создаться прототип
+			factory : new function() {
 				function Factory(args) { return Constructor.apply(this, args); }
 				Factory[prototype] = Constructor[prototype];
 				return function(args) { return new Factory(args || []); }
-			})()
+			}
 		});
 
 	return Constructor;
