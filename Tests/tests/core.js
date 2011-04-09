@@ -65,18 +65,13 @@ test('atom.clone', function(){
 
 
 // todo: [qtest] atom.merge
-test('atom.(extend/implement)', function(){
+test('atom.extend', function(){
 	atom.extend({
 		get testProp() { return 'testPropValue:static'; },
 		testMethod: function () { return 'testMethodValue:static'; }
-	}).implement({
-		get testProp() { return 'testPropValue'; },
-		testMethod: function () { return 'testMethodValue'; }
 	});
 	equal(atom.testProp,     'testPropValue:static'  , 'atom.extend getter');
 	equal(atom.testMethod(), 'testMethodValue:static', 'atom.extend method');
-	equal(atom().testProp,     'testPropValue'  , 'atom.implement getter');
-	equal(atom().testMethod(), 'testMethodValue', 'atom.implement method');
 
 	var testObject = { prop : 'Yes' };
 	atom.extend(testObject, 'safe', { prop : 'No' });
