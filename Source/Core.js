@@ -20,7 +20,7 @@ provides: atom
 ...
 */
 
-(function () {
+(function (Object) {
 	var prototype = 'prototype',
 	    apply = 'apply',
 		toString = Object[prototype].toString;
@@ -35,11 +35,10 @@ provides: atom
 	};
 
 	var innerExtend = function (args, Default, proto) {
-		var L = args.length;
+		var L = args.length, elem, safe, from;
 		if (L === 3) {
-			var
-			elem = args[0],
-			safe = args[1],
+			elem = args[0];
+			safe = args[1];
 			from = args[2];
 		} else if (L === 2) {
 			elem = args[0];
@@ -162,37 +161,37 @@ provides: atom
 	atom.implement(Function, 'safe', {
 		// https://developer.mozilla.org/en/JavaScript/Reference/Global_Objects/Function/bind
 		bind : function(context /*, arg1, arg2... */) {
-			'use strict';
-			if (typeof this !== 'function') throw new TypeError();
-			var proto  = Array[prototype],
-				_slice = proto.slice,
-				_concat = proto.concat,
-				_arguments = _slice.call(arguments, 1),
-				_this = this,
-				_function = function() {
-					return _this[apply](this instanceof _dummy ? this : context,
-						_concat.call(_arguments, _slice.call(arguments, 0)));
-				},
-				_dummy = function() {};
-			_dummy[prototype] = _this[prototype];
-			_function[prototype] = new _dummy();
-			return _function;
+			var slice = [].slice,
+				args  = slice.call(arguments, 1),
+				self  = this,
+				nop   = function () {},
+				bound = function () {
+					return self.apply(
+						this instanceof nop ? this : ( context || {} ),
+						args.concat( slice.call(arguments) )
+					);
+				};
+			nop[prototype] = self[prototype];
+			bound[prototype] = new nop();
+			return bound;
 		}
 	});
 
 	extend(Object, 'safe', {
 		// https://developer.mozilla.org/en/JavaScript/Reference/Global_Objects/Object/keys
 		keys : function(o) {
-			var result = [];
-			for(var name in o) if (o.hasOwnProperty(name)) result.push(name);
-			return result;
+			if (o !== Object(o)) throw new TypeError('Object.keys called on non-object');
+
+			var ret=[],p;
+			for(p in o) if (Object[prototype].hasOwnProperty.call(o,p)) ret.push(p);
+			return ret;
 		}
 	});
 
 	extend(Array, 'safe', {
 		// https://developer.mozilla.org/en/JavaScript/Reference/Global_Objects/Array/isArray
 		isArray : function(o) {
-			return Object[prototype].toString.call(o) === '[object Array]';
+			return toString.call(o) === '[object Array]';
 		}
 	});
-})();
+})(Object);
