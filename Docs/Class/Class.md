@@ -65,6 +65,8 @@ Wrapper for native prototype-based OOP
 	// equals to
 	Point.factory([3, 8]);
 
+*note*: `self`, `parent` & `factory` are reserved properties and you can't override them
+
 ### Methods
 Available some methods helpers:
 
@@ -85,6 +87,22 @@ Available some methods helpers:
 			atom.log('this is protected method');
 		})
 	});
+
+### Accessors
+You can use accessors!
+	var Foo = atom.Class({
+		_bar: 0,
+		set bar (value) {
+			this._bar = value * 2;
+		},
+		get bar () {
+			return 'Foo.bar: ' + this._bar;
+		}
+	});
+
+	var foo = new Foo;
+	foo.bar = 21;
+	log(foo.bar); // 'Foo.bar: 42'
 
 ### Expanding prototype, no reset
 Unlike the MooTools we dont reset each object. So the objects are links in prototype:
@@ -118,3 +136,101 @@ So, use constructor object creating instead:
 
 	atom.log(small.settings. == big.settings); // false
 	atom.log(small.settings.width, small.settings.height); // (100, 100), as expected
+
+# Default Mutators
+
+### Static
+Let you to add static properties:
+
+	MyClass = atom.Class({
+		Static: {
+			staticProperty: 15,
+			staticMethod  : function () { return 88; }
+		}
+	});
+
+	atom.log(MyClass.staticProperty); // 15
+	atom.log(MyClass.staticMethod()); // 88
+
+### Extends
+Let you to extends one class from another. You can call `parent` to access method with same name of parent class.
+Unlimited nesting is available. Accessors are implemented, but you can't call `parent` from them
+
+	var Foo = atom.Class({
+		initialize: function () {
+			log('Foo.initialize');
+		},
+		fooMethod: function () {
+			log('Foo.fooMethod');
+		},
+		genMethod: function (arg) {
+			log('genMethod: ' + arg);
+		},
+		get accessor () {
+			return 100;
+		}
+	});
+
+	var Bar = atom.Class({
+		Extends: Foo,
+		initialize: function () {
+			this.parent(); // 'Foo.initialize'
+			log('Bar.initialize');
+			this.fooMethod(); // 'Foo.fooMethod'
+		},
+		genMethod: function () {
+			this.parent(42); // 'genMethod: 42'
+			alert(this.accessor); // 100
+		}
+	});
+
+	var Qux = atom.Class({
+		Extends: Bar,
+		initialize: function () {
+			this.parent(); // 'Foo.initialize', 'Bar.initialize'
+			log('Qux.initialize');
+		},
+		get accessor () {
+			return this.parent() + 1; // Error
+		}
+	});
+
+	var foo = new Foo();
+	var qux = new Qux();
+
+	foo instanceof Foo; // true
+	foo instanceof Qux; // false
+
+	qux instanceof Foo; // true
+	qux instanceof Qux; // true
+
+### Implements
+Let you mixin properties from some classes. You can't access mixin properties using "parent"
+
+	Bar = atom.Class({
+		barMethod: function () {
+			log('Bar.barMethod');
+		}
+	});
+	Qux = atom.Class({
+		quxMethod: function () {
+			log('Qux.quxMethod');
+		}
+	});
+
+	Foo = atom.Class({
+		Implements: [ Bar, Qux ],
+		fooMethod: function () {
+			log('Foo.fooMethod');
+			this.quxMethod(); // 'Qux.quxMethod'
+		},
+		barMethod: function () {
+			this.parent(); // Error('The method «barMethod» has no parent.');
+		}
+	});
+
+	var foo = new Foo;
+	foo instanceof Foo; // true
+	foo instanceof Bar; // false
+	foo instanceof Qux; // false
+
