@@ -29,12 +29,11 @@ atom.Class.Options = atom.Class({
 			this.options = atom.clone(this.options);
 		}
 
-		if (arguments.length) {
-			var args = [{}, this.options].append(arguments);
-			// FIX: не нужно каждый раз создавать новый объект, необходимо перезаписывать старый
-			this.options = atom.merge.apply(null, args);
+		for (var a = arguments, i = 0, l = a.length; i < l;) {
+			atom.extend(this.options, a[i++]);
 		}
 		var options = this.options;
+		
 		if (this.addEvent) for (var option in options){
 			if (atom.typeOf(options[option]) == 'function' && (/^on[A-Z]/).test(option)) {
 				this.addEvent(option, options[option]);
