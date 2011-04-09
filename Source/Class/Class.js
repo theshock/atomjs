@@ -175,7 +175,7 @@ extend(Class, {
 			this.extend(properties);
 		}
 	},
-	abstractMethod: function (name) {
+	abstractMethod: function () {
 		throw new Error('Abstract Method «' + this.$caller.$name + '» called');
 	},
 	protectedMethod: function (fn) {
