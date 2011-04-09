@@ -20,52 +20,48 @@ provides: atom
 ...
 */
 
-(function () {
+(function (Object, Array) {
 	var prototype = 'prototype',
-	    apply = 'apply',
-		toString = Object[prototype].toString;
+	    apply     = 'apply',
+		toString  = Object[prototype].toString,
+		global    = (this.window || GLOBAL),
+		slice     = [].slice;
 
-
-	var Atom = function () {
+	var atom = global.atom = function () {
 		return atom.initialize[apply](this, arguments);
 	};
 
-	var atom = (this.window || GLOBAL).atom = function () {
-		return new atomFactory(arguments);
-	};
+	var innerExtend = function (proto) {
+		return function () {
+			var args = arguments, L = args.length, elem, safe, from;
+			if (L === 3) {
+				elem = args[0];
+				safe = args[1];
+				from = args[2];
+			} else if (L === 2) {
+				elem = args[0];
+				safe = false;
+				from = args[1];
+			} else if (L === 1) {
+				elem = atom;
+				safe = false;
+				from = args[0];
+			} else throw new TypeError();
 
-	var innerExtend = function (args, Default, proto) {
-		var L = args.length;
-		if (L === 3) {
-			var
-			elem = args[0],
-			safe = args[1],
-			from = args[2];
-		} else if (L === 2) {
-			elem = args[0];
-			safe = false;
-			from = args[1];
-		} else if (L === 1) {
-			elem = Default;
-			safe = false;
-			from = args[0];
-		} else throw new TypeError();
+			var ext = proto ? elem[prototype] : elem;
+			for (var i in from) if (i != 'constructor') {
+				if (safe && i in ext) continue;
 
-		var ext = proto ? elem[prototype] : elem;
-		for (var i in from) if (i != 'constructor') {
-			if (safe && i in ext) continue;
-
-			if ( !implementAccessors(from, ext, i) ) {
-				ext[i] = clone(from[i]);
+				if ( !implementAccessors(from, ext, i) ) {
+					ext[i] = clone(from[i]);
+				}
 			}
-		}
-		return elem;
+			return elem;
+		};
 	};
 
 	var typeOf = function (item) {
 		if (item == null) return 'null';
-
-		if (item instanceof Atom) return 'atom';
 
 		var string = toString.call(item);
 		for (var i in typeOf.types) if (i == string) return typeOf.types[i];
@@ -118,7 +114,7 @@ provides: atom
 		},
 		object: function (object) {
 			if (typeof object.clone == 'function') return object.clone();
-			
+
 			var c = {};
 			for (var key in object) if (!implementAccessors(object, c, key)) {
 				c[key] = clone(object[key]);
@@ -127,75 +123,60 @@ provides: atom
 		}
 	};
 	
-	var extend = atom.extend = function (elem, safe, from) {
-		return innerExtend(arguments, atom, false);
-	};
+	var extend = atom.extend = innerExtend(false);
 
 	extend({
 		initialize: function () {},
-		implement: function (elem, safe, from) {
-			return innerExtend(arguments, Atom, true);
-		},
+		implement: innerExtend(true),
 		toArray: function (elem) {
-			return Array[prototype].slice.call(elem);
+			return slice.call(elem);
 		},
 		log: function () {
-			try {
-				return console.log[apply](console, arguments);
-			} catch (e) { return false; }
-		},
-		isAtom: function (elem) {
-			return elem && elem instanceof Atom;
+			if (global.console) console.log[apply](console, arguments);
 		},
 		implementAccessors: implementAccessors, // getter+setter
 		typeOf: typeOf,
 		clone: clone
 	});
 
-	var atomFactory = function (args) {
-		return Atom[apply](this, args);
-	};
-	atomFactory[prototype] = Atom[prototype];
-
-
 	// JavaScript 1.8.5 Compatiblity
-	atom.implement(Function, 'safe', {
-		// https://developer.mozilla.org/en/JavaScript/Reference/Global_Objects/Function/bind
-		bind : function(context /*, arg1, arg2... */) {
-			'use strict';
-			if (typeof this !== 'function') throw new TypeError();
-			var proto  = Array[prototype],
-				_slice = proto.slice,
-				_concat = proto.concat,
-				_arguments = _slice.call(arguments, 1),
-				_this = this,
-				_function = function() {
-					return _this[apply](this instanceof _dummy ? this : context,
-						_concat.call(_arguments, _slice.call(arguments, 0)));
-				},
-				_dummy = function() {};
-			_dummy[prototype] = _this[prototype];
-			_function[prototype] = new _dummy();
-			return _function;
-		}
-	});
 
-	extend(Object, 'safe', {
-		// https://developer.mozilla.org/en/JavaScript/Reference/Global_Objects/Object/keys
-		keys : function(o) {
-			var result = [];
-			for(var name in o) if (o.hasOwnProperty(name)) result.push(name);
-			return result;
-		}
-	});
+	// https://developer.mozilla.org/en/JavaScript/Reference/Global_Objects/Function/bind
+	if (!Function[prototype].bind) {
+		Function[prototype].bind = function(context /*, arg1, arg2... */) {
+			var args  = slice.call(arguments, 1),
+				self  = this,
+				nop   = function () {},
+				bound = function () {
+					return self[apply](
+						this instanceof nop ? this : ( context || {} ),
+						args.concat( slice.call(arguments) )
+					);
+				};
+			nop[prototype]   = self[prototype];
+			bound[prototype] = new nop();
+			return bound;
+		};
+	}
 
-	extend(Array, 'safe', {
-		// https://developer.mozilla.org/en/JavaScript/Reference/Global_Objects/Array/isArray
-		isArray : function(o) {
-			return Object[prototype].toString.call(o) === '[object Array]';
-		}
-	});
-})();
+	// https://developer.mozilla.org/en/JavaScript/Reference/Global_Objects/Object/keys
+	if (!Object.keys) {
+		Object.keys = function(obj) {
+			if (obj !== Object(obj)) throw new TypeError('Object.keys called on non-object');
+
+			var keys = [], i, has = Object[prototype].hasOwnProperty;
+			for (i in obj) if (has.call(obj, i)) keys.push(i);
+			return keys;
+		};
+	}
+
+	// https://developer.mozilla.org/en/JavaScript/Reference/Global_Objects/Array/isArray
+	if (!Array.isArray) {
+		Array.isArray = function(o) {
+			return toString.call(o) === '[object Array]';
+		};
+	}
+})(Object, Array);
 
 /*
 ---
