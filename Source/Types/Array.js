@@ -35,7 +35,7 @@ atom.extend(Array, 'safe', {
 		);
 	},
 	fill: function (array, fill) {
-		array = Array.isArray(array) ? array : new Array(1 * array);
+		array = Array.isArray(array) ? array : new Array(array * 1);
 		for (var i = array.length; i--;) array[i] = fill;
 		return array;
 	},
