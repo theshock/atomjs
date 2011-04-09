@@ -133,7 +133,7 @@ extend(Class, {
 		}.bind(this));
 		return this;
 	},
-	reserved: function (toProto, props) { // use carefull !!
+	reserved: function (toProto, props) { // use careful !!
 		if (arguments.length == 1) {
 			props = toProto;
 			toProto = false;
