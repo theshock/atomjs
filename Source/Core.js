@@ -20,59 +20,55 @@ provides: atom
 ...
 */
 
-(function (Object) {
+(function (Object, Array) {
 	var prototype = 'prototype',
 	    apply     = 'apply',
 		toString  = Object[prototype].toString,
-		global    = (this.window || GLOBAL);
+		global    = (this.window || GLOBAL),
+		slice     = [].slice;
 
-
-	var Atom = function () {
+	var atom = global.atom = function () {
 		return atom.initialize[apply](this, arguments);
 	};
 
-	var atom = global.atom = function () {
-		return new atomFactory(arguments);
-	};
+	var innerExtend = function (proto) {
+		return function () {
+			var args = arguments, L = args.length, elem, safe, from;
+			if (L == 3) {
+				elem = args[0];
+				safe = args[1];
+				from = args[2];
+			} else if (L == 2) {
+				elem = args[0];
+				safe = false;
+				from = args[1];
+			} else if (L == 1) {
+				elem = atom;
+				safe = false;
+				from = args[0];
+			} else throw new TypeError();
 
-	var innerExtend = function (args, Default, proto) {
-		var L = args.length, elem, safe, from;
-		if (L === 3) {
-			elem = args[0];
-			safe = args[1];
-			from = args[2];
-		} else if (L === 2) {
-			elem = args[0];
-			safe = false;
-			from = args[1];
-		} else if (L === 1) {
-			elem = Default;
-			safe = false;
-			from = args[0];
-		} else throw new TypeError();
+			var ext = proto ? elem[prototype] : elem;
+			for (var i in from) if (i != 'constructor') {
+				if (safe && i in ext) continue;
 
-		var ext = proto ? elem[prototype] : elem;
-		for (var i in from) if (i != 'constructor') {
-			if (safe && i in ext) continue;
-
-			if ( !implementAccessors(from, ext, i) ) {
-				ext[i] = clone(from[i]);
+				if ( !implementAccessors(from, ext, i) ) {
+					ext[i] = clone(from[i]);
+				}
 			}
-		}
-		return elem;
+			return elem;
+		};
 	};
 
 	var typeOf = function (item) {
 		if (item == null) return 'null';
-
-		if (item instanceof Atom) return 'atom';
 
 		var string = toString.call(item);
 		for (var i in typeOf.types) if (i == string) return typeOf.types[i];
 
 		if (item.nodeName){
 			if (item.nodeType == 1) return 'element';
-			if (item.nodeType == 3) return typeOf.textnodeRE.test(item.nodeValue) ? 'textnode' : 'whitespace';
+			if (item.nodeType == 3) return /\S/.test(item.nodeValue) ? 'textnode' : 'whitespace';
 		} else if (item && item.callee && typeof item.length == 'number'){
 			return 'arguments';
 		}
@@ -81,7 +77,6 @@ provides: atom
 		
 		return (type == 'object' && atom.Class && item instanceof atom.Class) ? 'class' : type;
 	};
-	typeOf.textnodeRE = /\S/;
 	typeOf.types = {};
 	['Boolean', 'Number', 'String', 'Function', 'Array', 'Date', 'RegExp', 'Class'].forEach(function(name) {
 		typeOf.types['[object ' + name + ']'] = name.toLowerCase();
@@ -118,7 +113,7 @@ provides: atom
 		},
 		object: function (object) {
 			if (typeof object.clone == 'function') return object.clone();
-			
+
 			var c = {};
 			for (var key in object) if (!implementAccessors(object, c, key)) {
 				c[key] = clone(object[key]);
@@ -127,17 +122,13 @@ provides: atom
 		}
 	};
 	
-	var extend = atom.extend = function (elem, safe, from) {
-		return innerExtend(arguments, atom, false);
-	};
+	var extend = atom.extend = innerExtend(false);
 
 	extend({
 		initialize: function () {},
-		implement: function (elem, safe, from) {
-			return innerExtend(arguments, Atom, true);
-		},
+		implement: innerExtend(true),
 		toArray: function (elem) {
-			return Array[prototype].slice.call(elem);
+			return slice.call(elem);
 		},
 		log: function () {
 			if (global.console) console.log[apply](console, arguments);
@@ -147,17 +138,10 @@ provides: atom
 		clone: clone
 	});
 
-	var atomFactory = function (args) {
-		return Atom[apply](this, args);
-	};
-	atomFactory[prototype] = Atom[prototype];
-
-
 	// JavaScript 1.8.5 Compatiblity
 
 	// https://developer.mozilla.org/en/JavaScript/Reference/Global_Objects/Function/bind
 	if (!Function[prototype].bind) {
-		var slice = [].slice;
 		Function[prototype].bind = function(context /*, arg1, arg2... */) {
 			var args  = slice.call(arguments, 1),
 				self  = this,
@@ -176,12 +160,12 @@ provides: atom
 
 	// https://developer.mozilla.org/en/JavaScript/Reference/Global_Objects/Object/keys
 	if (!Object.keys) {
-		Object.keys = function(o) {
-			if (o !== Object(o)) throw new TypeError('Object.keys called on non-object');
+		Object.keys = function(obj) {
+			if (obj !== Object(obj)) throw new TypeError('Object.keys called on non-object');
 
-			var ret=[],p;
-			for (p in o) if (Object[prototype].hasOwnProperty.call(o,p)) ret.push(p);
-			return ret;
+			var keys = [], i, has = Object[prototype].hasOwnProperty;
+			for (i in obj) if (has.call(obj, i)) keys.push(i);
+			return keys;
 		};
 	}
 
@@ -191,4 +175,4 @@ provides: atom
 			return toString.call(o) === '[object Array]';
 		};
 	}
-})(Object);
+})(Object, Array);
