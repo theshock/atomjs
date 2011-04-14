@@ -114,9 +114,9 @@ equal([6,7,8,9].last, 9, 'array.last');
 // random
 ok([6,7,8,9].random.between(6, 9, true), 'array.random');
 
-strictEqual([false, null,  1, undefined].pick(),   1, 'array.pick');
-strictEqual([false, null,  0, undefined].pick(),   0, 'array.pick');
-strictEqual([false, null, '', undefined].pick(), null, 'array.pick');
+strictEqual([undefined, null,  1, undefined].pick(),  1, 'array.pick, 1');
+strictEqual([undefined, null,  0, undefined].pick(),  0, 'array.pick, 0');
+strictEqual([undefined, null, '', undefined].pick(), "", 'array.pick, null');
 
 deepEqual([
 	function (x) { return x * this.i * 0; },

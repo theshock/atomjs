@@ -15,7 +15,11 @@ provides: Array
 ...
 */
 
-atom.extend(Array, 'safe', {
+new function () {
+
+var slice = [].slice;
+
+atom.extend(Array, {
 	range: function (from, to, step) {
 		step = (step * 1).limit(0) || 1;
 		var result = [];
@@ -57,8 +61,8 @@ atom.implement(Array, {
 	get random(){
 		return this.length ? this[Number.random(0, this.length - 1)] : null;
 	},
-	contains: function (elem) {
-		return this.indexOf(elem) != -1;
+	contains: function (elem, fromIndex) {
+		return this.indexOf(elem, fromIndex) != -1;
 	},
 	include: function(item){
 		if (!this.contains(item)) this.push(item);
@@ -71,7 +75,9 @@ atom.implement(Array, {
 		return this;
 	},
 	erase: function(item){
-		for (var i = this.length; i--;) if (this[i] === item) this.splice(i, 1);
+		for (var i = this.length; i--;) {
+			if (this[i] === item) this.splice(i, 1);
+		}
 		return this;
 	},
 	toKeys: function (value) {
@@ -85,13 +91,13 @@ atom.implement(Array, {
 		return this;
 	},
 	pick: function(){
-		for (var i = 0, l = this.length; i < l; i++){
-			if (this[i] || this[i] === 0) return this[i];
+		for (var i = 0, l = this.length; i < l; i++) {
+			if (this[i] != null) return this[i];
 		}
 		return null;
 	},
 	invoke: function(context){
-		var args = [].slice.call(arguments, 1);
+		var args = slice.call(arguments, 1);
 		if (typeof context == 'string') {
 			var methodName = context;
 			context = null;
@@ -148,20 +154,24 @@ atom.implement(Array, {
 	clone: function () {
 		return atom.clone(this);
 	},
-	hexToRgb: function(){
+	hexToRgb: function(array){
 		if (this.length != 3) return null;
-		return this.map(function(value){
+		var rgb = this.map(function(value){
 			if (value.length == 1) value += value;
 			return value.toInt(16);
 		});
+		return (array) ? rgb : 'rgb(' + rgb + ')';
 	},
-	rgbToHex: function(){
+	rgbToHex: function(array) {
 		if (this.length < 3) return null;
+		if (this.length == 4 && this[3] == 0 && !array) return 'transparent';
 		var hex = [];
 		for (var i = 0; i < 3; i++){
 			var bit = (this[i] - 0).toString(16);
-			hex.push(bit.length == 1 ? '0' + bit : bit);
+			hex.push((bit.length == 1) ? '0' + bit : bit);
 		}
-		return hex;
+		return (array) ? hex : '#' + hex.join('');
 	}
 });
+
+};
