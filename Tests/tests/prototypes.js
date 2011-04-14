@@ -114,9 +114,10 @@ equal([6,7,8,9].last, 9, 'array.last');
 // random
 ok([6,7,8,9].random.between(6, 9, true), 'array.random');
 
-strictEqual([undefined, null,  1, undefined].pick(),  1, 'array.pick, 1');
-strictEqual([undefined, null,  0, undefined].pick(),  0, 'array.pick, 0');
-strictEqual([undefined, null, '', undefined].pick(), "", 'array.pick, null');
+strictEqual([undefined, null,  1, undefined].pick(),    1, 'array.pick, 1');
+strictEqual([undefined, null,  0, undefined].pick(),    0, 'array.pick, 0');
+strictEqual([undefined, null, '', undefined].pick(),   '', 'array.pick, ""');
+strictEqual([undefined, null,     undefined].pick(), null, 'array.pick, null');
 
 deepEqual([
 	function (x) { return x * this.i * 0; },
@@ -132,7 +133,7 @@ equal([1, 2, 3, 4, 5].sum(),  15, 'array.sum');
 equal([1, 2, 3, 4, 5].average(), 3, 'array.average');
 deepEqual([1, 2, 1, 2, 1, 2].unique(), [1,2], 'array.unique');
 // todo: [qtest] array.associate
-deepEqual([1,2,0,null,'string'].clean(), [1,2,'string'], 'array.unique');
+deepEqual([1,2,0,null,'string'].clean(), [1,2,0,'string'], 'array.clean');
 deepEqual([1,2,3].empty(), [], 'array.empty');
 deepEqual([1,2,3].clone(), [1,2,3], 'array.clone() result is similar to array');
 notStrictEqual([1,2,3].clone(), [1,2,3], 'array.clone() result not equals to array');

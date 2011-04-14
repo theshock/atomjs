@@ -1146,7 +1146,7 @@ atom.implement(Array, {
 		return obj;
 	},
 	clean: function (){
-		return this.filter(function (item) { return !!item; });
+		return this.filter(function (item) { return item != null; });
 	},
 	empty: function () {
 		this.length = 0;
@@ -1159,7 +1159,7 @@ atom.implement(Array, {
 		if (this.length != 3) return null;
 		var rgb = this.map(function(value){
 			if (value.length == 1) value += value;
-			return value.toInt(16);
+			return parseInt(value, 16);
 		});
 		return (array) ? rgb : 'rgb(' + rgb + ')';
 	},
