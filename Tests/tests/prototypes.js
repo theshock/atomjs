@@ -109,10 +109,10 @@ deepEqual(['a','b','c'].toKeys(9), {a:9, b:9, c:9}, 'array.toKeys(value)');
 deepEqual([1,2,3].combine([2,3,4]), [1,2,3,4], 'array.combine');
 
 // last
-equal([6,7,8,9].last(), 9, 'array.last');
+equal([6,7,8,9].last, 9, 'array.last');
 
 // random
-ok([6,7,8,9].random().between(6, 9, true), 'array.random');
+ok([6,7,8,9].random.between(6, 9, true), 'array.random');
 
 strictEqual([false, null,  1, undefined].pick(),   1, 'array.pick');
 strictEqual([false, null,  0, undefined].pick(),   0, 'array.pick');

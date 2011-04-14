@@ -50,7 +50,13 @@ atom.extend(Array, 'safe', {
 	}
 });
 
-atom.implement(Array, 'safe', {
+atom.implement(Array, {
+	get last(){
+		return this.length ? this[this.length - 1] : null;
+	},
+	get random(){
+		return this.length ? this[Number.random(0, this.length - 1)] : null;
+	},
 	contains: function (elem) {
 		return this.indexOf(elem) != -1;
 	},
@@ -77,12 +83,6 @@ atom.implement(Array, 'safe', {
 	combine: function(array){
 		for (var i = 0, l = array.length; i < l; i++) this.include(array[i]);
 		return this;
-	},
-	last: function(){
-		return this.length ? this[this.length - 1] : null;
-	},
-	random: function(){
-		return this.length ? this[Number.random(0, this.length - 1)] : null;
 	},
 	pick: function(){
 		for (var i = 0, l = this.length; i < l; i++){
