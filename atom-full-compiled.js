@@ -1199,8 +1199,10 @@ new function () {
 	var getContext = function (bind, self) {
 		return (bind === false || bind === Function.context) ? self : bind;
 	};
-	
-	atom.extend(Function, 'safe', {
+
+	var slice = [].slice;
+
+	atom.extend(Function, {
 		lambda : function (value) {
 			var returnThis = (arguments.length == 0);
 			return function () { return returnThis ? this : value; };
@@ -1215,7 +1217,7 @@ new function () {
 		context: {}
 	});
 
-	atom.implement(Function, 'safe', {
+	atom.implement(Function, {
 		context: function(bind, args){
 			var fn = this;
 			args = args ? atom.toArray(args) : [];
@@ -1226,7 +1228,7 @@ new function () {
 		only: function(numberOfArgs, bind) {
 			var fn = this;
 			return function() {
-				return fn.apply(getContext(bind, this), [].slice.call(arguments,0,numberOfArgs))
+				return fn.apply(getContext(bind, this), slice.call(arguments, 0, numberOfArgs))
 			};
 		}
 	});
@@ -1240,15 +1242,18 @@ new function () {
 			Timeout : function () { clearTimeout (this); },
 			Interval: function () { clearInterval(this); }
 		},
-		run: function (name, time, bind, args) {
-			var result  = timeout.set[name].call(null, this.context(bind, args), time);
-			result.stop = timeout.clear[name].context(result);
-			return result;
+		get: function (name) {
+			return function (time, bind, args) {
+				var result  = timeout.set[name].call(null, this.context(bind, args), time);
+				result.stop = timeout.clear[name].context(result);
+				return result;
+			};
 		}
 	};
-	atom.implement(Function, 'safe', {
-		delay:      timeout.run.context(Function.context, ['Timeout']),
-		periodical: timeout.run.context(Function.context, ['Interval'])
+	
+	atom.implement(Function, {
+		delay:      timeout.get('Timeout'),
+		periodical: timeout.get('Interval')
 	});
 }(); 
 
@@ -1269,14 +1274,13 @@ provides: Number
 
 ...
 */
-
-atom.extend(Number, 'safe', {
+atom.extend(Number, {
 	random : function (min, max) {
 		return Math.floor(Math.random() * (max - min + 1) + min);
 	}
 });
 
-atom.implement(Number, 'safe', {
+atom.implement(Number, {
 	between: function (n1, n2, equals) {
 		return (n1 <= n2) && (
 			(equals == 'L' && this == n1) ||
@@ -1323,7 +1327,6 @@ atom.implement(Number, 'safe', {
 		};
 	});
 
-
 /*
 ---
 
@@ -1341,7 +1344,7 @@ provides: Object
 ...
 */
 
-atom.extend(Object, 'safe', {
+atom.extend(Object, {
 	invert: function (object) {
 		var newObj = {};
 		for (var i in object) newObj[object[i]] = i;
@@ -1387,12 +1390,13 @@ atom.extend(Object, 'safe', {
 		return key;
 	},
 	deepEquals: function (first, second) {
-		var callee = arguments.callee;
+		if (!first || (typeof first) !== (typeof second)) return false;
+
 		for (var i in first) {
 			var f = first[i], s = second[i];
-			if (typeof f == 'object') {
-				if (!s || !callee(f, s)) return false;
-			} else if (f != s) {
+			if (typeof f === 'object') {
+				if (!s || !Object.deepEquals(f, s)) return false;
+			} else if (f !== s) {
 				return false;
 			}
 		}
@@ -1436,7 +1440,7 @@ String.uniqueID = function () {
 	return (UID++).toString(36);
 };
 
-atom.implement(String, 'safe', {
+atom.implement(String, {
 	safeHtml: function () {
 		return this.replaceAll(safeHtmlRE, {
 			'&'  : '&amp;',

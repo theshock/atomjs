@@ -14,14 +14,13 @@ provides: Number
 
 ...
 */
-
-atom.extend(Number, 'safe', {
+atom.extend(Number, {
 	random : function (min, max) {
 		return Math.floor(Math.random() * (max - min + 1) + min);
 	}
 });
 
-atom.implement(Number, 'safe', {
+atom.implement(Number, {
 	between: function (n1, n2, equals) {
 		return (n1 <= n2) && (
 			(equals == 'L' && this == n1) ||

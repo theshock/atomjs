@@ -20,8 +20,10 @@ new function () {
 	var getContext = function (bind, self) {
 		return (bind === false || bind === Function.context) ? self : bind;
 	};
-	
-	atom.extend(Function, 'safe', {
+
+	var slice = [].slice;
+
+	atom.extend(Function, {
 		lambda : function (value) {
 			var returnThis = (arguments.length == 0);
 			return function () { return returnThis ? this : value; };
@@ -36,7 +38,7 @@ new function () {
 		context: {}
 	});
 
-	atom.implement(Function, 'safe', {
+	atom.implement(Function, {
 		context: function(bind, args){
 			var fn = this;
 			args = args ? atom.toArray(args) : [];
@@ -47,7 +49,7 @@ new function () {
 		only: function(numberOfArgs, bind) {
 			var fn = this;
 			return function() {
-				return fn.apply(getContext(bind, this), [].slice.call(arguments,0,numberOfArgs))
+				return fn.apply(getContext(bind, this), slice.call(arguments, 0, numberOfArgs))
 			};
 		}
 	});
@@ -61,14 +63,17 @@ new function () {
 			Timeout : function () { clearTimeout (this); },
 			Interval: function () { clearInterval(this); }
 		},
-		run: function (name, time, bind, args) {
-			var result  = timeout.set[name].call(null, this.context(bind, args), time);
-			result.stop = timeout.clear[name].context(result);
-			return result;
+		get: function (name) {
+			return function (time, bind, args) {
+				var result  = timeout.set[name].call(null, this.context(bind, args), time);
+				result.stop = timeout.clear[name].context(result);
+				return result;
+			};
 		}
 	};
-	atom.implement(Function, 'safe', {
-		delay:      timeout.run.context(Function.context, ['Timeout']),
-		periodical: timeout.run.context(Function.context, ['Interval'])
+	
+	atom.implement(Function, {
+		delay:      timeout.get('Timeout'),
+		periodical: timeout.get('Interval')
 	});
 }(); 

@@ -145,14 +145,6 @@ notStrictEqual([1,2,3].clone(), [1,2,3], 'array.clone() result not equals to arr
 test('Object', function(){
 deepEqual(Object.invert({ a:'x', b:'y', c:'z'  }), { x:'a', y: 'b', z: 'c'}, 'Object.invert');
 deepEqual(Object.collect({ a:'x', b:'y', c:'z' }, ['a','b','k'], 5), { a:'x', b:'y', k:5}, 'Object.collect');
-
-ok( Object.isDefined(42), 'Object.isDefinded(42)');
-ok(!Object.isDefined(undefined), 'Object.isDefinded(undefined)');
-
-ok( Object.isReal(  42), 'Object.isReal(42)');
-ok( Object.isReal(   0), 'Object.isReal(0)');
-ok(!Object.isReal(null), 'Object.isReal(null)');
-
 // todo: [qtest] Object.deepEquals
 });
 
