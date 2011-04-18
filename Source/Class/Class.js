@@ -107,23 +107,25 @@ extend(Class, {
 			retain = fn;
 		}
 
-		for (var key in params) if (!accessors(params, this[prototype], key)) {
-			var value = params[key];
+		for (var key in params) {
+			if (!accessors(params, this[prototype], key)) {
+				var value = params[key];
 
-			if (Class.Mutators.hasOwnProperty(key)){
-				value = Class.Mutators[key].call(this, value);
-				if (value == null) continue;
-			}
-
-			if (typeOf(value) == 'function'){
-				if (value.$hidden == 'next') {
-					value.$hidden = true
-				} else if (value.$hidden) {
-					continue;
+				if (Class.Mutators.hasOwnProperty(key)){
+					value = Class.Mutators[key].call(this, value);
+					if (value == null) continue;
 				}
-				this[prototype][key] = (retain) ? value : wrap(this, key, value);
-			} else {
-				this[prototype][key] = atom.clone(value);
+
+				if (typeOf(value) == 'function'){
+					if (value.$hidden == 'next') {
+						value.$hidden = true
+					} else if (value.$hidden) {
+						continue;
+					}
+					this[prototype][key] = (retain) ? value : wrap(this, key, value);
+				} else {
+					this[prototype][key] = atom.clone(value);
+				}
 			}
 		}
 		return this;
