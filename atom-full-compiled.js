@@ -48,13 +48,15 @@ provides: atom
 				from = args[0];
 			} else throw new TypeError();
 
-			var ext = proto ? elem[prototype] : elem;
+			var ext = proto ? elem[prototype] : elem,
+			    accessors = atom.accessors && atom.accessors.inherit;
 			for (var i in from) if (i != 'constructor') {
-				if (safe && i in ext) continue;
+				if (
+					(safe && (i in ext)) ||
+					(accessors && accessors(from, ext, i))
+				) continue;
 
-				if ( !implementAccessors(from, ext, i) ) {
-					ext[i] = clone(from[i]);
-				}
+				ext[i] = clone(from[i]);
 			}
 			return elem;
 		};
@@ -82,25 +84,7 @@ provides: atom
 		typeOf.types['[object ' + name + ']'] = name.toLowerCase();
 	});
 
-	var implementAccessors = function (from, to, key) {
-		if (arguments.length == 2) {
-			// only for check if is accessor
-			key = to;
-			to  = null;
-		}
-		// #todo: implement with getOwnPropertyDescriptor && defineProperty
-		
-		var g = from.__lookupGetter__(key), s = from.__lookupSetter__(key);
 
-		if ( g || s ) {
-			if (to != null) {
-				if (g) to.__defineGetter__(key, g);
-				if (s) to.__defineSetter__(key, s);
-			}
-			return true;
-		}
-		return false;
-	};
 	var clone = function (object) {
 		var type = typeOf(object);
 		return type in clone.types ? clone.types[type](object) : object;
@@ -114,8 +98,9 @@ provides: atom
 		object: function (object) {
 			if (typeof object.clone == 'function') return object.clone();
 
-			var c = {};
-			for (var key in object) if (!implementAccessors(object, c, key)) {
+			var c = {}, accessors = atom.accessors && atom.accessors.inherit;
+			for (var key in object) {
+				if (accessors && accessors(object, c, key)) continue;
 				c[key] = clone(object[key]);
 			}
 			return c;
@@ -132,7 +117,6 @@ provides: atom
 		log: function () {
 			if (global.console) console.log[apply](console, arguments);
 		},
-		implementAccessors: implementAccessors, // getter+setter
 		typeOf: typeOf,
 		clone: clone
 	});
@@ -179,6 +163,93 @@ provides: atom
 /*
 ---
 
+name: "Accessors"
+
+description: "Implementing accessors"
+
+license: "[GNU Lesser General Public License](http://opensource.org/licenses/lgpl-license.php)"
+
+copyright: "Copyright (c) 2010-2011 [Ponomarenko Pavel](shocksilien@gmail.com)."
+
+authors: "The AtomJS production team"
+
+requires:
+	- atom
+
+provides: accessors
+
+...
+*/
+
+(function (Object) {
+	var getAccessors = Object.getOwnPropertyDescriptor ?
+		function (from, key, bool) {
+			var descriptor = Object.getOwnPropertyDescriptor(from, key);
+			if (descriptor && (descriptor.set || descriptor.get) ) {
+				if (bool) return true;
+
+				return {
+					set: descriptor.set,
+					get: descriptor.get
+				};
+			}
+			return bool ? false : null;
+		} : function (from, key, bool) {
+			var g = from.__lookupGetter__(key), s = from.__lookupSetter__(key);
+
+			if ( g || s ) {
+				if (bool) return true;
+				return {
+					get: g,
+					set: s
+				};
+			}
+			return bool ? false : null;
+		}; /* getAccessors */
+
+	var setAccessors = function (object, prop, descriptor) {
+		if (descriptor) {
+			if (Object.defineProperty) {
+					for (var i in descriptor) if (['set', 'get'].indexOf(i) == -1) throw new TypeError('Unknown property: ' + i);
+					Object.defineProperty(object, prop, descriptor);
+			} else {
+				if (descriptor.get) object.__defineGetter__(prop, descriptor.get);
+				if (descriptor.set) object.__defineSetter__(prop, descriptor.set);
+			}
+		}
+		return object;
+	};
+	
+	var hasAccessors = function (object, key) {
+		return getAccessors(object, key, true);
+	};
+
+	var inheritAccessors = function (from, to, key) {
+		if (key == null) return hasAccessors(from, /* key */ to);
+
+		var a = getAccessors(from, key);
+
+		if ( a ) {
+			setAccessors(to, key, a);
+			return true;
+		}
+		return false;
+	};
+
+
+	atom.extend({
+		accessors: {
+			get: getAccessors,
+			set: setAccessors,
+			has: hasAccessors,
+			inherit: inheritAccessors
+		}
+	});
+})(Object);
+
+/*
+---
+
 name: "Dom"
 
 description: "todo"
@@ -187,6 +258,7 @@ license: "[GNU Lesser General Public License](http://opensource.org/licenses/lgp
 
 requires:
 	- atom
+	- accessors
 
 inspiration:
   - "[JQuery](http://jquery.org)"
@@ -583,36 +655,39 @@ provides: uri
 
 ...
 */
-atom.extend({
-	uri: atom.extend(function (str) {
-		var	o   = atom.uri.options,
-			m   = o.parser[o.strictMode ? "strict" : "loose"].exec(str || window.location.href),
-			uri = {},
-			i   = 14;
+new function () {
 
-		while (i--) uri[o.key[i]] = m[i] || "";
+var uri = function (str) {
+	var	o   = atom.uri.options,
+		m   = o.parser[o.strictMode ? "strict" : "loose"].exec(str || window.location.href),
+		uri = {},
+		i   = 14;
 
-		uri[o.q.name] = {};
-		uri[o.key[12]].replace(o.q.parser, function ($0, $1, $2) {
-			if ($1) uri[o.q.name][$1] = $2;
-		});
+	while (i--) uri[o.key[i]] = m[i] || "";
 
-		return uri;
-	}, {
-		options: {
-			strictMode: false,
-			key: ["source","protocol","authority","userInfo","user","password","host","port","relative","path","directory","file","query","anchor"],
-			q:   {
-				name:   "queryKey",
-				parser: /(?:^|&)([^&=]*)=?([^&]*)/g
-			},
-			parser: {
-				strict: /^(?:([^:\/?#]+):)?(?:\/\/((?:(([^:@]*)(?::([^:@]*))?)?@)?([^:\/?#]*)(?::(\d*))?))?((((?:[^?#\/]*\/)*)([^?#]*))(?:\?([^#]*))?(?:#(.*))?)/,
-				loose:  /^(?:(?![^:@]+:[^:@\/]*@)([^:\/?#.]+):)?(?:\/\/)?((?:(([^:@]*)(?::([^:@]*))?)?@)?([^:\/?#]*)(?::(\d*))?)(((\/(?:[^?#](?![^?#\/]*\.[^?#\/.]+(?:[?#]|$)))*\/?)?([^?#\/]*))(?:\?([^#]*))?(?:#(.*))?)/
-			}
-		}
-	})
-});
+	uri[o.q.name] = {};
+	uri[o.key[12]].replace(o.q.parser, function ($0, $1, $2) {
+		if ($1) uri[o.q.name][$1] = $2;
+	});
+
+	return uri;
+};
+uri.options = {
+	strictMode: false,
+	key: ["source","protocol","authority","userInfo","user","password","host","port","relative","path","directory","file","query","anchor"],
+	q:   {
+		name:   "queryKey",
+		parser: /(?:^|&)([^&=]*)=?([^&]*)/g
+	},
+	parser: {
+		strict: /^(?:([^:\/?#]+):)?(?:\/\/((?:(([^:@]*)(?::([^:@]*))?)?@)?([^:\/?#]*)(?::(\d*))?))?((((?:[^?#\/]*\/)*)([^?#]*))(?:\?([^#]*))?(?:#(.*))?)/,
+		loose:  /^(?:(?![^:@]+:[^:@\/]*@)([^:\/?#.]+):)?(?:\/\/)?((?:(([^:@]*)(?::([^:@]*))?)?@)?([^:\/?#]*)(?::(\d*))?)(((\/(?:[^?#](?![^?#\/]*\.[^?#\/.]+(?:[?#]|$)))*\/?)?([^?#\/]*))(?:\?([^#]*))?(?:#(.*))?)/
+	}
+};
+
+atom.extend({ uri: uri });
+
+};
 
 /*
 ---
@@ -625,6 +700,7 @@ license: "[GNU Lesser General Public License](http://opensource.org/licenses/lgp
 
 requires:
 	- atom
+	- accessors
 
 inspiration:
   - "[MooTools](http://mootools.net)"
@@ -639,7 +715,7 @@ provides: Class
 
 var typeOf = atom.typeOf,
 	extend = atom.extend,
-	accessors = atom.implementAccessors,
+	accessors = atom.accessors.inherit,
 	prototype = 'prototype',
 	lambda    = function (value) { return function () { return value; }};
 

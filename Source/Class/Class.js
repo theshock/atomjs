@@ -9,6 +9,7 @@ license: "[GNU Lesser General Public License](http://opensource.org/licenses/lgp
 
 requires:
 	- atom
+	- accessors
 
 inspiration:
   - "[MooTools](http://mootools.net)"
@@ -23,7 +24,7 @@ provides: Class
 
 var typeOf = atom.typeOf,
 	extend = atom.extend,
-	accessors = atom.implementAccessors,
+	accessors = atom.accessors.inherit,
 	prototype = 'prototype',
 	lambda    = function (value) { return function () { return value; }};
 

@@ -23,7 +23,7 @@ provides: accessors
 	var getAccessors = Object.getOwnPropertyDescriptor ?
 		function (from, key, bool) {
 			var descriptor = Object.getOwnPropertyDescriptor(from, key);
-			if (descriptor.set || descriptor.get) {
+			if (descriptor && (descriptor.set || descriptor.get) ) {
 				if (bool) return true;
 
 				return {
@@ -46,12 +46,14 @@ provides: accessors
 		}; /* getAccessors */
 
 	var setAccessors = function (object, prop, descriptor) {
-		if (Object.defineProperty) {
-			for (var i in descriptor) if (['set', 'get'].indexOf(i) == -1) throw new TypeError('Unknown property: ' + i);
-			Object.defineProperty(object, prop, descriptor);
-		} else {
-			if (descriptor.get) object.__defineGetter__(prop, descriptor.get);
-			if (descriptor.set) object.__defineSetter__(prop, descriptor.set);
+		if (descriptor) {
+			if (Object.defineProperty) {
+					for (var i in descriptor) if (['set', 'get'].indexOf(i) == -1) throw new TypeError('Unknown property: ' + i);
+					Object.defineProperty(object, prop, descriptor);
+			} else {
+				if (descriptor.get) object.__defineGetter__(prop, descriptor.get);
+				if (descriptor.set) object.__defineSetter__(prop, descriptor.set);
+			}
 		}
 		return object;
 	};

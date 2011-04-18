@@ -17,3 +17,5 @@ Supported browsers:
 Distributed under terms of MIT or LGPL.
 
 Documentation: see [Docs folder](/theshock/atomjs/tree/master/Docs) for description of Atom core and bundled plugins.
+
+
