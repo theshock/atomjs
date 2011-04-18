@@ -48,13 +48,15 @@ provides: atom
 				from = args[0];
 			} else throw new TypeError();
 
-			var ext = proto ? elem[prototype] : elem;
+			var ext = proto ? elem[prototype] : elem,
+			    accessors = atom.accessors && atom.accessors.inherit;
 			for (var i in from) if (i != 'constructor') {
-				if (safe && i in ext) continue;
+				if (
+					(safe && (i in ext)) ||
+					(accessors && accessors(from, ext, i))
+				) continue;
 
-				if ( !implementAccessors(from, ext, i) ) {
-					ext[i] = clone(from[i]);
-				}
+				ext[i] = clone(from[i]);
 			}
 			return elem;
 		};
@@ -82,25 +84,7 @@ provides: atom
 		typeOf.types['[object ' + name + ']'] = name.toLowerCase();
 	});
 
-	var implementAccessors = function (from, to, key) {
-		if (arguments.length == 2) {
-			// only for check if is accessor
-			key = to;
-			to  = null;
-		}
-		// #todo: implement with getOwnPropertyDescriptor && defineProperty
-		
-		var g = from.__lookupGetter__(key), s = from.__lookupSetter__(key);
 
-		if ( g || s ) {
-			if (to != null) {
-				if (g) to.__defineGetter__(key, g);
-				if (s) to.__defineSetter__(key, s);
-			}
-			return true;
-		}
-		return false;
-	};
 	var clone = function (object) {
 		var type = typeOf(object);
 		return type in clone.types ? clone.types[type](object) : object;
@@ -114,8 +98,9 @@ provides: atom
 		object: function (object) {
 			if (typeof object.clone == 'function') return object.clone();
 
-			var c = {};
-			for (var key in object) if (!implementAccessors(object, c, key)) {
+			var c = {}, accessors = atom.accessors && atom.accessors.inherit;
+			for (var key in object) {
+				if (accessors && accessors(object, c, key)) continue;
 				c[key] = clone(object[key]);
 			}
 			return c;
@@ -132,7 +117,6 @@ provides: atom
 		log: function () {
 			if (global.console) console.log[apply](console, arguments);
 		},
-		implementAccessors: implementAccessors, // getter+setter
 		typeOf: typeOf,
 		clone: clone
 	});
