@@ -63,7 +63,7 @@ provides: accessors
 	var inheritAccessors = function (from, to, key) {
 		if (key == null) return hasAccessors(from, /* key */ to);
 
-		var a = getAccessors(from, to, key);
+		var a = getAccessors(from, key);
 
 		if ( a ) {
 			setAccessors(to, key, a);
