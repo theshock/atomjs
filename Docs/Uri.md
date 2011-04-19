@@ -6,21 +6,21 @@ Atom.Plugins.Uri
 Parse and returns object - parts of uri `str`
 
 Available such properties:
-* anchor
-* query
-* file
-* directory
-* path
-* relative
-* port
-* host
-* password
-* user
-* userInfo
-* authority
-* protocol
-* source
-* queryKey
+ * anchor
+ * query
+ * file
+ * directory
+ * path
+ * relative
+ * port
+ * host
+ * password
+ * user
+ * userInfo
+ * authority
+ * protocol
+ * source
+ * queryKey
 
 #### Examples:
 	atom.uri('http://usr:pwd@www.example.com:81/dir/dir.2/index.htm?q1=0&&test1&test2=value#top');
