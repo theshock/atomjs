@@ -25,36 +25,24 @@ provides: atom
 	    apply     = 'apply',
 		toString  = Object[prototype].toString,
 		global    = (this.window || GLOBAL),
-		slice     = [].slice;
+		slice     = [].slice,
+		FuncProto = Function[prototype];
 
 	var atom = global.atom = function () {
 		if (atom.initialize) return atom.initialize[apply](this, arguments);
 	};
 
 	var innerExtend = function (proto) {
-		return function () {
-			var args = arguments, L = args.length, elem, safe, from;
-			if (L == 3) {
-				elem = args[0];
-				safe = args[1];
-				from = args[2];
-			} else if (L == 2) {
-				elem = args[0];
-				safe = false;
-				from = args[1];
-			} else if (L == 1) {
+		return function (elem, from) {
+			if (from == null) {
+				from = elem;
 				elem = atom;
-				safe = false;
-				from = args[0];
-			} else throw new TypeError();
+			}
 
 			var ext = proto ? elem[prototype] : elem,
 			    accessors = atom.accessors && atom.accessors.inherit;
 			for (var i in from) if (i != 'constructor') {
-				if (
-					(safe && (i in ext)) ||
-					(accessors && accessors(from, ext, i))
-				) continue;
+				if ( accessors && accessors(from, ext, i) ) continue;
 
 				ext[i] = clone(from[i]);
 			}
@@ -115,7 +103,8 @@ provides: atom
 			return slice.call(elem);
 		},
 		log: function () {
-			if (global.console) console.log[apply](console, arguments);
+			// ie9 bug, typeof console.log == 'object'
+			if (global.console) FuncProto[apply].call(console.log, console, arguments);
 		},
 		typeOf: typeOf,
 		clone: clone
@@ -124,8 +113,8 @@ provides: atom
 	// JavaScript 1.8.5 Compatiblity
 
 	// https://developer.mozilla.org/en/JavaScript/Reference/Global_Objects/Function/bind
-	if (!Function[prototype].bind) {
-		Function[prototype].bind = function(context /*, arg1, arg2... */) {
+	if (!FuncProto.bind) {
+		FuncProto.bind = function(context /*, arg1, arg2... */) {
 			var args  = slice.call(arguments, 1),
 				self  = this,
 				nop   = function () {},
@@ -249,7 +238,6 @@ provides: accessors
 		}
 		return false;
 	};
-
 
 	atom.extend({
 		accessors: {

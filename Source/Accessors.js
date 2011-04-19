@@ -88,7 +88,6 @@ provides: accessors
 		return false;
 	};
 
-
 	atom.extend({
 		accessors: {
 			get: getAccessors,
