@@ -1,7 +1,7 @@
 Atom Core
 =========
 
-## atom.extend(object = atom, safe = false, from)
+## atom.extend(object = atom, from)
 
 Extend `object` with `from` properties.
 
@@ -18,16 +18,8 @@ Extend `object` with `from` properties.
 	});
 	alert(atom.value); // 123
 
-#### Example: safe extending
-	// extend Array with .contains property if not implemented yet
-	atom.extend(Array, 'safe', {
-		contains: function (elem) {
-			return this.indexOf(elem) >= 0;
-		}
-	});
 
-
-## atom.implement(object = atom, safe = false, from)
+## atom.implement(object = atom, from)
 
 Extend `object.prototype` with `from` properties.
 
@@ -43,9 +35,6 @@ Extend `object.prototype` with `from` properties.
 	var a = atom();
 	a.test(); // 123
 
-#### Example: extend Function with .bind property if not implemented yet
-	atom.implement(Function, true, { bind : function () { /* code */} });
-
 ## atom.toArray(arrayLikeObject)
 
 Cast `arrayLikeObject` to `Array`
@@ -54,11 +43,6 @@ Cast `arrayLikeObject` to `Array`
 ## atom.log(arg1, [arg2, ...])
 
 Safe alias for `console.log`
-
-## atom.isAtom(object)
-
-Checks if `object` is Atom instance
-	atom.isAtom(atom()); // true
 
 ## atom.clone(object)
 Returns clone of object
