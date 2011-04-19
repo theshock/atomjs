@@ -41,6 +41,7 @@ provides: atom
 
 			var ext = proto ? elem[prototype] : elem,
 			    accessors = atom.accessors && atom.accessors.inherit;
+			
 			for (var i in from) if (i != 'constructor') {
 				if ( accessors && accessors(from, ext, i) ) continue;
 
@@ -832,7 +833,7 @@ extend(Class, {
 		}
 		var target = toProto ? this[prototype] : this;
 		for (var name in props) {
-			target.__defineGetter__(name, lambda(props[name]));
+			atom.accessors.set(target, name, { get: lambda(props[name]) });
 		}
 		return this;
 	},
@@ -1574,6 +1575,7 @@ authors:
 
 requires:
 	- atom
+	- accessors
 	- Class
 
 provides: Class.Mutators.Generators
@@ -1591,7 +1593,7 @@ var getter = function (key, fn) {
 };
 
 atom.Class.Mutators.Generators = function(properties) {
-	for (var i in properties) this.prototype.__defineGetter__(i, getter(i, properties[i]));
+	for (var i in properties) atom.accessors.set(this.prototype, i, { get: getter(i, properties[i]) });
 };
 
 };
