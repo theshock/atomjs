@@ -25,7 +25,8 @@ provides: atom
 	    apply     = 'apply',
 		toString  = Object[prototype].toString,
 		global    = (this.window || GLOBAL),
-		slice     = [].slice;
+		slice     = [].slice,
+		FuncProto = Function[prototype];
 
 	var atom = global.atom = function () {
 		if (atom.initialize) return atom.initialize[apply](this, arguments);
@@ -102,7 +103,8 @@ provides: atom
 			return slice.call(elem);
 		},
 		log: function () {
-			if (global.console) console.log[apply](console, arguments);
+			// ie9 bug, typeof console.log == 'object'
+			if (global.console) FuncProto[apply].call(console.log, console, arguments);
 		},
 		typeOf: typeOf,
 		clone: clone
@@ -111,8 +113,8 @@ provides: atom
 	// JavaScript 1.8.5 Compatiblity
 
 	// https://developer.mozilla.org/en/JavaScript/Reference/Global_Objects/Function/bind
-	if (!Function[prototype].bind) {
-		Function[prototype].bind = function(context /*, arg1, arg2... */) {
+	if (!FuncProto.bind) {
+		FuncProto.bind = function(context /*, arg1, arg2... */) {
 			var args  = slice.call(arguments, 1),
 				self  = this,
 				nop   = function () {},
