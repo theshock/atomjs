@@ -20,7 +20,7 @@ new function () {
 
 var uri = function (str) {
 	var	o   = atom.uri.options,
-		m   = o.parser[o.strictMode ? "strict" : "loose"].exec(str || window.location.href),
+		m   = o.parser.exec(str || window.location.href),
 		uri = {},
 		i   = 14;
 
@@ -34,16 +34,12 @@ var uri = function (str) {
 	return uri;
 };
 uri.options = {
-	strictMode: false,
 	key: ["source","protocol","authority","userInfo","user","password","host","port","relative","path","directory","file","query","anchor"],
 	q:   {
 		name:   "queryKey",
 		parser: /(?:^|&)([^&=]*)=?([^&]*)/g
 	},
-	parser: {
-		strict: /^(?:([^:\/?#]+):)?(?:\/\/((?:(([^:@]*)(?::([^:@]*))?)?@)?([^:\/?#]*)(?::(\d*))?))?((((?:[^?#\/]*\/)*)([^?#]*))(?:\?([^#]*))?(?:#(.*))?)/,
-		loose:  /^(?:(?![^:@]+:[^:@\/]*@)([^:\/?#.]+):)?(?:\/\/)?((?:(([^:@]*)(?::([^:@]*))?)?@)?([^:\/?#]*)(?::(\d*))?)(((\/(?:[^?#](?![^?#\/]*\.[^?#\/.]+(?:[?#]|$)))*\/?)?([^?#\/]*))(?:\?([^#]*))?(?:#(.*))?)/
-	}
+	parser: /^(?:(?![^:@]+:[^:@\/]*@)([^:\/?#.]+):)?(?:\/\/)?((?:(([^:@]*)(?::([^:@]*))?)?@)?([^:\/?#]*)(?::(\d*))?)(((\/(?:[^?#](?![^?#\/]*\.[^?#\/.]+(?:[?#]|$)))*\/?)?([^?#\/]*))(?:\?([^#]*))?(?:#(.*))?)/
 };
 
 atom.extend({ uri: uri });
