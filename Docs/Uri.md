@@ -6,6 +6,7 @@ Atom.Plugins.Uri
 Parse and returns object - parts of uri `str`
 
 Available such properties:
+
  * anchor
  * query
  * file
