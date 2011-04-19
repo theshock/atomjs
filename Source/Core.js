@@ -41,6 +41,7 @@ provides: atom
 
 			var ext = proto ? elem[prototype] : elem,
 			    accessors = atom.accessors && atom.accessors.inherit;
+			
 			for (var i in from) if (i != 'constructor') {
 				if ( accessors && accessors(from, ext, i) ) continue;
 
