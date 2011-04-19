@@ -32,29 +32,16 @@ provides: atom
 	};
 
 	var innerExtend = function (proto) {
-		return function () {
-			var args = arguments, L = args.length, elem, safe, from;
-			if (L == 3) {
-				elem = args[0];
-				safe = args[1];
-				from = args[2];
-			} else if (L == 2) {
-				elem = args[0];
-				safe = false;
-				from = args[1];
-			} else if (L == 1) {
+		return function (elem, from) {
+			if (from == null) {
+				from = elem;
 				elem = atom;
-				safe = false;
-				from = args[0];
-			} else throw new TypeError();
+			}
 
 			var ext = proto ? elem[prototype] : elem,
 			    accessors = atom.accessors && atom.accessors.inherit;
 			for (var i in from) if (i != 'constructor') {
-				if (
-					(safe && (i in ext)) ||
-					(accessors && accessors(from, ext, i))
-				) continue;
+				if ( accessors && accessors(from, ext, i) ) continue;
 
 				ext[i] = clone(from[i]);
 			}
