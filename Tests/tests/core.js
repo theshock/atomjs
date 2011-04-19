@@ -73,9 +73,9 @@ test('atom.extend', function(){
 	equal(atom.testProp,     'testPropValue:static'  , 'atom.extend getter');
 	equal(atom.testMethod(), 'testMethodValue:static', 'atom.extend method');
 
-	var testObject = { prop : 'Yes' };
-	atom.extend(testObject, 'safe', { prop : 'No' });
-	equal(testObject.prop, 'Yes', 'atom safe extend');
+	var testObject = {};
+	atom.extend(testObject, { prop : 'Yes' });
+	equal(testObject.prop, 'Yes', 'atom object extend');
 });
 
 
