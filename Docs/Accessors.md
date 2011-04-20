@@ -13,14 +13,14 @@ Checks if `object` has getter or setter for property `prop` as own property, or 
 	atom.accessors.has(object, 'foo'); // true
 	atom.accessors.has(object, 'bar'); // true
 
-## atom.accessors.set(object, prop, value)
+## atom.accessors.define(object, prop, value)
 
-Sets setter or getter of `object` with name `prop`
+Defines setter or getter of `object` with name `prop`
 
 #### Example:
 	var object = {};
 
-	atom.accessors.set(object, 'foo', {
+	atom.accessors.define(object, 'foo', {
 		set: function (value) { console.log('object.foo Setter'); )
 		get: function ()      { console.log('object.foo Getter'); )
 	});
@@ -28,7 +28,7 @@ Sets setter or getter of `object` with name `prop`
 	object.foo = 123; // object.foo Setter
 	object.foo + 123; // object.foo Getter
 
-## atom.accessors.get(object, prop)
+## atom.accessors.lookup(object, prop)
 
 Get accessors from `object` with name `prop`
 
@@ -40,9 +40,9 @@ Get accessors from `object` with name `prop`
 		bar: 123
 	};
 	
-	console.log(atom.accessors.get(object, 'bar')); // null
+	console.log(atom.accessors.lookup(object, 'bar')); // null
 
-	var accessors = atom.accessors.get(object, 'foo');
+	var accessors = atom.accessors.lookup(object, 'foo');
 	/* accessors equals to object:
 	 * {
 	 *   set: function (value) { console.log('object.foo Setter'); )
