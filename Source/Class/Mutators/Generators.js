@@ -30,7 +30,7 @@ var getter = function (key, fn) {
 };
 
 atom.Class.Mutators.Generators = function(properties) {
-	for (var i in properties) atom.accessors.set(this.prototype, i, { get: getter(i, properties[i]) });
+	for (var i in properties) atom.accessors.define(this.prototype, i, { get: getter(i, properties[i]) });
 };
 
 };

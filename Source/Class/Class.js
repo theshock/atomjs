@@ -143,7 +143,7 @@ extend(Class, {
 		}
 		var target = toProto ? this[prototype] : this;
 		for (var name in props) {
-			atom.accessors.set(target, name, { get: lambda(props[name]) });
+			atom.accessors.define(target, name, { get: lambda(props[name]) });
 		}
 		return this;
 	},

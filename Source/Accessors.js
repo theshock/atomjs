@@ -24,7 +24,7 @@ provides: accessors
 
 	if (!standard && !nonStandard) throw new Error('Accessors are not supported');
 
-	var getAccessors = nonStandard ?
+	var lookup = nonStandard ?
 		function (from, key, bool) {
 			var g = from.__lookupGetter__(key), s = from.__lookupSetter__(key);
 
@@ -42,7 +42,7 @@ provides: accessors
 			if (!descriptor) {
 				// try to find accessors according to chain of prototypes
 				var proto = Object.getPrototypeOf(from);
-				if (proto) return getAccessors(proto, key, bool);
+				if (proto) return accessors.lookup(proto, key, bool);
 			}
 
 			if (descriptor && (descriptor.set || descriptor.get) ) {
@@ -54,9 +54,9 @@ provides: accessors
 				};
 			}
 			return bool ? false : null;
-		}; /* getAccessors */
+		}; /* lookup */
 
-	var setAccessors = function (object, prop, descriptor) {
+	var define = function (object, prop, descriptor) {
 		if (descriptor) {
 			if (nonStandard) {
 				if (descriptor.get) object.__defineGetter__(prop, descriptor.get);
@@ -73,27 +73,23 @@ provides: accessors
 		}
 		return object;
 	};
-	
-	var hasAccessors = function (object, key) {
-		return getAccessors(object, key, true);
+
+	var accessors = {
+		lookup: lookup,
+		define: define,
+		has: function (object, key) {
+			return accessors.lookup(object, key, true);
+		},
+		inherit: function (from, to, key) {
+			var a = accessors.lookup(from, key);
+
+			if ( a ) {
+				accessors.define(to, key, a);
+				return true;
+			}
+			return false;
+		}
 	};
 
-	var inheritAccessors = function (from, to, key) {
-		var a = getAccessors(from, key);
-
-		if ( a ) {
-			setAccessors(to, key, a);
-			return true;
-		}
-		return false;
-	};
-
-	atom.extend({
-		accessors: {
-			get: getAccessors,
-			set: setAccessors,
-			has: hasAccessors,
-			inherit: inheritAccessors
-		}
-	});
+	atom.extend({ accessors: accessors });
 })(Object);
