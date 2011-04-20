@@ -26,16 +26,11 @@ provides: accessors
 
 	var lookup = nonStandard ?
 		function (from, key, bool) {
-			var g = from.__lookupGetter__(key), s = from.__lookupSetter__(key);
+			var g = from.__lookupGetter__(key), s = from.__lookupSetter__(key), has = !!(g || s);
 
-			if ( g || s ) {
-				if (bool) return true;
-				return {
-					get: g,
-					set: s
-				};
-			}
-			return bool ? false : null;
+			if (bool) return has;
+
+			return has ? { get: g, set: s } : null;
 		} :
 		function (from, key, bool) {
 			var descriptor = Object.getOwnPropertyDescriptor(from, key);
@@ -54,12 +49,16 @@ provides: accessors
 			return bool ? false : null;
 		}; /* lookup */
 
-	var define = function (object, prop, descriptor) {
-		if (descriptor) {
-			if (nonStandard) {
+	var define = nonStandard ?
+		function (object, prop, descriptor) {
+			if (descriptor) {
 				if (descriptor.get) object.__defineGetter__(prop, descriptor.get);
 				if (descriptor.set) object.__defineSetter__(prop, descriptor.set);
-			} else {
+			}
+			return object;
+		} :
+		function (object, prop, descriptor) {
+			if (descriptor) {
 				var desc = {
 					get: descriptor.get,
 					set: descriptor.set,
@@ -68,9 +67,8 @@ provides: accessors
 				};
 				Object.defineProperty(object, prop, desc);
 			}
-		}
-		return object;
-	};
+			return object;
+		};
 
 	var accessors = {
 		lookup: lookup,
