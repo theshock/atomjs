@@ -43,9 +43,7 @@ provides: accessors
 				// try to find accessors according to chain of prototypes
 				var proto = Object.getPrototypeOf(from);
 				if (proto) return accessors.lookup(proto, key, bool);
-			}
-
-			if (descriptor && (descriptor.set || descriptor.get) ) {
+			} else if ( descriptor.set || descriptor.get ) {
 				if (bool) return true;
 
 				return {
