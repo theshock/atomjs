@@ -1310,27 +1310,20 @@ new function () {
 		}
 	});
 
-	var timeout = {
-		set : {
+	var timeout = function (name) {
+		var set = {
 			Timeout : setTimeout,
 			Interval: setInterval
-		},
-		clear : {
-			Timeout : function () { clearTimeout (this); },
-			Interval: function () { clearInterval(this); }
-		},
-		get: function (name) {
-			return function (time, bind, args) {
-				var result  = timeout.set[name].call(null, this.context(bind, args), time);
-				result.stop = timeout.clear[name].context(result);
-				return result;
-			};
-		}
+		}[name];
+
+		return function (time, bind, args) {
+			return set.call(window, this.context(bind, args), time);
+		};
 	};
 	
 	atom.implement(Function, {
-		delay:      timeout.get('Timeout'),
-		periodical: timeout.get('Interval')
+		delay:      timeout('Timeout'),
+		periodical: timeout('Interval')
 	});
 }(); 
 
