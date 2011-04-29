@@ -65,7 +65,7 @@ atom.implement(Array, {
 	fullMap: function (fn, bind) {
 		var mapped = new Array(this.length);
 		for (var i = 0, l = mapped.length; i < l; i++) {
-			mapped[i] = fn.call(this[i], i, this);
+			mapped[i] = fn.call(bind, this[i], i, this);
 		}
 		return mapped;
 	},
