@@ -1,6 +1,7 @@
 # Static Function methods
 
 ### lambda(value)
+### copier(value)
 ### log(value)
 ### context
 
