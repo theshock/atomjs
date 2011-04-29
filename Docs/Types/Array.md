@@ -80,6 +80,9 @@ Removes all occurrences of an item from the array.
 
 	[1,2,3,1].erase(1); // [2,3]
 
+
+### fullMap
+Similar to map, but correctly works with `new Array(10).fullMap(fn)`
 ### toKeys()
 ### combine(array)
 ### last()
