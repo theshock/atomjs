@@ -23,22 +23,21 @@ atom.extend({
 			));
 			return matches ? decodeURIComponent(matches[1]) : null;
 		},
-		set: function (name, value, props) {
-			props = props || {};
-			var exp = props.expires;
+		set: function (name, value, options) {
+			options = options || {};
+			var exp = options.expires;
 			if (exp) {
 				if (exp.toUTCString) {
 					exp = exp.toUTCString();
 				} else if (typeof exp == 'number') {
 					exp = exp * 1000 * Date.now();
 				}
-				props.expires = exp;
+				options.expires = exp;
 			}
 
 			var cookie = [name + "=" + encodeURIComponent(value)];
-			for (var propName in props) cookie.push(
-				props[propName] === true ? propName :
-					propName + "=" + props[propName]
+			for (var o in options) cookie.push(
+				options[o] === true ? o : o + "=" + options[o]
 			);
 			document.cookie = cookie.join('; ');
 
