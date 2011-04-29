@@ -1,7 +1,7 @@
 /*
 ---
 
-name: "Dom"
+name: "Cookie"
 
 description: "todo"
 
@@ -41,7 +41,7 @@ atom.extend({
 			);
 			document.cookie = cookie.join('; ');
 
-			return this;
+			return atom.cookie;
 		},
 		del: function (name) {
 			return atom.cookie.set(name, null, { expires: -1 });
