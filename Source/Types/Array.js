@@ -48,6 +48,11 @@ atom.extend(Array, {
 		for (var i in props.toKeys()) array.push(i in obj ? obj[i] : Default);
 		return array;
 	},
+	create: function (length, fn) {
+		var array = new Array(length);
+		for (var i = 0; i < length; i++) array[i] = fn(i, array);
+		return array;
+	},
 	toHash: function () {
 		for (var hash = {}, i = 0, l = this.length; i < l; i++) hash[i] = this[i];
 		return hash;
