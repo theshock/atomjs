@@ -46,7 +46,15 @@ Collect `properties` from `object` (or set `defaultValue` if empty)
 	Array.toHash(Array array)
 Make hash from array-like object
 
-	Array.toHash([1, 5, null]); // { 0: 1, 1: 5, 2: null } 
+	Array.toHash([1, 5, null]); // { 0: 1, 1: 5, 2: null }
+
+### create
+	Array.create(Number length, Function fn)
+Make array of length `length` by function `fn`
+
+	var array = Array.create(5, function (i) {
+		return Number.random(i, 10);
+	});
 
 # Dynamic Array methods
 
