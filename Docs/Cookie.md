@@ -2,12 +2,12 @@ Atom.Plugins.Cookie
 ===================
 
 
-#### atom.cookie.get(name)
+### atom.cookie.get(name)
 Returns value of cookie `name` or `null` if not exists
 
 	var testCookie = atom.cookie.get('test');
 
-#### atom.cookie.set(name, value, options)
+### atom.cookie.set(name, value, options)
 
 Sets value of cookie, returns link to `atom.cookie`
 
@@ -22,16 +22,16 @@ Sets value of cookie, returns link to `atom.cookie`
 	* `domain` (*string*) cookie domain
 	* `secure` (*boolean*) secure connection
 
-##### example:
+#### example:
 
 	atom.cookie
 		.set('first' , 1)
 		.set('second', 2);
 
 
-#### atom.cookie.del(name)
+### atom.cookie.del(name)
 Delete cookie with name `name` and returns `atom.cookie`
 
 	atom.cookie
 		.del('first')
-		.del('second';
+		.del('second');
