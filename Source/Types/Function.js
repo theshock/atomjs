@@ -28,6 +28,9 @@ new function () {
 			var returnThis = (arguments.length == 0);
 			return function () { return returnThis ? this : value; };
 		},
+		copier: function (value) {
+			return function () { return atom.clone(value); }
+		},
 		log: function (msg) {
 			var args = arguments.length ? arguments : null;
 			return function () {
