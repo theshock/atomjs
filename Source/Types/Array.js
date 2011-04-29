@@ -61,6 +61,14 @@ atom.implement(Array, {
 	get random(){
 		return this.length ? this[Number.random(0, this.length - 1)] : null;
 	},
+	// Correctly works with `new Array(10).fullMap(fn)`
+	fullMap: function (fn, bind) {
+		var mapped = new Array(this.length);
+		for (var i = 0, l = mapped.length; i < l; i++) {
+			mapped[i] = fn.call(this[i], i, this);
+		}
+		return mapped;
+	},
 	contains: function (elem, fromIndex) {
 		return this.indexOf(elem, fromIndex) != -1;
 	},
