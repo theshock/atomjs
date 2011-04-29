@@ -176,28 +176,21 @@ provides: accessors
 
 	if (!standard && !nonStandard) throw new Error('Accessors are not supported');
 
-	var getAccessors = nonStandard ?
+	var lookup = nonStandard ?
 		function (from, key, bool) {
-			var g = from.__lookupGetter__(key), s = from.__lookupSetter__(key);
+			var g = from.__lookupGetter__(key), s = from.__lookupSetter__(key), has = !!(g || s);
 
-			if ( g || s ) {
-				if (bool) return true;
-				return {
-					get: g,
-					set: s
-				};
-			}
-			return bool ? false : null;
+			if (bool) return has;
+
+			return has ? { get: g, set: s } : null;
 		} :
 		function (from, key, bool) {
 			var descriptor = Object.getOwnPropertyDescriptor(from, key);
 			if (!descriptor) {
 				// try to find accessors according to chain of prototypes
 				var proto = Object.getPrototypeOf(from);
-				if (proto) return getAccessors(proto, key, bool);
-			}
-
-			if (descriptor && (descriptor.set || descriptor.get) ) {
+				if (proto) return accessors.lookup(proto, key, bool);
+			} else if ( descriptor.set || descriptor.get ) {
 				if (bool) return true;
 
 				return {
@@ -206,14 +199,18 @@ provides: accessors
 				};
 			}
 			return bool ? false : null;
-		}; /* getAccessors */
+		}; /* lookup */
 
-	var setAccessors = function (object, prop, descriptor) {
-		if (descriptor) {
-			if (nonStandard) {
+	var define = nonStandard ?
+		function (object, prop, descriptor) {
+			if (descriptor) {
 				if (descriptor.get) object.__defineGetter__(prop, descriptor.get);
 				if (descriptor.set) object.__defineSetter__(prop, descriptor.set);
-			} else {
+			}
+			return object;
+		} :
+		function (object, prop, descriptor) {
+			if (descriptor) {
 				var desc = {
 					get: descriptor.get,
 					set: descriptor.set,
@@ -222,32 +219,27 @@ provides: accessors
 				};
 				Object.defineProperty(object, prop, desc);
 			}
+			return object;
+		};
+
+	var accessors = {
+		lookup: lookup,
+		define: define,
+		has: function (object, key) {
+			return accessors.lookup(object, key, true);
+		},
+		inherit: function (from, to, key) {
+			var a = accessors.lookup(from, key);
+
+			if ( a ) {
+				accessors.define(to, key, a);
+				return true;
+			}
+			return false;
 		}
-		return object;
-	};
-	
-	var hasAccessors = function (object, key) {
-		return getAccessors(object, key, true);
 	};
 
-	var inheritAccessors = function (from, to, key) {
-		var a = getAccessors(from, key);
-
-		if ( a ) {
-			setAccessors(to, key, a);
-			return true;
-		}
-		return false;
-	};
-
-	atom.extend({
-		accessors: {
-			get: getAccessors,
-			set: setAccessors,
-			has: hasAccessors,
-			inherit: inheritAccessors
-		}
-	});
+	atom.extend({ accessors: accessors });
 })(Object);
 
 /*
@@ -643,6 +635,57 @@ atom.implement(atom.dom, {
 /*
 ---
 
+name: "Cookie"
+
+description: "todo"
+
+license: "[GNU Lesser General Public License](http://opensource.org/licenses/lgpl-license.php)"
+
+requires:
+	- atom
+
+provides: cookie
+
+...
+*/
+
+atom.extend({
+	cookie: {
+		get: function (name) {
+			var matches = document.cookie.match(new RegExp(
+			  "(?:^|; )" + name.replace(/([\.$?*|{}\(\)\[\]\\\/\+^])/g, '\\$1') + "=([^;]*)"
+			));
+			return matches ? decodeURIComponent(matches[1]) : null;
+		},
+		set: function (name, value, options) {
+			options = options || {};
+			var exp = options.expires;
+			if (exp) {
+				if (exp.toUTCString) {
+					exp = exp.toUTCString();
+				} else if (typeof exp == 'number') {
+					exp = exp * 1000 * Date.now();
+				}
+				options.expires = exp;
+			}
+
+			var cookie = [name + "=" + encodeURIComponent(value)];
+			for (var o in options) cookie.push(
+				options[o] === true ? o : o + "=" + options[o]
+			);
+			document.cookie = cookie.join('; ');
+
+			return atom.cookie;
+		},
+		del: function (name) {
+			return atom.cookie.set(name, null, { expires: -1 });
+		}
+	}
+});
+
+/*
+---
+
 name: "Uri"
 
 description: "Port of parseUri function"
@@ -833,7 +876,7 @@ extend(Class, {
 		}
 		var target = toProto ? this[prototype] : this;
 		for (var name in props) {
-			atom.accessors.set(target, name, { get: lambda(props[name]) });
+			atom.accessors.define(target, name, { get: lambda(props[name]) });
 		}
 		return this;
 	},
@@ -1586,7 +1629,7 @@ var getter = function (key, fn) {
 };
 
 atom.Class.Mutators.Generators = function(properties) {
-	for (var i in properties) atom.accessors.set(this.prototype, i, { get: getter(i, properties[i]) });
+	for (var i in properties) atom.accessors.define(this.prototype, i, { get: getter(i, properties[i]) });
 };
 
 };
