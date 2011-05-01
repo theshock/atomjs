@@ -15,7 +15,7 @@ provides: Array
 ...
 */
 
-new function () {
+new function (undefined) {
 
 var slice = [].slice;
 
@@ -184,6 +184,20 @@ atom.implement(Array, {
 			hex.push((bit.length == 1) ? '0' + bit : bit);
 		}
 		return (array) ? hex : '#' + hex.join('');
+	},
+
+	reduce: [].reduce || function(fn, value){
+		for (var i = 0, l = this.length; i < l; i++){
+			if (i in this) value = value === undefined ? this[i] : fn.call(null, value, this[i], i, this);
+		}
+		return value;
+	},
+
+	reduceRight: [].reduceRight || function(fn, value){
+		for (var i = this.length; i--;){
+			if (i in this) value = value === undefined ? this[i] : fn.call(null, value, this[i], i, this);
+		}
+		return value;
 	}
 });
 
