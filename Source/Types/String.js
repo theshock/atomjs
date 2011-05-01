@@ -63,6 +63,15 @@ atom.implement(String, {
 	},
 	lcfirst : function () {
 		return this[0].toLowerCase() + this.substr(1);
+	},
+	trim: ''.trim || function () {
+		return this.trimLeft().trimRight();
+	},
+	trimLeft : ''.trimRight || function () {
+		return this.replace(/^\s+/, '');
+	},
+	trimRight: ''.trimLeft || function () {
+		return this.replace(/\s+$/, '');
 	}
 });
 
