@@ -14,6 +14,11 @@ provides: Number
 
 ...
 */
+
+new function () {
+
+'use strict';
+
 atom.extend(Number, {
 	random : function (min, max) {
 		return Math.floor(Math.random() * (max - min + 1) + min);
@@ -66,3 +71,5 @@ atom.implement(Number, {
 			return Math[method].apply(null, [this].append(arguments));
 		};
 	});
+
+};
