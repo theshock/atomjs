@@ -44,6 +44,13 @@ atom.extend(Array, {
 		for (var i = array.length; i--;) array[i] = fill;
 		return array;
 	},
+	fillMatix: function (width, height, fill) {
+		var array = new Array(height);
+		while (height--) {
+			array[height] = Array.fill(width, fill);
+		}
+		return array;
+	},
 	collect: function (obj, props, Default) {
 		var array = [];
 		for (var i in props.toKeys()) array.push(i in obj ? obj[i] : Default);
@@ -52,13 +59,6 @@ atom.extend(Array, {
 	create: function (length, fn) {
 		var array = new Array(length);
 		for (var i = 0; i < length; i++) array[i] = fn(i, array);
-		return array;
-	},
-	createMatix: function (width, height, fill) {
-		var array = new Array(height);
-		while (height--) {
-			array[height] = Array.fill(width, fill);
-		}
 		return array;
 	},
 	toHash: function () {
