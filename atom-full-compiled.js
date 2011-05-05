@@ -384,11 +384,11 @@ new function () {
 			return this.elems[index * 1 || 0];
 		},
 		filter: function (sel) {
-			if (sel.match(tagNameRE)) var tag = sel;
-			if (sel.match(idRE     )) var id  = sel.substr(1);
+			if (sel.match(tagNameRE)) var tag = sel.toUpperCase();
+			if (sel.match(idRE     )) var id  = sel.substr(1).toUpperCase();
 			return new dom(this.elems.filter(function (elem) {
-				return tag ? elem.tagName == tag :
-				       id  ? elem.id      == id :
+				return tag ? elem.tagName.toUpperCase() == tag :
+				       id  ? elem.id     .toUpperCase() == id :
 				  elem.parentNode && toArray(
 				    elem.parentNode.querySelectorAll(sel)
 				  ).indexOf(elem) >= 0;
