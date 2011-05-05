@@ -55,6 +55,13 @@ atom.extend(Array, {
 		for (var i = 0; i < length; i++) array[i] = fn(i, array);
 		return array;
 	},
+	createMatix: function (width, height, fill) {
+		var array = new Array(height);
+		while (height--) {
+			array[height] = Array.fill(width, fill);
+		}
+		return array;
+	},
 	toHash: function () {
 		for (var hash = {}, i = 0, l = this.length; i < l; i++) hash[i] = this[i];
 		return hash;
