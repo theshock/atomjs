@@ -166,6 +166,19 @@ new function () {
 				return this.first.innerHTML;
 			}
 		},
+		text : function (value) {
+			if(document.getElementsByTagName("body")[0].innerText != undefined) {
+				if(value === undefined)
+					return this.first.innerText;
+				this.first.innerText = value;
+			}
+			else {
+				if(value === undefined)
+					return this.first.textContent;
+				this.first.textContent = value;
+			}
+			return this;
+		},
 		create : function (tagName, index, attr) {
 			if (typeof index == 'object') {
 				attr  = index;
