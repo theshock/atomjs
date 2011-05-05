@@ -17,6 +17,8 @@ provides: Function
 */
 
 new function () {
+'use strict';
+
 	var getContext = function (bind, self) {
 		return (bind === false || bind === Function.context) ? self : bind;
 	};
