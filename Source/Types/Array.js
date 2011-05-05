@@ -9,6 +9,7 @@ license: "[GNU Lesser General Public License](http://opensource.org/licenses/lgp
 
 requires:
 	- atom
+	- Number
 
 provides: Array
 
@@ -66,6 +67,12 @@ atom.implement(Array, {
 	},
 	get random(){
 		return this.length ? this[Number.random(0, this.length - 1)] : null;
+	},
+	popRandom: function () {
+		if (this.length == 0) return null;
+		var index = Number.random(0, this.length - 1), elem = this[index];
+		this.splice(index, 1);
+		return elem;
 	},
 	// Correctly works with `new Array(10).fullMap(fn)`
 	fullMap: function (fn, bind) {
