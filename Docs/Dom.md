@@ -180,3 +180,18 @@ Adds new class "className" to all elements of set
 Removes class "className" from all elements of set
 
 	atom.dom('span').removeClass('foo');
+
+
+#### atom.dom().toggleClass(className)
+
+Toggles class "className" for all elements of set
+
+	atom.dom('span').toggleClass('foo');
+
+
+#### atom.dom().hasClass(className)
+
+Returns true if set contains one or more elements
+having class "className"
+
+	atom.dom('span').hasClass('foo');
