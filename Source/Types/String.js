@@ -17,6 +17,8 @@ provides: String
 
 new function () {
 
+'use strict';
+
 var substituteRE = /\\?\{([^{}]+)\}/g,
 	safeHtmlRE = /[<'&">]/g,
 	UID = Date.now();
