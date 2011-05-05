@@ -52,7 +52,7 @@ test('atom.css', function() {
 
 	$elem.css({
 		color: 'rgba(80, 80, 80)',
-		background—olor: 'rgba(30, 30, 30)'
+		backgroundColor: 'rgba(30, 30, 30)'
 	});
 	strictEqual($elem.css('color'), 'rgba(80, 80, 80)', 'set the css style ("color") of atom.dom("#cid code") should be equal to "rgba(80, 80, 80)"');
 	strictEqual($elem.css('background-color'), 'rgba(30, 30, 30)', 'set the css style ("backgroundColor") of atom.dom("#cid code") should be equal to "rgba(30, 30, 30)"');
