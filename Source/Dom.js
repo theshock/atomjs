@@ -191,7 +191,7 @@ new function () {
 		css : function (css) {
 			css = setter(arguments);
 			if (typeof css == 'string') {
-				return this.first.style[css];
+				return window.getComputedStyle(this.first, "").getPropertyValue(css);
 			}
 			return this.each(function (elem) {
 				for (var i in css) {
