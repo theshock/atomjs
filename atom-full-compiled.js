@@ -300,7 +300,12 @@ new function () {
 			lineHeight: true
 		},
 		domReady = false,
-		onDomReady = [];
+		onDomReady = [],
+		camelCase = function (str) {
+			return str.replace(/-\D/g, function(match){
+				return match[1].toUpperCase();
+			});
+		};
 	
 	new function () {
 		var ready = function () {
@@ -438,7 +443,7 @@ new function () {
 					if (typeof value == 'number' && !ignoreCssPostfix[i]) {
 						value += 'px';
 					}
-					elem.style[i] = value;
+					elem.style[camelCase(i)] = value;
 				}
 			});
 		},
