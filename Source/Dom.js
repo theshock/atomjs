@@ -181,8 +181,8 @@ new function () {
 		},
 		attr : function (attr) {
 			attr = setter(arguments);
-			if (typeof attr[0] == 'string') {
-				return this.first.getAttribute(attr[0]);
+			if (typeof attr == 'string') {
+				return this.first.getAttribute(attr);
 			}
 			return this.each(function (elem) {
 				for (var i in attr) elem.setAttribute(i, attr[i]);
@@ -190,8 +190,8 @@ new function () {
 		},
 		css : function (css) {
 			css = setter(arguments);
-			if (typeof css[0] == 'string') {
-				return this.first.style[css[0]];
+			if (typeof css == 'string') {
+				return window.getComputedStyle(this.first, "").getPropertyValue(css);
 			}
 			return this.each(function (elem) {
 				for (var i in css) {
