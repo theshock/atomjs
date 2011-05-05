@@ -211,7 +211,7 @@ new function () {
 		// todo: unbind
 		delegate : function (selector, event, fn) {
 			return this.bind(event, function (e) {
-				if (new dom(e).is(selector)) {
+				if (new dom(e.target).is(selector)) {
 					fn.apply(this, arguments);
 				}
 			});
