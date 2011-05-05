@@ -16,6 +16,7 @@ provides: Array
 */
 
 new function (undefined) {
+'use strict';
 
 var slice = [].slice;
 
