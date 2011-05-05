@@ -190,8 +190,8 @@ new function () {
 		},
 		css : function (css) {
 			css = setter(arguments);
-			if (typeof css[0] == 'string') {
-				return this.first.style[css[0]];
+			if (typeof css == 'string') {
+				return this.first.style[css];
 			}
 			return this.each(function (elem) {
 				for (var i in css) {
