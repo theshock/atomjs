@@ -62,11 +62,11 @@ Returns parent element for choosed step.
 Example:
 
 	
-	`<div id='id1'>
+	<div id='id1'>
 		<div id='id2'>
 			<div id='id3'></div>
 		</div>
-	</div>`
+	</div>
 
 
 	atom.dom('#id3').parent().id;  //id2
