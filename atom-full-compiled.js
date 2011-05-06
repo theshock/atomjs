@@ -1233,7 +1233,7 @@ atom.extend(Array, {
 		for (var i = array.length; i--;) array[i] = fill;
 		return array;
 	},
-	fillMatix: function (width, height, fill) {
+	fillMatrix: function (width, height, fill) {
 		var array = new Array(height);
 		while (height--) {
 			array[height] = Array.fill(width, fill);
