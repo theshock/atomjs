@@ -2,7 +2,7 @@ new function () {
 
 var ID = 'qunit-fixture', $ID = '#' + ID,
 	win = window, doc = win.document,
-	wrapper = doc.getElementById(ID);
+	wrapper = doc.getElementById(ID), slice=[].slice;
 
 module('[Atom Plugins] Dom');
 
@@ -59,12 +59,12 @@ test('atom.addClass', function() {
     $elem.each(function(e){e.className = ''});
 
     $elem.addClass('cls1');
-    deepEqual(Array.slice.call(wrapper.getElementsByClassName('cls1'), 0), Array.slice.call($elem.elems, 0), 'addClass("cls1") must make elements selectable with getElementsByClassName("cls1")');
+    deepEqual(slice.call(wrapper.getElementsByClassName('cls1'), 0), slice.call($elem.elems, 0), 'addClass("cls1") must make elements selectable with getElementsByClassName("cls1")');
 
     var $elem2 = atom.dom($elem.elems.slice(0,2));
     $elem2.addClass('cls2');
-    deepEqual(Array.slice.call(wrapper.getElementsByClassName('cls2'), 0), Array.slice.call($elem.elems, 0), 'addClass("cls2") must make elements selectable with getElementsByClassName("cls2")');
-    deepEqual(Array.slice.call(wrapper.getElementsByClassName('cls1'), 0), Array.slice.call($elem.elems, 0), 'addClass("cls2") must not remove "cls1" from elements');
+    deepEqual(slice.call(wrapper.getElementsByClassName('cls2'), 0), slice.call($elem2.elems, 0), 'addClass("cls2") must make elements selectable with getElementsByClassName("cls2")');
+    deepEqual(slice.call(wrapper.getElementsByClassName('cls1'), 0), slice.call($elem.elems, 0), 'addClass("cls2") must not remove "cls1" from elements');
 
     var $elem3 = atom.dom($elem.get(0));
     $elem3.addClass(['cls1', 'cls2']);
@@ -87,7 +87,7 @@ test('atom.removeClass', function() {
 
     $elem.removeClass('cls2');
     strictEqual($elem3.get(0).className, '', 'removeClass("cls2") must remove class "cls2"');
-    deepEqual(Array.slice.call(wrapper.getElementsByClassName('cls2'), 0), [], 'removeClass("cls2") must remove class "cls2" from all elements');
+    deepEqual(slice.call(wrapper.getElementsByClassName('cls2'), 0), [], 'removeClass("cls2") must remove class "cls2" from all elements');
 
     // cleanup
     $elem.each(function(e){e.className = ''});
@@ -119,7 +119,7 @@ test('atom.toggleClass', function() {
     $elem2.each(function(e){e.className='cls2 cls3'});
 
     $elem.toggleClass('cls1');
-    deepEqual(Array.slice.call(wrapper.getElementsByClassName('cls1'), 0), Array.slice.call($elem2.elems, 0), 'after toggling "cls1" the only elements having "cls1" must be those which didn\'t have "cls1" before toggling');
+    deepEqual(slice.call(wrapper.getElementsByClassName('cls1'), 0), slice.call($elem2.elems, 0), 'after toggling "cls1" the only elements having "cls1" must be those which didn\'t have "cls1" before toggling');
     $elem.toggleClass(['cls1','cls2']);
     strictEqual($elem2.hasClass(['cls2','cls3']), false, 'there must not be any element in $elem2 having both "cls2" and "cls3"');
     strictEqual($elem.hasClass(['cls2','cls1']), true, 'there must be some elements in $elem having both "cls2" and "cls1"');
