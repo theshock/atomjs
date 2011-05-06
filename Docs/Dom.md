@@ -126,8 +126,18 @@ Checks if elems is matched to selector
 
 get or set html of first element in set
 
-	atom.dom('div').html('abc');
-	atom.dom('div').html(); // 'abc'
+	atom.dom('div').html('<span>abc</span>');
+	atom.dom('div').html(); // '<span>abc</span>'
+
+#### atom.dom().html(value = undefined)
+
+get or set text of first element in set
+
+	atom.dom('div').text('abc');
+	atom.dom('div').text(); // 'abc';
+
+	atom.dom('div').html('<span>abc</span>');
+	atom.dom('div').text(); // 'abc';
 
 #### atom.dom().wrap(wrapper)
 
