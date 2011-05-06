@@ -55,6 +55,22 @@ Apply function on each element of collection (analogue of `Array.forEach`):
 		// this == atom.dom('div')
 	});
 
+#### atom.dom().parent(step)
+
+Returns parent element for choosed step.
+
+Example:
+	<div id='id1'>
+		<div id='id2'>
+			<div id='id3'></div>
+		</div>
+	</div>
+
+	....
+
+	atom.dom('#id3').parent().id;  //id2
+	atom.dom('#id3').parent(2).id; //id1
+
 #### atom.dom().css(properties)
 
 Apply CSS to every element:
@@ -126,8 +142,18 @@ Checks if elems is matched to selector
 
 get or set html of first element in set
 
-	atom.dom('div').html('abc');
-	atom.dom('div').html(); // 'abc'
+	atom.dom('div').html('<span>abc</span>');
+	atom.dom('div').html(); // '<span>abc</span>'
+
+#### atom.dom().html(value = undefined)
+
+get or set text of first element in set
+
+	atom.dom('div').text('abc');
+	atom.dom('div').text(); // 'abc';
+
+	atom.dom('div').html('<span>abc</span>');
+	atom.dom('div').text(); // 'abc';
 
 #### atom.dom().wrap(wrapper)
 
