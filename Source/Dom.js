@@ -144,6 +144,18 @@ new function () {
 		get : function (index) {
 			return this.elems[index * 1 || 0];
 		},
+		parent : function(step) {
+			if(step === undefined)
+				var step = 1;
+			var stepCount = function(elem, step) {
+				if(step > 0) {
+					step--;
+					return stepCount(atom.dom(elem.first.parentNode), step);
+				}
+				return elem;
+			};
+			return stepCount(this, step);
+		},
 		filter: function (sel) {
 			if (sel.match(tagNameRE)) var tag = sel.toUpperCase();
 			if (sel.match(idRE     )) var id  = sel.substr(1).toUpperCase();
