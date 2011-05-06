@@ -55,18 +55,19 @@ Apply function on each element of collection (analogue of `Array.forEach`):
 		// this == atom.dom('div')
 	});
 
-#### atom.dom().parent(step)
+#### atom.dom().parent(step = 1)
 
 Returns parent element for choosed step.
 
 Example:
-	<div id='id1'>
+
+	
+	`<div id='id1'>
 		<div id='id2'>
 			<div id='id3'></div>
 		</div>
-	</div>
+	</div>`
 
-	....
 
 	atom.dom('#id3').parent().id;  //id2
 	atom.dom('#id3').parent(2).id; //id1
@@ -145,7 +146,7 @@ get or set html of first element in set
 	atom.dom('div').html('<span>abc</span>');
 	atom.dom('div').html(); // '<span>abc</span>'
 
-#### atom.dom().html(value = undefined)
+#### atom.dom().text(value = undefined)
 
 get or set text of first element in set
 
