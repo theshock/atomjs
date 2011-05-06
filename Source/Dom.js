@@ -144,6 +144,18 @@ new function () {
 		get : function (index) {
 			return this.elems[index * 1 || 0];
 		},
+		parent : function(step) {
+			if(step === undefined)
+				var step = 1;
+			var stepCount = function(elem, step) {
+				if(step > 0) {
+					step--;
+					return stepCount(atom.dom(elem.first.parentNode), step);
+				}
+				return elem;
+			};
+			return stepCount(this, step);
+		},
 		filter: function (sel) {
 			if (sel.match(tagNameRE)) var tag = sel.toUpperCase();
 			if (sel.match(idRE     )) var id  = sel.substr(1).toUpperCase();
@@ -165,6 +177,19 @@ new function () {
 			} else {
 				return this.first.innerHTML;
 			}
+		},
+		text : function (value) {
+			if(document.getElementsByTagName("body")[0].innerText != undefined) {
+				if(value === undefined)
+					return this.first.innerText;
+				this.first.innerText = value;
+			}
+			else {
+				if(value === undefined)
+					return this.first.textContent;
+				this.first.textContent = value;
+			}
+			return this;
 		},
 		create : function (tagName, index, attr) {
 			if (typeof index == 'object') {
@@ -266,7 +291,9 @@ new function () {
 			});
 		},
 		removeClass: function (classNames) {
-			if (!isArray(classNames) && classNames) classNames = [classNames];
+            if (!classNames) return this;
+
+			if (!isArray(classNames)) classNames = [classNames];
 
 			return this.each(function (elem) {
 				var current = ' ' + elem.className + ' ';
@@ -276,6 +303,41 @@ new function () {
 				elem.className = current.trim();
 			});
 		},
+        hasClass: function(classNames) {
+            if(!classNames) return false;
+
+            if(!isArray(classNames)) classNames = [classNames];
+
+            var result = false;
+            this.each(function (elem) {
+                var property = elem.className, current = ' ' + property + ' ';
+
+                var elemResult = true;
+                for (var i = classNames.length; i--;) {
+                    elemResult = elemResult && (current.indexOf(' ' + classNames[i] + ' ') >= 0);
+                }
+
+                result = result || elemResult;
+            });
+            return result;
+        },
+        toggleClass: function(classNames) {
+            if(!classNames) return this;
+
+            if(!isArray(classNames)) classNames = [classNames];
+
+            return this.each(function (elem) {
+                var property = elem.className, current = ' ' + property + ' ';
+
+                for (var i = classNames.length; i--;) {
+                    var c = ' ' + classNames[i];
+                    if (current.indexOf(c + ' ') < 0) current = c + current;
+                    else current = current.replace(c + ' ', ' ');
+                }
+
+                elem.className = current.trim();
+            });
+        },
 		log : function () {
 			atom.log.apply(atom, arguments[length] ? arguments : ['atom.dom', this.elems]);
 			return this;
