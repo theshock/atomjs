@@ -33,6 +33,13 @@ Fill array `array`, or create new array with length `array` and fill it with val
 	Array.fill(test, 5);
 	atom.log(test); // [5, 5, 5]
 
+
+### fillMatrix
+	Array.fillMatrix(Number width, Number height, mixed fill)
+Create and fill matrix with values
+
+	var matrix = Array.fillMatrix(5, 3, null);
+
 ### collect
 	Array.collect(object, Array properties, defaultValue = null)
 Collect `properties` from `object` (or set `defaultValue` if empty)
