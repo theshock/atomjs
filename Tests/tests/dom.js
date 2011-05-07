@@ -127,5 +127,30 @@ test('atom.toggleClass', function() {
     // cleanup
     $elem.each(function(e){e.className = ''});
 });
+	
+test('atom.html', function() {
+	var $elem = atom.dom($ID + ' h1');
+
+	$elem.html('<span>42</span>');
+	strictEqual($elem.html(), '<span>42</span>', 'html content atom.dom("#cid h1") should be equal to "<span>42</span>", because it was added as html content')
+});
+
+test('atom.text', function() {
+	var $elem = atom.dom($ID + ' h1');
+		
+	$elem.html('<span>42</span>');
+	strictEqual($elem.text(), '42', 'text content atom.dom("#cid h1") should be equal to "42", but html content is "<span>42</span>"');
+
+	$elem.find('span').text(24);
+	strictEqual($elem.find('span').text(), '24', 'text content atom.dom("#cid h1") should be equal to "24", because it was changed from 42');
+});
+
+test('atom.parent', function() {
+	var $elem  = atom.dom().create('span').appendTo(atom.dom($ID + ' h1').html(''))
+
+	$elem.html('<b>' + 24 + '</b>');
+	strictEqual($elem.find('b').parent().html(), $elem.html(), 'html content should be equal to "<b>24</b>", because this content have parent element');
+	strictEqual($elem.find('b').parent(2).html(), $elem.parent().html(), 'html content should be equal to "<span><b>24</b></span>", because this content have parent(2) element');
+});
 
 };
