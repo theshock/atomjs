@@ -145,13 +145,11 @@ test('atom.text', function() {
 });
 
 test('atom.parent', function() {
-	var $elem  = atom.dom($ID + ' h1').html('<span></span>'),
-		$elem2 = $elem.find('span');
-		
+	var $elem  = atom.dom().create('span').appendTo(atom.dom($ID + ' h1').html(''))
 
-	$elem2.html('<b>' + 24 + '</b>');
-	strictEqual($elem2.find('b').parent().html(), $elem2.html(), 'html content should be equal to "<b>24</b>", because this content have parent element');
-	strictEqual($elem2.find('b').parent(2).html(), $elem2.parent().html(), 'html content should be equal to "<span><b>24</b></span>", because this content have parent(2) element');
+	$elem.html('<b>' + 24 + '</b>');
+	strictEqual($elem.find('b').parent().html(), $elem.html(), 'html content should be equal to "<b>24</b>", because this content have parent element');
+	strictEqual($elem.find('b').parent(2).html(), $elem.parent().html(), 'html content should be equal to "<span><b>24</b></span>", because this content have parent(2) element');
 });
 
 };
