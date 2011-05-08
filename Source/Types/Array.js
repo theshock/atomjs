@@ -154,6 +154,14 @@ atom.implement(Array, {
 	max: function(){
 		return Math.max.apply(null, this);
 	},
+	mul: function (factor) {
+		for (var i = this.length; i--;) this[i] *= factor;
+		return this;
+	},
+	add: function (number) {
+		for (var i = this.length; i--;) this[i] += number;
+		return this;
+	},
 	average: function(){
 		return this.length ? this.sum() / this.length : 0;
 	},
