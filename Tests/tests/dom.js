@@ -17,17 +17,6 @@ test('Get', function(){
 	// todo: [qtest] full of DOM plugin
 });
 
-asyncTest('onDomReady', 1, function () {
-	atom.dom(function () {
-		ok('onready runned');
-	});
-
-	setTimeout(function () {
-		// it has 1 sec for onDomReady
-		start();
-	}, 1000);
-});
-
 test('atom.attr', function() {
 	var $elem = atom.dom($ID + ' code');
 
@@ -151,6 +140,26 @@ test('atom.parent', function() {
 	$elem.html('<b>' + 24 + '</b>');
 	strictEqual($elem.find('b').parent().html(), $elem.html(), 'html content should be equal to "<b>24</b>", because this content have parent element');
 	strictEqual($elem.find('b').parent(2).html(), $elem.parent().html(), 'html content should be equal to "<span><b>24</b></span>", because this content have parent(2) element');
+});
+
+
+// Пусть всегда будет последним, чтобы не вешал остальные тесты!
+asyncTest('onDomReady', 3, function () {
+	atom.dom(function () {
+		ok(true, 'onready runned');
+
+		var async = false;
+		atom.dom(function () {
+			ok(true, 'onReady should wait for events even after ready');
+			ok(async, 'onReady should runs async always');
+		});
+		async = true;
+	});
+
+	setTimeout(function () {
+		// it has 1 sec for onDomReady
+		start();
+	}, 1000);
 });
 
 };
