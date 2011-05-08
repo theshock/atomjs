@@ -44,6 +44,13 @@ atom.extend(Object, {
 	isReal: function (obj) {
 		return obj || obj === 0;
 	},
+	map: function (obj, fn) {
+		var mapped = {};
+		for (var i in obj) if (obj.hasOwnProperty(i)) {
+			mapped[i] = fn( obj[i], i, obj );
+		}
+		return mapped;
+	},
 	max: function (obj) {
 		var max = null, key = null;
 		for (var i in obj) if (max == null || obj[i] > max) {

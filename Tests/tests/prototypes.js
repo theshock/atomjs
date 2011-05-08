@@ -145,6 +145,8 @@ notStrictEqual([1,2,3].clone(), [1,2,3], 'array.clone() result not equals to arr
 test('Object', function(){
 deepEqual(Object.invert({ a:'x', b:'y', c:'z'  }), { x:'a', y: 'b', z: 'c'}, 'Object.invert');
 deepEqual(Object.collect({ a:'x', b:'y', c:'z' }, ['a','b','k'], 5), { a:'x', b:'y', k:5}, 'Object.collect');
+
+deepEqual( Object.map({a: 5, b: 6}, function (x) { return x * x }), { a: 25, b: 36 }, 'Object.map');
 // todo: [qtest] Object.deepEquals
 });
 
