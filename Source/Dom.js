@@ -127,6 +127,10 @@ new function () {
 				: typeof sel == 'string' ? dom.query(context, sel) : [context];
 			return (result.length == 1 && result[0] == null) ? [] : result;
 		},
+		create: function (tagName, attr) {
+			var elem = new dom(document.createElement(tagName));
+			return attr ? elem.attr(attr) : elem;
+		},
 		isElement: function (node) {
 			return !!(node && node.nodeName);
 		}
