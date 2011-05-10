@@ -17,7 +17,17 @@ test('Get', function(){
 	// todo: [qtest] full of DOM plugin
 });
 
-test('atom.attr', function() {
+test('atom.dom.create', function () {
+	var $canvas = atom.dom.create('canvas', { width: 100 });
+
+	ok($canvas instanceof atom.dom, 'atom.dom.create creates element, wrapped with atom.dom' );
+	equal($canvas.length, 1, 'atom.dom.create creates one element');
+	equal($canvas.first.tagName, 'CANVAS', 'atom.dom.create creates one element with correct name');
+	equal($canvas.attr('width'), 100, 'attr sets correctly');
+
+});
+
+test('atom.dom().attr', function() {
 	var $elem = atom.dom($ID + ' code');
 
 	strictEqual($elem.attr('style'), wrapper.getElementsByTagName('code')[0].getAttribute('style'), 'atom.dom("#cid code").attr("style") right attribute content');
@@ -25,7 +35,7 @@ test('atom.attr', function() {
 	equal($elem.attr('data-test-attr'), 42, 'atom.dom("#cid code").attr("data-test-attr", "42") attribute must equal to 42');
 });
 
-test('atom.css', function() {
+test('atom.dom().css', function() {
 	var $elem = atom.dom($ID + ' code');
 
 
@@ -43,7 +53,7 @@ test('atom.css', function() {
 	strictEqual($elem.css('background-color'), 'rgb(30, 30, 30)', 'set the css style ("backgroundColor") of atom.dom("#cid code") should be equal to "rgb(30, 30, 30)"');
 });
 
-test('atom.addClass', function() {
+test('atom.dom().addClass', function() {
 	var $elem = atom.dom($ID + ' p');
 	$elem.each(function(e){e.className = ''});
 
@@ -64,7 +74,7 @@ test('atom.addClass', function() {
 	$elem.each(function(e){e.className = ''});
 });
 
-test('atom.removeClass', function() {
+test('atom.dom().removeClass', function() {
 	var $elem = atom.dom($ID + ' p');
 	$elem.each(function(e){e.className = 'cls1'});
 	var $elem2 = atom.dom($elem.elems.slice(0,2));
@@ -82,7 +92,7 @@ test('atom.removeClass', function() {
 	$elem.each(function(e){e.className = ''});
 });
 
-test('atom.hasClass', function() {
+test('atom.dom().hasClass', function() {
 	var $elem = atom.dom($ID + ' p');
 	$elem.each(function(e){e.className = 'cls1'});
 
@@ -101,7 +111,7 @@ test('atom.hasClass', function() {
 	$elem.each(function(e){e.className = ''});
 });
 
-test('atom.toggleClass', function() {
+test('atom.dom().toggleClass', function() {
 	var $elem = atom.dom($ID + ' p');
 	$elem.each(function(e){e.className = 'cls1'});
 	var $elem2 = atom.dom($elem.elems.slice(0,2));
@@ -117,14 +127,14 @@ test('atom.toggleClass', function() {
 	$elem.each(function(e){e.className = ''});
 });
 	
-test('atom.html', function() {
+test('atom.dom().html', function() {
 	var $elem = atom.dom($ID + ' h1');
 
 	$elem.html('<span>42</span>');
 	strictEqual($elem.html(), '<span>42</span>', 'html content atom.dom("#cid h1") should be equal to "<span>42</span>", because it was added as html content')
 });
 
-test('atom.text', function() {
+test('atom.dom().text', function() {
 	var $elem = atom.dom($ID + ' h1');
 		
 	$elem.html('<span>42</span>');
@@ -134,7 +144,7 @@ test('atom.text', function() {
 	strictEqual($elem.find('span').text(), '24', 'text content atom.dom("#cid h1") should be equal to "24", because it was changed from 42');
 });
 
-test('atom.parent', function() {
+test('atom.dom().parent', function() {
 	var $elem  = atom.dom().create('span').appendTo(atom.dom($ID + ' h1').html(''))
 
 	$elem.html('<b>' + 24 + '</b>');
@@ -144,7 +154,7 @@ test('atom.parent', function() {
 
 
 // Пусть всегда будет последним, чтобы не вешал остальные тесты!
-asyncTest('onDomReady', 3, function () {
+asyncTest('atom.dom (ready)', 3, function () {
 	atom.dom(function () {
 		ok(true, 'onready runned');
 
