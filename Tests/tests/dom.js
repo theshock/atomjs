@@ -146,7 +146,7 @@ test('atom.dom().text', function() {
 });
 
 test('atom.dom().parent', function() {
-	var $elem  = atom.dom().create('span').appendTo(atom.dom($ID + ' h1').html(''))
+	var $elem  = atom.dom.create('span').appendTo(atom.dom($ID + ' h1').html(''));
 
 	$elem.html('<b>' + 24 + '</b>');
 	strictEqual($elem.find('b').parent().html(), $elem.html(), 'html content should be equal to "<b>24</b>", because this content have parent element');

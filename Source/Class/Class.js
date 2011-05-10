@@ -117,6 +117,7 @@ extend(Class, {
 				}
 
 				if (typeOf(value) == 'function'){
+					if (value.$origin) value = value.$origin;
 					if (value.$hidden == 'next') {
 						value.$hidden = true
 					} else if (value.$hidden) {

@@ -221,6 +221,27 @@ test('Static', function(){
 	equal(bar.self.barStat, 'barStatValue', 'bar.self.barStat');
 });
 
+test('hiddenMethod', function () {
+	var Foo = atom.Class({
+		value: 'original',
+		initialize: atom.Class.hiddenMethod(function () {
+			this.value = 42;
+		}),
+		method: atom.Class.hiddenMethod(function () {
+			this.value = 123;
+		})
+	});
+
+	var Bar = atom.Class({
+		Implements: [ Foo ]
+	});
+
+	var bar = new Bar();
+
+	equal( bar.value, 'original', 'hidden constructor hide correctly');
+	equal( typeof bar.method, 'undefined', 'hidden method hide correctly');
+});
+
 module('[Atom Plugins] Class Plugins');
 
 test('Events', function(){
