@@ -8,6 +8,7 @@ module('[Atom Plugins] Dom');
 
 test('Get', function(){
 	strictEqual(atom.dom().get(), doc, 'atom.dom() is document');
+	strictEqual(atom.dom('body').first, doc.body, 'atom.dom("body") is body');
 	strictEqual(atom.dom('unknownTag').length, 0, 'atom.dom("unknownTag") returns nothing');
 	strictEqual(atom.dom($ID + ' p').length , wrapper.getElementsByTagName('p').length    , 'atom.dom("#cid p") right length');
 	strictEqual(atom.dom('.foo', $ID).length, wrapper.getElementsByClassName('foo').length, 'atom.dom(".foo", "#cid") right length');

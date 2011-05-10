@@ -332,6 +332,11 @@ new function () {
 			return this;
 		}
 
+		if (!context && sel === 'body') {
+			this.elems = [doc.body];
+			return this;
+		}
+
 		if (context !== undefined) {
 			return new dom(context || doc).find(sel);
 		}
