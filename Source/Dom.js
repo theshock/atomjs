@@ -302,41 +302,41 @@ new function () {
 				elem.className = current.trim();
 			});
 		},
-        hasClass: function(classNames) {
-            if(!classNames) return false;
+		hasClass: function(classNames) {
+			if(!classNames) return false;
 
-            if(!isArray(classNames)) classNames = [classNames];
+			if(!isArray(classNames)) classNames = [classNames];
 
-            var result = false;
-            this.each(function (elem) {
-                var property = elem.className, current = ' ' + property + ' ';
+			var result = false;
+			this.each(function (elem) {
+				var property = elem.className, current = ' ' + property + ' ';
 
-                var elemResult = true;
-                for (var i = classNames.length; i--;) {
-                    elemResult = elemResult && (current.indexOf(' ' + classNames[i] + ' ') >= 0);
-                }
+				var elemResult = true;
+				for (var i = classNames.length; i--;) {
+					elemResult = elemResult && (current.indexOf(' ' + classNames[i] + ' ') >= 0);
+				}
 
-                result = result || elemResult;
-            });
-            return result;
-        },
-        toggleClass: function(classNames) {
-            if(!classNames) return this;
+				result = result || elemResult;
+			});
+			return result;
+		},
+		toggleClass: function(classNames) {
+			if(!classNames) return this;
 
-            if(!isArray(classNames)) classNames = [classNames];
+			if(!isArray(classNames)) classNames = [classNames];
 
-            return this.each(function (elem) {
-                var property = elem.className, current = ' ' + property + ' ';
+			return this.each(function (elem) {
+				var property = elem.className, current = ' ' + property + ' ';
 
-                for (var i = classNames.length; i--;) {
-                    var c = ' ' + classNames[i];
-                    if (current.indexOf(c + ' ') < 0) current = c + current;
-                    else current = current.replace(c + ' ', ' ');
-                }
+				for (var i = classNames.length; i--;) {
+					var c = ' ' + classNames[i];
+					if (current.indexOf(c + ' ') < 0) current = c + current;
+					else current = current.replace(c + ' ', ' ');
+				}
 
-                elem.className = current.trim();
-            });
-        },
+				elem.className = current.trim();
+			});
+		},
 		log : function () {
 			atom.log.apply(atom, arguments[length] ? arguments : ['atom.dom', this.elems]);
 			return this;
