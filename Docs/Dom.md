@@ -42,18 +42,20 @@ Returns html-element from current collection
 
 #### atom.dom().create(tagName, index = 0, attrs = null)
 
-**deprecated**, use `atom.dom.create` instead
-
 Creates element, adds it to node and returns it
 
 Optional arguments:
 
+* `index` - index of node in current collection
 * `attrs` - properties to set on new element
 
 Example:
 
+	// creating Canvas in fifth div:
+	var atomCanvas = atom.dom('div').create('canvas', 5);
+
 	// creating Canvas with properties
-	var atomCanvas = atom.dom().create('canvas', {
+	var atomCanvas = atom.dom('div').create('canvas', {
 		width  : 400,
 		height : 100
 	});

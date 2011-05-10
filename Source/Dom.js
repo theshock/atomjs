@@ -200,9 +200,9 @@ new function () {
 			}
 			return this;
 		},
-		/** @Deprecated */
 		create : function (tagName, index, attr) {
-			return atom.dom.create(tagName, attr);
+			atom.dom.create(tagName, attr).appendTo( this.get(index) );
+			return this;
 		},
 		each : function (fn) {
 			this.elems.forEach(fn.bind(this));
