@@ -14,6 +14,20 @@ Atom.Plugins.DOM
 		// DOMContentLoaded
 	});
 
+#### atom.dom.create(tagName, attrs = null)
+
+Creates and returns (*atom.dom*) tag with name `tagName`
+
+Example:
+
+	// creating Canvas with properties
+	var atomCanvas = atom.dom.create('canvas', {
+		width  : 400,
+		height : 100
+	});
+
+
+
 #### atom.dom().body
 
 	var body = atom.dom().body;
@@ -28,20 +42,18 @@ Returns html-element from current collection
 
 #### atom.dom().create(tagName, index = 0, attrs = null)
 
+**deprecated**, use `atom.dom.create` instead
+
 Creates element, adds it to node and returns it
 
 Optional arguments:
 
-* `index` - index of node in current collection
 * `attrs` - properties to set on new element
 
 Example:
 
-	// creating Canvas in fifth div:
-	var atomCanvas = atom.dom('div').create('canvas', 5);
-
 	// creating Canvas with properties
-	var atomCanvas = atom.dom('div').create('canvas', {
+	var atomCanvas = atom.dom().create('canvas', {
 		width  : 400,
 		height : 100
 	});
@@ -160,13 +172,13 @@ get or set text of first element in set
 
 Wrap first element of set with wrapper
 
-	atom.dom('span').wrap( atom.dom().create('div') );
+	atom.dom('span').wrap( atom.dom.create('div') );
 
 #### atom.dom().replaceWith(newElement)
 
 Replace first element of the set with newElement
 
-	atom.dom('span').replaceWith( atom.dom().create('div') );
+	atom.dom('span').replaceWith( atom.dom.create('div') );
 
 #### atom.dom().addClass(className)
 
