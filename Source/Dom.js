@@ -195,14 +195,9 @@ new function () {
 			}
 			return this;
 		},
+		/** @Deprecated */
 		create : function (tagName, index, attr) {
-			if (typeof index == 'object') {
-				attr  = index;
-				index = 0;
-			}
-			var elem = dom(this.get(index).createElement(tagName));
-			if (attr) elem.attr(attr);
-			return elem;
+			return atom.dom.create(tagName, attr);
 		},
 		each : function (fn) {
 			this.elems.forEach(fn.bind(this));
