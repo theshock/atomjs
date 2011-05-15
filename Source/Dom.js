@@ -201,6 +201,10 @@ new function () {
 			return this;
 		},
 		create : function (tagName, index, attr) {
+			if (typeof index == 'object') {
+				index = 0;
+				attr  = index;
+			}
 			atom.dom.create(tagName, attr).appendTo( this.get(index) );
 			return this;
 		},
