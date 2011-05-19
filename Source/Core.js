@@ -24,13 +24,14 @@ provides: atom
 	var prototype = 'prototype',
 	    apply     = 'apply',
 		toString  = Object[prototype].toString,
-		global    = (this.window || GLOBAL),
 		slice     = [].slice,
 		FuncProto = Function[prototype];
 
-	var atom = global.atom = function () {
+	var atom = this.atom = function () {
 		if (atom.initialize) return atom.initialize[apply](this, arguments);
 	};
+
+	atom.global = this;
 
 	var innerExtend = function (proto) {
 		return function (elem, from) {
