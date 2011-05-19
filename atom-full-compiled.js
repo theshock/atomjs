@@ -21,10 +21,6 @@ provides: atom
 */
 
 (function (Object, Array) {
-
-console.log( 1 );
-console.log( this );
-	
 	var prototype = 'prototype',
 	    apply     = 'apply',
 		toString  = Object[prototype].toString,
