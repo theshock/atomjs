@@ -106,7 +106,7 @@ provides: atom
 		},
 		log: function () {
 			// ie9 bug, typeof console.log == 'object'
-			if (global.console) FuncProto[apply].call(console.log, console, arguments);
+			if (atom.global.console) FuncProto[apply].call(console.log, console, arguments);
 		},
 		typeOf: typeOf,
 		clone: clone
