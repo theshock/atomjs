@@ -844,8 +844,12 @@ var Class = function (params) {
 	if (typeOf(params) == 'function') params = { initialize: params };
 
 	var Constructor = function(){
-		if (Constructor.$prototyping) return this;
-		return this.initialize ? this.initialize.apply(this, arguments) : this;
+		if (this instanceof Constructor) {
+			if (Constructor.$prototyping) return this;
+			return this.initialize ? this.initialize.apply(this, arguments) : this;
+		} else {
+			return Constructor.invoke(arguments);
+		}
 	};
 	extend(Constructor, Class);
 	Constructor[prototype] = getInstance(Class);
@@ -894,20 +898,28 @@ var wrap = function(self, key, method){
 	return wrapper;
 };
 
-extend(Class, {
-	extend: function (name, fn) {
-		if (typeof name == 'string') {
-			var object = {};
-			object[name] = fn;
-		} else {
-			object = name;
-		}
+var getInstance = function(Class){
+	Class.$prototyping = true;
+	var proto = new Class;
+	delete Class.$prototyping;
+	return proto;
+};
 
-		for (var i in object) if (!accessors(object, this, i)) {
-			 this[i] = object[i];
-		}
-		return this;
-	},
+Class.extend =  function (name, fn) {
+	if (typeof name == 'string') {
+		var object = {};
+		object[name] = fn;
+	} else {
+		object = name;
+	}
+
+	for (var i in object) if (!accessors(object, this, i)) {
+		 this[i] = object[i];
+	}
+	return this;
+};
+
+Class.extend({
 	implement: function(name, fn, retain){
 		if (typeof name == 'string') {
 			var params = {};
@@ -960,17 +972,10 @@ extend(Class, {
 	},
 	isInstance: function (object) {
 		return object instanceof this;
-	}
-});
-
-var getInstance = function(klass){
-	klass.$prototyping = true;
-	var proto = new klass;
-	delete klass.$prototyping;
-	return proto;
-};
-
-extend(Class, {
+	},
+	invoke: function (args) {
+		return this.factory( args );
+	},
 	Mutators: {
 		Extends: function(parent){
 			if (parent == null) throw new TypeError('Cant extends from null');
