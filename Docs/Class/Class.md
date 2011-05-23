@@ -55,6 +55,54 @@ Wrapper for native prototype-based OOP
 	var cat = Animal.factory(['Tom']);
 	var dog = Dog.factory(['Max', 'dalmatian']);
 
+### Invoking Class
+You can invoke your Class without `new`. As default it just creates new instance:
+
+	var MyClass = atom.Class({});
+
+	new MyClass(5, 42);
+	// similar to
+	MyClass(5, 42);
+
+But you can change this behaviour, changing Static method `invoke`:
+
+	var MyClass = atom.Class({
+		Static: {
+			invoke: function (first, second) {
+				alert( first + second );
+				return this.factory( arguments );
+			}
+		}
+	});
+
+	// Just creates new instance:
+	var mc = new MyClass(5, 42);
+
+	// Alerts 47, than create instance
+	var mc = MyClass(5, 42);
+
+You even can create width this way instances of another class:
+
+	var Foo = atom.Class({});
+
+	var Bar = atom.Class({
+		Static: {
+			invoke: function () {
+				return Foo.factory( arguments );
+			}
+		}
+	});
+
+	var bar = new Bar();
+	var foo =     Bar();
+
+	console.log(
+		bar instanceof Bar, // true
+		bar instanceof Foo, // false
+		foo instanceof Bar, // false
+		foo instanceof Foo  // true
+	);
+
 ### Properties
 `self` You can use property "self" to get the link to the class as in methods `logStatic` and `isSelf`
 

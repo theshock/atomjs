@@ -242,6 +242,33 @@ test('hiddenMethod', function () {
 	equal( typeof bar.method, 'undefined', 'hidden method hide correctly');
 });
 
+test('invoke', function () {
+
+	var Foo = atom.Class({
+		initialize: function (x) {
+			this.x = x;
+		}
+	});
+
+	var foo = Foo(42);
+	ok( foo instanceof Foo, 'Class invokation successful' );
+	equal( foo.x, 42, 'Class construction successful' );
+
+	var Bar = atom.Class({
+		Static: {
+			invoke: function () {
+				return Foo.factory(arguments);
+			}
+		}
+	});
+
+	var bar = Bar(13);
+
+	ok( !(bar instanceof Bar), 'Class invokation rewritten' );
+	equal( bar.x, 13, 'Class invokation rewritten successful' );
+});
+
+
 module('[Atom Plugins] Class Plugins');
 
 test('Events', function(){

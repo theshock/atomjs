@@ -38,7 +38,7 @@ var Class = function (params) {
 			if (Constructor.$prototyping) return this;
 			return this.initialize ? this.initialize.apply(this, arguments) : this;
 		} else {
-			return Constructor.invoke(arguments);
+			return Constructor.invoke.apply(Constructor, arguments);
 		}
 	};
 	extend(Constructor, Class);
