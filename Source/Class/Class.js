@@ -163,8 +163,8 @@ Class.extend({
 	isInstance: function (object) {
 		return object instanceof this;
 	},
-	invoke: function (args) {
-		return this.factory( args );
+	invoke: function () {
+		return this.factory( arguments );
 	},
 	Mutators: {
 		Extends: function(parent){
