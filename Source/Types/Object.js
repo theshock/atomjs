@@ -88,5 +88,37 @@ atom.extend(Object, {
 			object[key] = defaultValue;
 		}
 		return object;
+	},
+	path: {
+		parts: function (path, delimiter) {
+			return String(path).split( delimiter || '.' );
+		},
+		get: function (object, path, delimiter) {
+			path = Object.path.parts( path, delimiter );
+
+			for (var i = 0; i < path.length; i++) {
+				if (object != null && path in object) {
+					object = object[path];
+				} else {
+					return null;
+				}
+			}
+
+			return object;
+		},
+		set: function (object, path, value, delimiter) {
+			path = Object.path.parts( path, delimiter );
+
+			var key = path.pop();
+
+			object = Object.path.get( object, path, delimiter );
+
+			if (object == null) {
+				return false;
+			} else {
+				object[key] = value;
+				return true;
+			}
+		}
 	}
 });
