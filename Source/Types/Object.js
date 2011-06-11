@@ -91,16 +91,18 @@ atom.extend(Object, {
 	},
 	path: {
 		parts: function (path, delimiter) {
-			return String(path).split( delimiter || '.' );
+			return Array.isArray(path) ? path : String(path).split( delimiter || '.' );
 		},
 		get: function (object, path, delimiter) {
+			if (!path) return object;
+
 			path = Object.path.parts( path, delimiter );
 
 			for (var i = 0; i < path.length; i++) {
-				if (object != null && path in object) {
-					object = object[path];
+				if (object != null && path[i] in object) {
+					object = object[path[i]];
 				} else {
-					return null;
+					return;
 				}
 			}
 
@@ -111,7 +113,7 @@ atom.extend(Object, {
 
 			var key = path.pop();
 
-			object = Object.path.get( object, path, delimiter );
+			object = Object.path.get( object, path.length > 0 && path, delimiter );
 
 			if (object == null) {
 				return false;

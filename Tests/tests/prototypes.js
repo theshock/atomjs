@@ -7,14 +7,15 @@ new function () {
 
 module('[Atom Plugins] Types');
 
-test('Function', function(){
-equals(Function.lambda('Foo')(), 'Foo', 'Function.lambda');
-equals(function(bar, quz) {
-	return this.foo + bar + quz;
-}.context({ foo: 'Foo'}, ['Bar'])('Quz'), 'FooBarQuz', 'function.context');
+test('Function', function() {
 
-// todo: [qtest] function.delay
-// todo: [qtest] function.periodical
+	equal(Function.lambda('Foo')(), 'Foo', 'Function.lambda');
+	equal(function(bar, quz) {
+		return this.foo + bar + quz;
+	}.context({ foo: 'Foo'}, ['Bar'])('Quz'), 'FooBarQuz', 'function.context');
+
+	// todo: [qtest] function.delay
+	// todo: [qtest] function.periodical
 });
 
 test('Number', function(){
@@ -143,11 +144,24 @@ notStrictEqual([1,2,3].clone(), [1,2,3], 'array.clone() result not equals to arr
 });
 
 test('Object', function(){
+
 deepEqual(Object.invert({ a:'x', b:'y', c:'z'  }), { x:'a', y: 'b', z: 'c'}, 'Object.invert');
 deepEqual(Object.collect({ a:'x', b:'y', c:'z' }, ['a','b','k'], 5), { a:'x', b:'y', k:5}, 'Object.collect');
 
 deepEqual( Object.map({a: 5, b: 6}, function (x) { return x * x }), { a: 25, b: 36 }, 'Object.map');
 // todo: [qtest] Object.deepEquals
+
+var undefined, test = { foo: 2, bar: { qux: 3, zog: { asd: 4 } } };
+
+equal( Object.path.get(test, 'foo'), 2, 'Object.path.get: First level');
+equal( Object.path.get(test, 'bar.zog.asd'), 4, 'Object.path.get: Third level');
+strictEqual( Object.path.get(test, 'no.value'), undefined, 'Object.path.get: no such value');
+
+equal( Object.path.set(test, 'rex', 15), true, 'First level Object.path.set');
+equal( Object.path.set(test, 'bar.zog.max', 42), true, 'Third level Object.path.set');
+equal( Object.path.set(test, 'no.value'), false, 'Cant set value at Object.path.set');
+
+deepEqual(test, { foo: 2, rex: 15, bar: { qux: 3, zog: { max: 42, asd: 4 } } });
 });
 
 };
