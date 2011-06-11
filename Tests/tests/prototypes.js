@@ -74,6 +74,10 @@ equal('Repl/ace /all "/a"'.replaceAll('/a', '0'), 'Repl0ce 0ll "0"', 'String.rep
 ok( 'String'.begins('Str'), 'String.begins("Str")');
 ok(!'String'.begins('ing'), 'String.begins("ing")');
 
+
+ok(!'String'.ends('Str'), 'String.ends("Str")');
+ok( 'String'.ends('ing'), 'String.ends("ing")');
+
 // [ul]cfirst
 equal( 'string'.ucfirst(), 'String', 'String.ucfirst');
 equal( 'STRING'.lcfirst(), 'sTRING', 'String.lcfirst');

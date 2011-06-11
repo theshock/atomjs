@@ -60,6 +60,10 @@ atom.implement(String, {
 		return (!caseInsensitive) ? w == this.substr(0, w.length) :
 			w.toLowerCase() == this.substr(0, w.length).toLowerCase();
 	},
+	ends: function (w, caseInsensitive) {
+		return (!caseInsensitive) ? w == this.substr(this.length - w.length) :
+			w.toLowerCase() == this.substr(this.length - w.length).toLowerCase();
+	},
 	ucfirst : function () {
 		return this[0].toUpperCase() + this.substr(1);
 	},
