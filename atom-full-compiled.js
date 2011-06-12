@@ -1787,10 +1787,10 @@ atom.implement(String, {
 	trim: ''.trim || function () {
 		return this.trimLeft().trimRight();
 	},
-	trimLeft : ''.trimRight || function () {
+	trimLeft : ''.trimLeft || function () {
 		return this.replace(/^\s+/, '');
 	},
-	trimRight: ''.trimLeft || function () {
+	trimRight: ''.trimRight || function () {
 		return this.replace(/\s+$/, '');
 	}
 });
