@@ -91,15 +91,14 @@ atom.extend(Class, {
 		removeEvent: function (name, fn) {
 			initEvents(this);
 
-			if (arguments.length == 1 && typeof name != 'string') {
-				for (i in name) {
-					this.addEvent(i, name[i]);
-				}
-			} else if (Array.isArray(name)) {
+			if (Array.isArray(name)) {
 				for (var i = name.length; i--;) {
 					this.removeEvent(name[i], fn);
 				}
-				return this;
+			} else if (arguments.length == 1 && typeof name != 'string') {
+				for (i in name) {
+					this.addEvent(i, name[i]);
+				}
 			} else {
 				name = removeOn(name);
 				if (name == '$ready') {
