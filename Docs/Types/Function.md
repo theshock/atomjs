@@ -1,6 +1,10 @@
 # Static Function methods
 
 ### lambda(value)
+	Function.lambda(value)
+
+Creates a function that returns `value`
+
 ### copier(value)
 ### log(value)
 ### context
