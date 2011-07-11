@@ -15,8 +15,8 @@ Creates a function that returns clone of `value`
 
 Creates a function that log `value`
 
-	var obj = {},
-	  logObj  = Function.log(obj);
+	var obj    = {},
+	    logObj = Function.log(obj);
 	obj.foo = 2; 
 	logObj(); //({foo:2})
 	
