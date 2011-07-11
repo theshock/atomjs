@@ -1,12 +1,26 @@
 # Static Function methods
 
-### lambda(value)
+### lambda
 	Function.lambda(value)
 
 Creates a function that returns `value`
 
-### copier(value)
-### log(value)
+### copier
+	Function.copier(value)
+
+Creates a function that returns clone of `value` 
+
+### log
+	Function.log(value)
+
+Creates a function that log `value`
+
+	var obj = {},
+	  logObj  = Function.log(obj);
+	obj.foo = 2; 
+	logObj(); //({foo:2})
+	
+
 ### context
 
 # Dynamic Function methods
