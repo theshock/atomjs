@@ -98,12 +98,51 @@ Removes all occurrences of an item from the array.
 
 ### fullMap
 Similar to map, but correctly works with `new Array(10).fullMap(fn)`
-### toKeys()
-### combine(array)
-### last()
-### random()
-### pick()
-### invoke(context|methodName, arguments)
+### toKeys
+	array.toKeys(value)
+
+Creates a hash with items from the array as keys and values ​​`value` or index of the item
+
+	[0, 1, 2].toKeys(); // {0:0, 1:1, 2:2}
+	[0, 1, 2].toKeys("foo"); // {0:"foo", 1:"foo", 2:"foo"}
+
+### combine
+	array.combine(arr)
+
+Includes to `array` all items from `arr` excluding those already contained in `array`
+
+	[1, 2, 3].combine([2, 3, 4]); //[1, 2, 3, 4]
+
+### getter last
+
+	array.last;
+
+Returns last item in `array`
+
+	[1, 2, 3].last; //3
+
+### getter random
+	array.random
+
+Returns item with random index from `array`
+
+### pick
+
+	array.pick()
+
+Returns first not an undefined item from `array` or null.
+
+### invoke
+
+	array.invoke(context|methodName, args..)
+
+If method name is string then applies `methodName` of every item in `array` to item.
+Else apply every item in `array` to context.
+
+	[[2,3,4], [35, 23, 4]].invoke('sort', function (a, b) {
+		return a > b ? 1 : a < b ? -1 : 0
+	}); //[[2,3,4], [4, 23, 35]]
+
 ### shuffle()
 ### sortBy(propertyName)
 ### min()
