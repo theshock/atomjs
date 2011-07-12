@@ -113,8 +113,19 @@ Includes to `array` all items from `arr` excluding those already contained in `a
 
 	[1, 2, 3].combine([2, 3, 4]); //[1, 2, 3, 4]
 
-### last()
-### random()
+### getter last
+
+	array.last;
+
+Returns last item in `array`
+
+	[1, 2, 3].last; //3
+
+### getter random
+	array.random
+
+Returns item with random index from `array`
+
 ### pick()
 ### invoke(context|methodName, arguments)
 ### shuffle()
