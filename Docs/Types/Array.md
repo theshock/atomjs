@@ -98,7 +98,14 @@ Removes all occurrences of an item from the array.
 
 ### fullMap
 Similar to map, but correctly works with `new Array(10).fullMap(fn)`
-### toKeys()
+### toKeys
+	array.toKeys(value)
+
+Creates a hash with items from the array as keys and values ​​`value` or index of the item
+
+	[0, 1, 2].toKeys(); // {0:0, 1:1, 2:2}
+	[0, 1, 2].toKeys("foo"); // {0:"foo", 1:"foo", 2:"foo"}
+
 ### combine(array)
 ### last()
 ### random()
