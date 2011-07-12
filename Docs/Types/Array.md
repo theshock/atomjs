@@ -126,7 +126,12 @@ Returns last item in `array`
 
 Returns item with random index from `array`
 
-### pick()
+### pick
+
+	array.pick()
+
+Returns first not an undefined item from `array` or null.
+
 ### invoke(context|methodName, arguments)
 ### shuffle()
 ### sortBy(propertyName)
