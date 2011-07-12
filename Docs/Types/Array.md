@@ -106,7 +106,13 @@ Creates a hash with items from the array as keys and values ​​`value` or ind
 	[0, 1, 2].toKeys(); // {0:0, 1:1, 2:2}
 	[0, 1, 2].toKeys("foo"); // {0:"foo", 1:"foo", 2:"foo"}
 
-### combine(array)
+### combine
+	array.combine(arr)
+
+Includes to `array` all items from `arr` excluding those already contained in `array`
+
+	[1, 2, 3].combine([2, 3, 4]); //[1, 2, 3, 4]
+
 ### last()
 ### random()
 ### pick()
