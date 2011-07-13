@@ -153,9 +153,9 @@ Shuffles items in `array`
 	array.min()
 
 Returns minimum item in `array`, if array contain at least one not a number item then returns NaN.
+
 	[2, 7, 5, 3].min(); //2
 	["foo", 23 ].min(); //NaN
-
 
 ### max()
 ### average()
