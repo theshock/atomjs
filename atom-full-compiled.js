@@ -108,6 +108,15 @@ provides: atom
 			// ie9 bug, typeof console.log == 'object'
 			if (atom.global.console) FuncProto[apply].call(console.log, console, arguments);
 		},
+		add: function (target, source) {
+			for (var i = 1, l = arguments.length; i < l; i++){
+				var source = arguments[i] || {};
+				for (var key in source) if (!key in original) {
+					original[key] = source[key];
+				}
+			}
+			return original;
+		},
 		typeOf: typeOf,
 		clone: clone
 	});
