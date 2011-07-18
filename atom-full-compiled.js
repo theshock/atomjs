@@ -108,14 +108,14 @@ provides: atom
 			// ie9 bug, typeof console.log == 'object'
 			if (atom.global.console) FuncProto[apply].call(console.log, console, arguments);
 		},
-		add: function (target, source) {
+		append: function (target, source) {
 			for (var i = 1, l = arguments.length; i < l; i++){
-				var source = arguments[i] || {};
-				for (var key in source) if (!key in original) {
-					original[key] = source[key];
+				source = arguments[i] || {};
+				for (var key in source) {
+					target[key] = source[key];
 				}
 			}
-			return original;
+			return target;
 		},
 		typeOf: typeOf,
 		clone: clone
@@ -1454,7 +1454,7 @@ atom.implement(Array, {
 		return this.length ? this.sum() / this.length : 0;
 	},
 	sum: function(){
-		for (var result = 0, i = this.length; i--;) result += number;
+		for (var result = 0, i = this.length; i--;) result += this[i];
 		return result;
 	},
 	unique: function(){
