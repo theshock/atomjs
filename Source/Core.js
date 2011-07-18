@@ -111,8 +111,8 @@ provides: atom
 		add: function (target, source) {
 			for (var i = 1, l = arguments.length; i < l; i++){
 				var source = arguments[i] || {};
-				for (var key in source) if (!key in original) {
-					original[key] = source[key];
+				for (var key in source) if (!key in target) {
+					target[key] = source[key];
 				}
 			}
 			return original;
