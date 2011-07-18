@@ -166,7 +166,7 @@ atom.implement(Array, {
 		return this.length ? this.sum() / this.length : 0;
 	},
 	sum: function(){
-		for (var result = 0, i = this.length; i--;) result += this[i];
+		for (var result = 0, i = this.length; i--;) result += number;
 		return result;
 	},
 	unique: function(){
