@@ -14,7 +14,6 @@ inspiration:
 	- "[JQuery](http://jquery.com)"
 	- "[MooTools](http://mootools.net)"
 
-
 ...
 */
 
@@ -31,10 +30,6 @@ description: "The core of AtomJS."
 license:
 	- "[GNU Lesser General Public License](http://opensource.org/licenses/lgpl-license.php)"
 	- "[MIT License](http://opensource.org/licenses/mit-license.php)"
-
-copyright: "Copyright (c) 2010-2011 [Ponomarenko Pavel](shocksilien@gmail.com)."
-
-authors: "The AtomJS production team"
 
 inspiration:
   - "[JQuery](http://jquery.com)"
@@ -202,10 +197,6 @@ description: "Implementing accessors"
 license:
 	- "[GNU Lesser General Public License](http://opensource.org/licenses/lgpl-license.php)"
 	- "[MIT License](http://opensource.org/licenses/mit-license.php)"
-
-copyright: "Copyright (c) 2010-2011 [Ponomarenko Pavel](shocksilien@gmail.com)."
-
-authors: "The AtomJS production team"
 
 requires:
 	- atom

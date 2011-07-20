@@ -14,7 +14,6 @@ inspiration:
 	- "[JQuery](http://jquery.com)"
 	- "[MooTools](http://mootools.net)"
 
-
 ...
 */
 

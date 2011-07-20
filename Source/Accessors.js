@@ -9,10 +9,6 @@ license:
 	- "[GNU Lesser General Public License](http://opensource.org/licenses/lgpl-license.php)"
 	- "[MIT License](http://opensource.org/licenses/mit-license.php)"
 
-copyright: "Copyright (c) 2010-2011 [Ponomarenko Pavel](shocksilien@gmail.com)."
-
-authors: "The AtomJS production team"
-
 requires:
 	- atom
 
