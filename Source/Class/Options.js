@@ -29,8 +29,8 @@ atom.Class.Options = atom.Class({
 			this.options = atom.clone(this.options);
 		}
 
-		for (var a = arguments, i = 0, l = a.length; i < l;) {
-			atom.extend(this.options, a[i++]);
+		for (var a = arguments, i = 0, l = a.length; i < l; i++) {
+			if (typeof a[i] == 'object') atom.extend(this.options, a[i]);
 		}
 		var options = this.options;
 		

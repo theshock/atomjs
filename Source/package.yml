@@ -13,3 +13,5 @@ copyright: "&copy; [AtomJS](http://atomjs.com)"
 authors: "[AtomJS Development Team](http://atomjs.com)"
 
 sources: "*.js"
+
+overall: "overall.js"

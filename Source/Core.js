@@ -61,13 +61,20 @@ provides: atom
 		if (item.nodeName){
 			if (item.nodeType == 1) return 'element';
 			if (item.nodeType == 3) return /\S/.test(item.nodeValue) ? 'textnode' : 'whitespace';
-		} else if (item && item.callee && typeof item.length == 'number'){
-			return 'arguments';
 		}
 		
 		var type = typeof item;
+
+		if (item && type == 'object') {
+			if (atom.Class && item instanceof atom.Class) return 'class';
+			try {
+				if ('length' in item && typeof item.length == 'number') return 'arguments';
+			} catch (e) {
+				debugger;
+			}
+		}
 		
-		return (type == 'object' && atom.Class && item instanceof atom.Class) ? 'class' : type;
+		return type;
 	};
 	typeOf.types = {};
 	['Boolean', 'Number', 'String', 'Function', 'Array', 'Date', 'RegExp', 'Class'].forEach(function(name) {

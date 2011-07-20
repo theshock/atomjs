@@ -31,7 +31,7 @@ var typeOf = atom.typeOf,
 var Class = function (params) {
 	if (Class.$prototyping) return this;
 
-	if (typeOf(params) == 'function') params = { initialize: params };
+	if (typeof params == 'function' && typeOf(params) == 'function') params = { initialize: params };
 
 	var Constructor = function(){
 		if (this instanceof Constructor) {
@@ -128,7 +128,7 @@ Class.extend({
 					if (value == null) continue;
 				}
 
-				if (typeOf(value) == 'function'){
+				if (typeof value == 'function' && typeOf(value) == 'function'){
 					if (value.$origin) value = value.$origin;
 					if (value.$hidden == 'next') {
 						value.$hidden = true
