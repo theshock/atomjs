@@ -5,7 +5,9 @@ name: "Class"
 
 description: "Contains the Class Function for easily creating, extending, and implementing reusable Classes."
 
-license: "[GNU Lesser General Public License](http://opensource.org/licenses/lgpl-license.php)"
+license:
+	- "[GNU Lesser General Public License](http://opensource.org/licenses/lgpl-license.php)"
+	- "[MIT License](http://opensource.org/licenses/mit-license.php)"
 
 requires:
 	- atom

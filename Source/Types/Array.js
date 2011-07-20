@@ -5,7 +5,9 @@ name: "Array"
 
 description: "Contains Array Prototypes like include, contains, and erase."
 
-license: "[GNU Lesser General Public License](http://opensource.org/licenses/lgpl-license.php)"
+license:
+	- "[GNU Lesser General Public License](http://opensource.org/licenses/lgpl-license.php)"
+	- "[MIT License](http://opensource.org/licenses/mit-license.php)"
 
 requires:
 	- atom
