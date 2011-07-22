@@ -54,7 +54,9 @@ atom.extend(Array, {
 	},
 	collect: function (obj, props, Default) {
 		var array = [];
-		for (var i in props.toKeys()) array.push(i in obj ? obj[i] : Default);
+		for (var i = 0, l = props.length; i < l; i++) {
+			array.push(props[i] in obj ? obj[props[i]] : Default);
+		}
 		return array;
 	},
 	create: function (length, fn) {
