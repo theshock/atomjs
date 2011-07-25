@@ -163,4 +163,4 @@ provides: atom
 			return o && toString.call(o) === '[object Array]';
 		};
 	}
-}).call(typeof exports == "undefined" ? exports : window, Object, Array);
+}).call(typeof exports == 'undefined' ? window : exports, Object, Array);
