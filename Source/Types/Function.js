@@ -47,7 +47,7 @@ new function () {
 	atom.implement(Function, {
 		context: function(bind, args){
 			var fn = this;
-			args = args ? atom.toArray(args) : [];
+			args = Array.from(args);
 			return function(){
 				return fn.apply(getContext(bind, this), [].append(args, arguments));
 			};
