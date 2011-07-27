@@ -879,16 +879,17 @@ var typeOf = atom.typeOf,
 	extend = atom.extend,
 	accessors = atom.accessors.inherit,
 	prototype = 'prototype',
-	lambda    = function (value) { return function () { return value; }};
+	lambda    = function (value) { return function () { return value; }},
+	prototyping = false;
 
 var Class = function (params) {
-	if (Class.$prototyping) return this;
+	if (prototyping) return this;
 
 	if (typeof params == 'function' && typeOf(params) == 'function') params = { initialize: params };
 
 	var Constructor = function(){
 		if (this instanceof Constructor) {
-			if (Constructor.$prototyping) return this;
+			if (prototyping) return this;
 			return this.initialize ? this.initialize.apply(this, arguments) : this;
 		} else {
 			return Constructor.invoke.apply(Constructor, arguments);
@@ -896,6 +897,7 @@ var Class = function (params) {
 	};
 	extend(Constructor, Class);
 	Constructor[prototype] = getInstance(Class);
+
 	Constructor
 		.implement(params, false)
 		.reserved(true, {
@@ -903,11 +905,11 @@ var Class = function (params) {
 			self  : Constructor
 		})
 		.reserved({
-			factory : new function() {
+			factory : function() {
 				function Factory(args) { return Constructor.apply(this, args); }
 				Factory[prototype] = Constructor[prototype];
 				return function(args) { return new Factory(args || []); }
-			}
+			}()
 		});
 
 	return Constructor;
@@ -942,9 +944,9 @@ var wrap = function(self, key, method){
 };
 
 var getInstance = function(Class){
-	Class.$prototyping = true;
+	prototyping = true;
 	var proto = new Class;
-	delete Class.$prototyping;
+	prototyping = false;
 	return proto;
 };
 
