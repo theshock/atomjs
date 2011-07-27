@@ -31,7 +31,11 @@ atom.extend(Array, {
 		} while (from <= to);
 		return result;
 	},
-	from: atom.toArray,
+	from: function (item) {
+		if (item == null) return [];
+		return (!atom.isEnumerable(item) || typeof item == 'string') ? [item] :
+			(atom.typeOf(item) == 'array') ? item : slice.call(item);
+	},
 	pickFrom: function (args) {
 		return Array.from(
 			   args

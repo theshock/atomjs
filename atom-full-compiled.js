@@ -87,11 +87,7 @@ provides: atom
 
 		if (item && type == 'object') {
 			if (atom.Class && item instanceof atom.Class) return 'class';
-			try {
-				if ('length' in item && typeof item.length == 'number') return 'arguments';
-			} catch (e) {
-				debugger;
-			}
+			if (atom.isEnumerable(item)) return 'arguments';
 		}
 		
 		return type;
@@ -134,6 +130,9 @@ provides: atom
 		log: function () {
 			// ie9 bug, typeof console.log == 'object'
 			if (atom.global.console) FuncProto[apply].call(console.log, console, arguments);
+		},
+		isEnumerable: function(item){
+			return item != null && toString.call(item) != '[object Function]' && typeof item.length == 'number';
 		},
 		append: function (target, source) {
 			for (var i = 1, l = arguments.length; i < l; i++){
@@ -1358,7 +1357,11 @@ atom.extend(Array, {
 		} while (from <= to);
 		return result;
 	},
-	from: atom.toArray,
+	from: function (item) {
+		if (item == null) return [];
+		return (!atom.isEnumerable(item) || typeof item == 'string') ? [item] :
+			(atom.typeOf(item) == 'array') ? item : slice.call(item);
+	},
 	pickFrom: function (args) {
 		return Array.from(
 			   args
