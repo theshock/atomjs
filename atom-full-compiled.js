@@ -997,7 +997,7 @@ Class.extend({
 		return this;
 	},
 	mixin: function () {
-		atom.toArray(arguments).forEach(function (item) {
+		Array.from(arguments).forEach(function (item) {
 			this.implement(getInstance(item));
 		}.bind(this));
 		return this;
@@ -1027,7 +1027,7 @@ Class.extend({
 		},
 
 		Implements: function(items){
-			this.mixin.apply(this, items);
+			this.mixin.apply(this, Array.from(items));
 		},
 
 		Static: function(properties) {
@@ -1607,7 +1607,7 @@ new function () {
 	atom.implement(Function, {
 		context: function(bind, args){
 			var fn = this;
-			args = args ? atom.toArray(args) : [];
+			args = Array.from(args);
 			return function(){
 				return fn.apply(getContext(bind, this), [].append(args, arguments));
 			};
