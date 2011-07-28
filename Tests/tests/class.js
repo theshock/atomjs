@@ -317,4 +317,41 @@ test('Options', function(){
 	deepEqual(bar2.options, { k: 15 },       'options cloned');
 });
 
+test('bindAll', function(){
+	var Overall = atom.Class({
+		initialize: function (title) { this.title = title; },
+		getTitle  : function (     ) { return this.title; },
+		getTitle2 : function (     ) { return this.title; }
+	});
+
+	var BindAll = atom.Class({
+		Extends: Overall,
+
+		initialize: function (title) {
+			atom.Class.bindAll( this );
+			this.parent(title);
+		}
+	});
+
+	var BindOne = atom.Class({
+		Extends: Overall,
+
+		initialize: function (title) {
+			atom.Class.bindAll( this, [ 'getTitle' ]);
+			this.parent(title);
+		}
+	});
+
+	var overall = new Overall('oa');
+	var bindAll = new BindAll('ba');
+	var bindOne = new BindOne('bo');
+
+	equal( (1, overall.getTitle )(), undefined, 'Plain - context losted' );
+	equal( (1, overall.getTitle2)(), undefined, 'Plain - context losted' );
+	equal( (1, bindAll.getTitle )(),      'ba', 'bindAll - context saved' );
+	equal( (1, bindAll.getTitle2)(),      'ba', 'bindAll - context saved' );
+	equal( (1, bindOne.getTitle )(),      'bo', 'bindOne - context saved' );
+	equal( (1, bindOne.getTitle2)(), undefined, 'bindOne - context losted' );
+});
+
 };
