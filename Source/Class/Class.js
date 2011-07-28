@@ -12,6 +12,7 @@ license:
 requires:
 	- atom
 	- accessors
+	- Array
 
 inspiration:
   - "[MooTools](http://mootools.net)"
