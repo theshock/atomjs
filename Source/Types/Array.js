@@ -141,7 +141,13 @@ atom.implement(Array, {
 		});
 	},
 	shuffle : function () {
-		for(var j, x, i = this.length; i; j = parseInt(Math.random() * i), x = this[--i], this[i] = this[j], this[j] = x);
+		for (var tmp, moveTo, index = this.length; index--;) {
+			moveTo = Number.random( 0, index );
+			// [ this[index], this[moveTo] ] = [ this[moveTo], this[index] ]
+			tmp          = this[index ];
+			this[index]  = this[moveTo];
+			this[moveTo] = tmp;
+		}
 		return this;
 	},
 	sortBy : function (method, reverse) {
