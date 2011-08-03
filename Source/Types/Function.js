@@ -57,6 +57,22 @@ new function () {
 			return function() {
 				return fn.apply(getContext(bind, this), slice.call(arguments, 0, numberOfArgs))
 			};
+		},
+		after: function (fnName) {
+			var onReady = this, after = {}, ready = {};
+			var checkReady = function () {
+				for (var i in after) if (!(i in ready)) return;
+				onReady(ready);
+			};
+			for (var i = 0, l = arguments.length; i < l; i++) {
+				(function (key) {
+					after[key] = function () {
+						ready[key] = arguments;
+						checkReady();
+					};
+				})(arguments[i]);
+			}
+			return after;
 		}
 	});
 
