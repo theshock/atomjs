@@ -150,18 +150,20 @@ provides: atom
 	// https://developer.mozilla.org/en/JavaScript/Reference/Global_Objects/Function/bind
 	if (!Function.prototype.bind) {
 		Function.prototype.bind = function(context /*, arg1, arg2... */) {
-			var args  = slice.call(arguments, 1),
-				self  = this,
-				nop   = function () {},
-				bound = function () {
-					return self[apply](
-						this instanceof nop ? this : ( context || {} ),
+			if (typeof this !== "function") throw new TypeError("Function.prototype.bind - what is trying to be bound is not callable");
+
+			var args   = slice.call(arguments, 1),
+				toBind = this,
+				Nop    = function () {},
+				Bound  = function () {
+					return toBind.apply(
+						this instanceof Nop ? this : ( context || {} ),
 						args.concat( slice.call(arguments) )
 					);
 				};
-			nop[prototype]   = self[prototype];
-			bound[prototype] = new nop();
-			return bound;
+			Nop.prototype   = toBind.prototype;
+			Bound.prototype = new Nop();
+			return Bound;
 		};
 	}
 

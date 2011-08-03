@@ -22,8 +22,7 @@ provides: atom
 	var prototype = 'prototype',
 	    apply     = 'apply',
 		toString  = Object[prototype].toString,
-		slice     = [].slice,
-		FuncProto = Function[prototype];
+		slice     = [].slice;
 
 	var atom = this.atom = function () {
 		if (atom.initialize) return atom.initialize[apply](this, arguments);
@@ -107,7 +106,7 @@ provides: atom
 		},
 		log: function () {
 			// ie9 bug, typeof console.log == 'object'
-			if (atom.global.console) FuncProto[apply].call(console.log, console, arguments);
+			if (atom.global.console) Function.prototype.apply.call(console.log, console, arguments);
 		},
 		isEnumerable: function(item){
 			return item != null && toString.call(item) != '[object Function]' && typeof item.length == 'number';
@@ -126,22 +125,23 @@ provides: atom
 	});
 
 	// JavaScript 1.8.5 Compatiblity
-
 	// https://developer.mozilla.org/en/JavaScript/Reference/Global_Objects/Function/bind
-	if (!FuncProto.bind) {
-		FuncProto.bind = function(context /*, arg1, arg2... */) {
-			var args  = slice.call(arguments, 1),
-				self  = this,
-				nop   = function () {},
-				bound = function () {
-					return self[apply](
-						this instanceof nop ? this : ( context || {} ),
+	if (!Function.prototype.bind) {
+		Function.prototype.bind = function(context /*, arg1, arg2... */) {
+			if (typeof this !== "function") throw new TypeError("Function.prototype.bind - what is trying to be bound is not callable");
+
+			var args   = slice.call(arguments, 1),
+				toBind = this,
+				Nop    = function () {},
+				Bound  = function () {
+					return toBind.apply(
+						this instanceof Nop ? this : ( context || {} ),
 						args.concat( slice.call(arguments) )
 					);
 				};
-			nop[prototype]   = self[prototype];
-			bound[prototype] = new nop();
-			return bound;
+			Nop.prototype   = toBind.prototype;
+			Bound.prototype = new Nop();
+			return Bound;
 		};
 	}
 
