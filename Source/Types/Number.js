@@ -60,6 +60,9 @@ atom.implement(Number, {
 			clearTimeout (num);
 		}
 		return this;
+	},
+	xor: function (x) {
+		return Boolean.xor( this, x );
 	}
 });
 
