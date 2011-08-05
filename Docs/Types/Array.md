@@ -143,12 +143,36 @@ Else apply every item in `array` to context.
 		return a > b ? 1 : a < b ? -1 : 0
 	}); //[[2,3,4], [4, 23, 35]]
 
-### shuffle()
+### shuffle
+	array.shuffle()
+
+Shuffles items in `array`
+
 ### sortBy(propertyName)
-### min()
-### max()
-### average()
-### sum()
+### min
+	array.min()
+
+Returns minimum item in `array`, if array contain at least one not a number item then returns NaN.
+
+	[2, 7, 5, 3].min(); //2
+	["foo", 23 ].min(); //NaN
+
+### max
+Similar to array.min but return maximum item.
+
+### average
+
+	array.average()
+
+Returns average value from all items from `array`, if `array` contain not a number then returns NaN, if `array` is empty then returns 0.
+
+	[
+	 [1, 2, 3, 4, 5], 
+	 [1, 2, 3, "foo"], 
+	 []
+	].invoke("average"); // [3, NaN, 0]
+
+### sum
 ### unique()
 ### associate(array keys)
 ### clean()
