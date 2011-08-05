@@ -1631,7 +1631,7 @@ provides: Boolean
 
 atom.extend(Boolean, {
 	xor: function (a, b) {
-		return !!( (a || b) && (!a || !b) );
+		return !a != !b;
 	}
 });
 
