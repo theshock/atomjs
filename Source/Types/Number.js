@@ -39,7 +39,9 @@ atom.implement(Number, {
 		return this.toFixed(accuracy) == to.toFixed(accuracy);
 	},
 	limit: function(min, max){
-		return this.max(min || - Infinity).min(max || Infinity);
+		var bottom = Math.max(min, this);
+		return arguments.length == 2 ?
+			Math.min(max, bottom) : bottom;
 	},
 	round: function(precision){
 		precision = Math.pow(10, precision || 0).toFixed(precision < 0 ? -precision : 0);
