@@ -139,6 +139,7 @@ Available some methods helpers:
 
 ### Accessors
 You can use accessors!
+
 	var Foo = atom.Class({
 		_bar: 0,
 		set bar (value) {
