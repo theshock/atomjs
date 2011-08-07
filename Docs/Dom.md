@@ -106,7 +106,7 @@ Prevent default actions for events
 
 	atom.dom("a").bind("click", false);
 
-#### atom.dom().bind(events)
+#### atom.dom().unbind(events)
 
 Detach event handler from evety element in current collection
 	
