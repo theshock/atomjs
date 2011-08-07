@@ -102,6 +102,16 @@ Attach event handler to every element in current collection
 		alert('div clicked')
 	}});
 
+#### atom.dom().bind(events)
+
+Detach event handler from evety element in current collection
+	
+	atom.dom("div").bind("click", function listener (event) {
+		alert('div clicked')
+		this.unbind("click", listener);
+	});
+
+
 #### atom.dom().delegate(selector, event, fn)
 
 Attach event handler to every matching element in current collection now and in
