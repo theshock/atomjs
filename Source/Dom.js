@@ -35,7 +35,9 @@ new function () {
 		getElementsByClassName = getElement + 'sByClassName',
 		getElementsByTagName = getElement + 'sByTagName',
 		querySelectorAll = 'querySelectorAll',
-		addEventListener = 'addEventListener',
+		EventListener = 'EventListener',
+		addEventListener = 'add' + EventListener,
+		removeEventListener = 'remove' + EventListener,
 		appendChild = 'appendChild',
 		setter = function (args) {
 			if (args.length == 1) {
@@ -63,7 +65,24 @@ new function () {
 			return str.replace(/-\D/g, function(match){
 				return match[1].toUpperCase();
 			});
+		},
+		bind = function (fn, context) {
+			for (var i = 0 ; i<bind.contexts.length ; i++) {
+				if (bind.contexts[i] === context && bind.functions[i] === fn) {
+					return bind.results[i];
+				}
+			}
+			
+			bind.results.push( fn.bind(context) );
+			bind.contexts.push(context);
+			bind.functions.push(fn);
+			
+			return bind.results[bind.results.length-1];
 		};
+		
+		bind.contexts  = [];
+		bind.functions = [];
+		bind.results   = [];
 	
 	new function () {
 		var ready = function () {
@@ -238,17 +257,35 @@ new function () {
 				}
 			});
 		},
+		
 		bind : function () {
-			var events = setter(arguments), bind = this;
-			return this.each(function (elem) {
-				for (var i in events) {
+			var events = setter(arguments);
+			
+			for (var i in events) {
+				var fn = events[i] === false ? prevent : bind(events[i], this);
+				
+				this.each(function (elem) {
 					if (elem == doc && i == 'load') elem = win;
-					var fn = events[i] === false ? prevent : events[i].bind(bind);
 					elem[addEventListener](i, fn, false);
-				}
-			});
+				});
+			}
+			
+			return this;
 		},
-		// todo: unbind
+		unbind : function () {
+			var events = setter(arguments);
+			
+			for (var i in events) {
+				var fn = events[i] === false ? prevent : bind(events[i], this);
+				
+				this.each(function (elem) {
+					if (elem == doc && i == 'load') elem = win;
+					elem[removeEventListener](i, fn, false);
+				});
+			}
+			
+			return this;
+		},
 		delegate : function (selector, event, fn) {
 			return this.bind(event, function (e) {
 				if (new dom(e.target).is(selector)) {
