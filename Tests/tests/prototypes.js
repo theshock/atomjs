@@ -73,6 +73,11 @@ equal((15.234).round(), 15, '(15.234).round() == 15');
 test('String', function(){
 // todo: [qtest] string.safehtml
 
+ok(  'abc def ghi'.contains('abc'), 'Search with index=0' );
+ok(  'abc def ghi'.contains('def'), 'Search with index=average' );
+ok(  'abc def ghi'.contains('ghi'), 'Search with index=max' );
+ok( !'abc def ghi'.contains('xyz'), 'Fail search' );
+
 // repeat
 equal('ab-'.repeat(3), 'ab-ab-ab-', 'String.repeat');
 

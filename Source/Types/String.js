@@ -56,6 +56,9 @@ atom.implement(String, {
 		}
 		return this.split(find).join(replace);
 	},
+	contains: function (substr) {
+		return this.indexOf( substr ) >= 0;
+	},
 	begins: function (w, caseInsensitive) {
 		return (!caseInsensitive) ? w == this.substr(0, w.length) :
 			w.toLowerCase() == this.substr(0, w.length).toLowerCase();
