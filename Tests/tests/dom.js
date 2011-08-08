@@ -153,6 +153,38 @@ test('atom.dom().parent', function() {
 	strictEqual($elem.find('b').parent(2).html(), $elem.parent().html(), 'html content should be equal to "<span><b>24</b></span>", because this content have parent(2) element');
 });
 
+test('atom.dom().bind', function () {
+	var $elem = atom.dom.create('div');
+	var bind = false;
+	
+	$elem.bind("click", function () {
+		bind = true;
+	}).bind("click", false);
+	
+	var event = document.createEvent("MouseEvent");
+	event.initMouseEvent("click", true, true, window, 0, 0, 0, 0, 0, false, false, false, false, 0, null);
+	
+	ok(!$elem.first.dispatchEvent(event), "bind('click', false) should prevent default action");
+	ok(bind, "event listener should was called on click event");
+});
+
+test('atom.dom().unbind', function () {
+	var $elem = atom.dom.create('div');
+	var bind = 0;
+	
+	$elem.bind("click", function listener () {
+		bind++
+		this.unbind("click", listener);
+	});
+	
+	var event = document.createEvent("MouseEvent");
+	event.initMouseEvent("click", true, true, window, 0, 0, 0, 0, 0, false, false, false, false, 0, null);
+	
+	$elem.first.dispatchEvent(event);
+	$elem.first.dispatchEvent(event);
+	
+	equal(bind, 1, "unbind should detach event listener");
+});
 
 // Пусть всегда будет последним, чтобы не вешал остальные тесты!
 asyncTest('atom.dom (ready)', 3, function () {
