@@ -45,6 +45,7 @@ new function () {
 	});
 
 	atom.implement(Function, {
+		/** @deprecated */
 		context: function(bind, args){
 			var fn = this;
 			args = Array.from(args);
@@ -83,7 +84,7 @@ new function () {
 		}[name];
 
 		return function (time, bind, args) {
-			return set.call(window, this.context(bind, args), time);
+			return set.call(window, this.bind.apply(this, [bind].append(args)), time);
 		};
 	};
 	
