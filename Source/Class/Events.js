@@ -141,7 +141,7 @@ atom.extend(Class, {
 				name = removeOn(name);
 				this._events.$ready[name] = args || [];
 				this.fireEvent(name, args || []);
-			}.context(this));
+			}.bind(this));
 			return this;
 		}
 	})
