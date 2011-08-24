@@ -1404,6 +1404,8 @@ Class.extend({
 	}
 });
 
+Class.abstractMethod.$abstract = true;
+
 extend({ Class: Class });
 
 })(atom);
@@ -1478,7 +1480,7 @@ var Class = atom.Class;
 var fire = function (name, fn, args, onfinish) {
 	var result = fn.apply(this, Array.from(args || []));
 	if (typeof result == 'string' && result.toLowerCase() == 'removeevent') {
-		onfinish.push(this.removeEvent.context(this, [name, fn]));
+		onfinish.push(this.removeEvent.bind(this, name, fn));
 	}
 };
 

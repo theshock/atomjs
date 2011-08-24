@@ -197,6 +197,8 @@ Class.extend({
 	}
 });
 
+Class.abstractMethod.$abstract = true;
+
 extend({ Class: Class });
 
 })(atom);
