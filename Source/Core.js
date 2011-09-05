@@ -134,8 +134,20 @@ provides: atom
 				toBind = this,
 				Nop    = function () {},
 				Bound  = function () {
+					var isInstance;
+					if (window.opera) {
+						// Opera bug fixed. I dont wanna use try-catch for other browsers
+						// TypeError: Second argument to 'instanceof' does not implement [[HasInstance]]
+						try {
+							isInstance = this instanceof Nop;
+						} catch (ignored) {
+							isInstance = false;
+						}
+					} else {
+						isInstance = this instanceof Nop;
+					}
 					return toBind.apply(
-						this instanceof Nop ? this : ( context || {} ),
+						isInstance ? this : ( context || {} ),
 						args.concat( slice.call(arguments) )
 					);
 				};
