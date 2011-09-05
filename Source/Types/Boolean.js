@@ -25,6 +25,6 @@ atom.extend(Boolean, {
 
 atom.implement(Boolean, {
 	xor: function (x) {
-		return Boolean.xor( this, x );
+		return Boolean.xor( this.valueOf(), x );
 	}
 });

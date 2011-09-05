@@ -62,7 +62,7 @@ atom.implement(Number, {
 		return this;
 	},
 	xor: function (x) {
-		return Boolean.xor( this, x );
+		return Boolean.xor( this.valueOf(), x );
 	}
 });
 
