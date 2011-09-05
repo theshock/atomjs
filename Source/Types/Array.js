@@ -87,6 +87,11 @@ atom.implement(Array, {
 		this.splice(index, 1);
 		return elem;
 	},
+	property: function (prop) {
+		return this.map(function (elem) {
+			return elem != null ? elem[ prop ] : null;
+		});
+	},
 	// Correctly works with `new Array(10).fullMap(fn)`
 	fullMap: function (fn, bind) {
 		var mapped = new Array(this.length);
@@ -103,7 +108,7 @@ atom.implement(Array, {
 		return this;
 	},
 	append: function (array) {
-		for (var i = 0, l = arguments.length; i < l; i++) {
+		for (var i = 0, l = arguments.length; i < l; i++) if (arguments[i]) {
 			this.push.apply(this, arguments[i]);
 		}
 		return this;
