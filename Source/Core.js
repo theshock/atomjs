@@ -104,6 +104,10 @@ provides: atom
 		toArray: function (elem) {
 			return slice.call(elem);
 		},
+		/**
+		 * @deprecated - use console-cap instead:
+		 * @see https://github.com/theshock/console-cap/
+		 */
 		log: function () {
 			// ie9 bug, typeof console.log == 'object'
 			if (atom.global.console) Function.prototype.apply.call(console.log, console, arguments);
