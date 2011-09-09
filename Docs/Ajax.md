@@ -6,6 +6,8 @@ Config parameters:
 * `interval`: 0. Repeat every `interval` seconds if it's greater than 0
 * `type`: `'plain'`. One of `'plain'` or `'json'` (response automatically parsed as JSON)
 * `method`: `'post'`. One of `'post'`, `'get'`, `'put'`, `'delete'`
+* `data`: `{}`.
+* `cache`: `false`. Disabling blowser cache: `cache:false`
 * `url`: `location.href`. Request url
 * `callbacks`. One of `'onLoad'`, `'onError'`
 
@@ -15,6 +17,8 @@ Example:
 		type   : 'json',
 		method : 'get',
 		url    : 'test.php',
+		data   : { 'hello': 'world' },
+		cache  : true,
 		onLoad : function (json) {
 			atom.log(json);
 		},
