@@ -152,6 +152,7 @@ provides: atom
 
 	// JavaScript 1.8.5 Compatiblity
 	// https://developer.mozilla.org/en/JavaScript/Reference/Global_Objects/Function/bind
+
 	if (!Function.prototype.bind) {
 		Function.prototype.bind = function(context /*, arg1, arg2... */) {
 			if (typeof this !== "function") throw new TypeError("Function.prototype.bind - what is trying to be bound is not callable");
@@ -161,16 +162,13 @@ provides: atom
 				Nop    = function () {},
 				Bound  = function () {
 					var isInstance;
-					if (window.opera) {
-						// Opera bug fixed. I dont wanna use try-catch for other browsers
-						// TypeError: Second argument to 'instanceof' does not implement [[HasInstance]]
-						try {
-							isInstance = this instanceof Nop;
-						} catch (ignored) {
-							isInstance = false;
-						}
-					} else {
+					// Opera & Safari bug fixed. I must fix it in right way
+					// TypeError: Second argument to 'instanceof' does not implement [[HasInstance]]
+					try {
 						isInstance = this instanceof Nop;
+					} catch (ignored) {
+						// console.log( 'bind error', Nop.prototype );
+						isInstance = false;
 					}
 					return toBind.apply(
 						isInstance ? this : ( context || {} ),
@@ -198,6 +196,18 @@ provides: atom
 	if (!Array.isArray) {
 		Array.isArray = function(o) {
 			return o && toString.call(o) === '[object Array]';
+		};
+	}
+
+	// https://developer.mozilla.org/en/JavaScript/Reference/Global_Objects/Object/create
+	if (!Object.create) {
+		Object.create = function (o) {
+			if (arguments.length > 1) {
+				throw new Error('Object.create implementation only accepts the first parameter.');
+			}
+			function F() {}
+			F.prototype = o;
+			return new F();
 		};
 	}
 }).call(typeof exports == 'undefined' ? window : exports, Object, Array);
