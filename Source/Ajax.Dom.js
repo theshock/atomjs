@@ -22,10 +22,10 @@ provides: ajax.dom
 atom.implement(atom.dom, {
 	ajax : function (config) {
 		config = atom.extend({
-			onload: function (res) {
+			onLoad: function (res) {
 				this.get().innerHTML = res;
 			},
-			onerror: function(){}
+			onError: function(){}
 		}, config);
 
 
