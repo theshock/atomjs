@@ -32,7 +32,7 @@ atom.extend({
 				if (exp.toUTCString) {
 					exp = exp.toUTCString();
 				} else if (typeof exp == 'number') {
-					exp = exp * 1000 * Date.now();
+					exp = exp * 1000 + Date.now();
 				}
 				options.expires = exp;
 			}
@@ -46,7 +46,7 @@ atom.extend({
 			return atom.cookie;
 		},
 		del: function (name) {
-			return atom.cookie.set(name, null, { expires: -1 });
+			return atom.cookie.set(name, '', { expires: -1 });
 		}
 	}
 });
