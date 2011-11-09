@@ -99,7 +99,7 @@ atom.extend(Class, {
 				}
 			} else if (arguments.length == 1 && typeof name != 'string') {
 				for (i in name) {
-					this.addEvent(i, name[i]);
+					this.removeEvent(i, name[i]);
 				}
 			} else {
 				name = removeOn(name);
