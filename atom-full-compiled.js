@@ -1553,8 +1553,8 @@ var removeOn = function(string){
 	});
 };
 
-var initEvents = function (object) {
-	if (!object._events) object._events = { $ready: {} };
+var initEvents = function (object, reset) {
+	if (reset || !object._events) object._events = { $ready: {} };
 };
 
 var nextTick = function (fn) {
@@ -1606,6 +1606,11 @@ atom.extend(Class, {
 			return this;
 		},
 		removeEvent: function (name, fn) {
+			if (!arguments.length) {
+				initEvents( this, true );
+				return this;
+			}
+
 			initEvents(this);
 
 			if (Array.isArray(name)) {
@@ -1620,8 +1625,7 @@ atom.extend(Class, {
 				name = removeOn(name);
 				if (name == '$ready') {
 					throw new TypeError('Event name «$ready» is reserved');
-				}
-				if (arguments.length == 1) {
+				} else if (arguments.length == 1) {
 					this._events[name] = [];
 				} else if (name in this._events) {
 					this._events[name].erase(fn);
