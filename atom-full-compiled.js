@@ -981,7 +981,7 @@ atom.implement(Number, {
 		);
 	},
 	equals : function (to, accuracy) {
-		if (arguments.length == 1) accuracy = 8;
+		if (accuracy == null) accuracy = 8;
 		return this.toFixed(accuracy) == to.toFixed(accuracy);
 	},
 	limit: function(min, max){
