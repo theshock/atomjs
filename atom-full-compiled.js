@@ -1540,10 +1540,10 @@ new function () {
 
 var Class = atom.Class;
 
-var fire = function (name, fn, args, onfinish) {
+var fire = function (name, fn, args) {
 	var result = fn.apply(this, Array.from(args || []));
 	if (typeof result == 'string' && result.toLowerCase() == 'removeevent') {
-		onfinish.push(this.removeEvent.bind(this, name, fn));
+		this.removeEvent(name, fn);
 	}
 };
 
@@ -1613,6 +1613,8 @@ atom.extend(Class, {
 
 			initEvents(this);
 
+			this.options && console.log( this.options.name, 'erase', arguments );
+
 			if (Array.isArray(name)) {
 				for (var i = name.length; i--;) {
 					this.removeEvent(name[i], fn);
@@ -1643,13 +1645,12 @@ atom.extend(Class, {
 			initEvents(this);
 			
 			name = removeOn(name);
-			var funcs = this._events[name];
+			// we should prevent skipping next event on removing this in different fireEvents
+			var funcs = atom.clone(this._events[name]);
 			if (funcs) {
-				var onfinish = [],
-					l = funcs.length,
+				var l = funcs.length,
 					i = 0;
-				for (;i < l; i++) fire.call(this, name, funcs[i], args || [], onfinish);
-				onfinish.invoke();
+				for (;i < l; i++) fire.call(this, name, funcs[i], args || []);
 			}
 			return this;
 		},
