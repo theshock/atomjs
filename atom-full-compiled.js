@@ -1613,8 +1613,6 @@ atom.extend(Class, {
 
 			initEvents(this);
 
-			this.options && console.log( this.options.name, 'erase', arguments );
-
 			if (Array.isArray(name)) {
 				for (var i = name.length; i--;) {
 					this.removeEvent(name[i], fn);
