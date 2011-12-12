@@ -17,9 +17,9 @@ inspiration:
 ...
 */
 
-(function (undefined) { // AtomJS
+(function (Object, Array, undefined) { // AtomJS
 'use strict';
 	
 /*** [Code] ***/
 
-})();
+}.call(typeof exports == 'undefined' ? window : exports, Object, Array));
