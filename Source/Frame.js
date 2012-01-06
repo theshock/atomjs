@@ -12,9 +12,6 @@ license:
 requires:
 	- atom
 
-inspiration:
-  - "[JQuery](http://jquery.org)"
-
 provides: frame
 
 ...
