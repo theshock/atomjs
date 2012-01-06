@@ -256,10 +256,42 @@ test('AutoDefine', function () {
 test('With Class', function () {
 
 	var Foo = atom.declare({
-		initialize: function () {
-
+		own: {
+			nop: 'noob'
+		},
+		proto: {
+			initialize: function (value) {
+				this.qwe = 'qwe ' + value;
+			},
+			method: function (value) {
+				this.asd = 'asd ' + value;
+			},
+			another: function (value) {
+				this.qux = 'qux ' + value;
+			}
 		}
 	});
+
+	var Bar = atom.Class({
+		Extends: Foo,
+		initialize: function (value) {
+			this.parent('barI ' + value);
+		},
+		method: function (value) {
+			this.parent('barM ' + value);
+		}
+	});
+
+	equal(Bar.nop, 'noob', 'correct static extend');
+
+	var bar = new Bar('ii');
+	bar.method('mm');
+	bar.another('aa');
+
+	equal(bar.qwe, 'qwe barI ii', 'correct initialize parent');
+	equal(bar.asd, 'asd barM mm', 'correct method parent');
+	equal(bar.qux, 'qux aa'     , 'correct method without override');
+
 
 });
 
