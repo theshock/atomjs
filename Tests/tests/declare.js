@@ -244,6 +244,33 @@ test('invoke', function () {
 	equal( bar.x, 13, 'Class invokation rewritten successful' );
 });
 
+test('bind', function () {
+
+	var Foo = atom.declare({
+		bind: 'foo',
+		proto: {
+			value: 'proto',
+			foo: function () {
+				return this.value;
+			},
+			bar: function () {
+				return this.value;
+			}
+		}
+	});
+
+	var foo = new Foo();
+
+	var cache = {
+		value: 'object',
+		foo: foo.foo,
+		bar: foo.bar
+	};
+
+	equal( cache.foo(), 'proto' , 'method is binded' );
+	equal( cache.bar(), 'object', 'method is not binded' );
+});
+
 test('AutoDefine', function () {
 
 	var Foo = atom.declare( 'DeclareAutoDefine.Qux.Foo' );

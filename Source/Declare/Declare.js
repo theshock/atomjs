@@ -35,11 +35,15 @@ declare = function (declareName, params) {
 		declareName   = null;
 	}
 
-	if (!params) params = {};
-
+	if (!params      ) params = {};
 	if (!params.proto) params = { proto: params };
-
-	if (!params.name) params.name = declareName;
+	if (!params.name ) params.name = declareName;
+	if (!params.proto.initialize) {
+		params.proto.initialize = function () {
+			if (!params.parent) return;
+			return params.parent.prototype.initialize.apply(this, arguments);
+		};
+	}
 
 	// we need this for shorter line in chrome debugger;
 	function make (a) {
@@ -113,7 +117,7 @@ methods = {
 		if (prototyping) return this;
 
 		if (this instanceof Constructor) {
-			return this.initialize ? this.initialize.apply(this, args) : this;
+			return this.initialize.apply(this, args);
 		} else {
 			return Constructor.invoke.apply(Constructor, args);
 		}
@@ -155,6 +159,25 @@ declare.config.mutator({
 	},
 	proto: function (Constuctor, properties) {
 		methods.addTo(Constuctor.prototype, properties);
+	},
+	bind: function (Constructor, methods) {
+		if (!methods) return;
+		if (typeof methods == 'string') methods = [ methods ];
+
+		var
+			proto = Constructor.prototype,
+			original = proto.initialize;
+
+		proto.initialize = function () {
+			var i = methods.length, method;
+			while (i--) {
+				method = methods[i];
+				if (method != null && typeof proto[method] == 'function') {
+					proto[method] = proto[method].bind(this);
+				}
+			}
+			return original.apply( this, arguments );
+		};
 	}
 });
 
