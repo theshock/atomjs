@@ -1,7 +1,7 @@
 /*
 ---
 
-name: "Number"
+name: "Prototypes.Number"
 
 description: "Contains Number Prototypes like limit, round, times, and ceil."
 
@@ -12,7 +12,7 @@ license:
 requires:
 	- atom
 
-provides: Number
+provides: Prototypes.Number
 
 ...
 */
@@ -60,9 +60,6 @@ atom.implement(Number, {
 			clearTimeout (num);
 		}
 		return this;
-	},
-	xor: function (x) {
-		return Boolean.xor( this.valueOf(), x );
 	}
 });
 

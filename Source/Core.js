@@ -15,20 +15,11 @@ inspiration:
 
 provides: atom
 
+requires:
+	- js185
+
 ...
 */
-
-var
-	prototype = 'prototype',
-	apply     = 'apply',
-	toString  = Object[prototype].toString,
-	slice     = [].slice;
-
-var atom = this.atom = function () {
-	if (atom.initialize) return atom.initialize[apply](this, arguments);
-};
-
-atom.global = this;
 
 var innerExtend = function (proto) {
 	return function (elem, from) {
@@ -104,21 +95,15 @@ atom.extend({
 	toArray: function (elem) {
 		return slice.call(elem);
 	},
-	/**
-	 * @deprecated - use console-cap instead:
-	 * @see https://github.com/theshock/console-cap/
-	 */
-	log: function () {
-		// ie9 bug, typeof console.log == 'object'
-		if (atom.global.console) Function.prototype.apply.call(console.log, console, arguments);
-	},
+	/** @deprecated - use console-cap instead: https://github.com/theshock/console-cap/ */
+	log: function () { throw new Error('deprecated') },
 	isEnumerable: function(item){
 		return item != null && toString.call(item) != '[object Function]' && typeof item.length == 'number';
 	},
 	append: function (target, source) {
 		for (var i = 1, l = arguments.length; i < l; i++){
-			source = arguments[i] || {};
-			for (var key in source) {
+			source = arguments[i];
+			if (source) for (var key in source) {
 				target[key] = source[key];
 			}
 		}
@@ -127,64 +112,3 @@ atom.extend({
 	typeOf: typeOf,
 	clone: clone
 });
-
-// JavaScript 1.8.5 Compatiblity
-// https://developer.mozilla.org/en/JavaScript/Reference/Global_Objects/Function/bind
-
-if (!Function.prototype.bind) {
-	Function.prototype.bind = function(context /*, arg1, arg2... */) {
-		if (typeof this !== "function") throw new TypeError("Function.prototype.bind - what is trying to be bound is not callable");
-
-		var args   = slice.call(arguments, 1),
-			toBind = this,
-			Nop    = function () {},
-			Bound  = function () {
-				var isInstance;
-				// Opera & Safari bug fixed. I must fix it in right way
-				// TypeError: Second argument to 'instanceof' does not implement [[HasInstance]]
-				try {
-					isInstance = this instanceof Nop;
-				} catch (ignored) {
-					// console.log( 'bind error', Nop.prototype );
-					isInstance = false;
-				}
-				return toBind.apply(
-					isInstance ? this : ( context || {} ),
-					args.concat( slice.call(arguments) )
-				);
-			};
-		Nop.prototype   = toBind.prototype;
-		Bound.prototype = new Nop();
-		return Bound;
-	};
-}
-
-// https://developer.mozilla.org/en/JavaScript/Reference/Global_Objects/Object/keys
-if (!Object.keys) {
-	Object.keys = function(obj) {
-		if (obj !== Object(obj)) throw new TypeError('Object.keys called on non-object');
-
-		var keys = [], i, has = Object[prototype].hasOwnProperty;
-		for (i in obj) if (has.call(obj, i)) keys.push(i);
-		return keys;
-	};
-}
-
-// https://developer.mozilla.org/en/JavaScript/Reference/Global_Objects/Array/isArray
-if (!Array.isArray) {
-	Array.isArray = function(o) {
-		return o && toString.call(o) === '[object Array]';
-	};
-}
-
-// https://developer.mozilla.org/en/JavaScript/Reference/Global_Objects/Object/create
-if (!Object.create) {
-	Object.create = function (o) {
-		if (arguments.length > 1) {
-			throw new Error('Object.create implementation only accepts the first parameter.');
-		}
-		function F() {}
-		F.prototype = o;
-		return new F();
-	};
-}

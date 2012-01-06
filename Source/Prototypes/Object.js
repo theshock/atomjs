@@ -1,7 +1,7 @@
 /*
 ---
 
-name: "Object"
+name: "Prototypes.Object"
 
 description: "Object generic methods"
 
@@ -12,7 +12,7 @@ license:
 requires:
 	- atom
 
-provides: Object
+provides: Prototypes.Object
 
 ...
 */

@@ -1,7 +1,7 @@
 /*
 ---
 
-name: "Array"
+name: "Prototypes.Array"
 
 description: "Contains Array Prototypes like include, contains, and erase."
 
@@ -11,9 +11,9 @@ license:
 
 requires:
 	- atom
-	- Number
+	- Prototypes.Number
 
-provides: Array
+provides: Prototypes.Array
 
 ...
 */

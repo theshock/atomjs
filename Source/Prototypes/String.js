@@ -1,7 +1,7 @@
 /*
 ---
 
-name: "String"
+name: "Prototypes.String"
 
 description: "Contains String Prototypes like repeat, substitute, replaceAll and begins."
 
@@ -12,7 +12,7 @@ license:
 requires:
 	- atom
 
-provides: String
+provides: Prototypes.String
 
 ...
 */

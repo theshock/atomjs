@@ -1,7 +1,7 @@
 /*
 ---
 
-name: "Function"
+name: "Prototypes.Function"
 
 description: "Contains Function Prototypes like context, periodical and delay."
 
@@ -11,9 +11,9 @@ license:
 
 requires:
 	- atom
-	- Array
+	- Prototypes.Array
 
-provides: Function
+provides: Prototypes.Function
 
 ...
 */

@@ -19,7 +19,18 @@ inspiration:
 
 (function (Object, Array, undefined) { // AtomJS
 'use strict';
-	
+
+var
+	prototype = 'prototype',
+	toString  = Object[prototype].toString,
+	slice     = [].slice;
+
+var atom = this.atom = function () {
+	if (atom.initialize) return atom.initialize.apply(this, arguments);
+};
+
+atom.global = this;
+
 /*** [Code] ***/
 
 }.call(typeof exports == 'undefined' ? window : exports, Object, Array));
