@@ -10,9 +10,6 @@ module('[Atom Plugins] Types');
 test('Function', function() {
 
 	equal(Function.lambda('Foo')(), 'Foo', 'Function.lambda');
-	equal(function(bar, quz) {
-		return this.foo + bar + quz;
-	}.context({ foo: 'Foo'}, ['Bar'])('Quz'), 'FooBarQuz', 'function.context');
 
 	// todo: [qtest] function.delay
 	// todo: [qtest] function.periodical

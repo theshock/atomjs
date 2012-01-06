@@ -111,7 +111,7 @@ atom.extend({
 	},
 	overloadSetter: function (fn) {
 		return function (key, value) {
-			if (typeof key == 'string') {
+			if (typeof key != 'string') {
 				for (var i in key) fn.call( this, i, key[i] );
 			} else {
 				fn.call( this, key, value );

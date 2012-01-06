@@ -67,7 +67,7 @@ var Class = function (params) {
 
 var parent = function(){
 	if (!this.$caller) throw new Error('The method «parent» cannot be called.');
-	var name     = this.$caller.$name,
+	var name    = this.$caller.$name,
 		parent   = this.$caller.$owner.parent,
 		previous = parent && parent[prototype][name];
 	if (!previous) throw new Error('The method «' + name + '» has no parent.');

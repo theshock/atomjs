@@ -3,15 +3,6 @@ new function (undefined) {
 module('[Atom Plugins] Class');
 
 test('Creating', function(){
-	var Clonable = atom.Class({
-		initialize: function(name) { this.name = name; },
-		clone: function() { return new Clonable('cloneName'); }
-	});
-
-	var Plain = atom.Class({
-		initialize: function(name) { this.name = name; }
-	});
-
 	var Foo = atom.Class({
 		name: null,
 		initialize: function (name) {

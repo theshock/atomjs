@@ -24,8 +24,6 @@ new function () {
 		return (bind === false || bind === Function.context) ? self : bind;
 	};
 
-	var slice = [].slice;
-
 	atom.extend(Function, {
 		lambda : function (value) {
 			var returnThis = (arguments.length == 0);
@@ -45,20 +43,6 @@ new function () {
 	});
 
 	atom.implement(Function, {
-		/** @deprecated */
-		context: function(bind, args){
-			var fn = this;
-			args = Array.from(args);
-			return function(){
-				return fn.apply(getContext(bind, this), [].append(args, arguments));
-			};
-		},
-		only: function(numberOfArgs, bind) {
-			var fn = this;
-			return function() {
-				return fn.apply(getContext(bind, this), slice.call(arguments, 0, numberOfArgs))
-			};
-		},
 		after: function (fnName) {
 			var onReady = this, after = {}, ready = {};
 			var checkReady = function () {
