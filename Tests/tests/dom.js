@@ -174,7 +174,7 @@ test('atom.dom().unbind', function () {
 	
 	$elem.bind("click", function listener () {
 		bind++
-		this.unbind("click", listener);
+		$elem.unbind("click", listener);
 	});
 	
 	var event = document.createEvent("MouseEvent");

@@ -7,18 +7,6 @@ new function () {
 
 module('[Atom Plugins] Types');
 
-test('Boolean', function () {
-	ok(   true.xor(false), 'true xor false' );
-	ok(  false.xor(true) , 'false xor true' );
-	ok( ! true.xor(true) , 'true xor true' );
-	ok( !false.xor(false), 'false xor false' );
-
-	ok(  (1).xor(0), '1 xor 0' );
-	ok(  (0).xor(1), '0 xor 1' );
-	ok( !(1).xor(1), '1 xor 1' );
-	ok( !(0).xor(0), '0 xor 0' );
-});
-
 test('Function', function() {
 
 	equal(Function.lambda('Foo')(), 'Foo', 'Function.lambda');

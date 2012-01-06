@@ -109,6 +109,16 @@ atom.extend({
 		}
 		return target;
 	},
+	overloadSetter: function (fn) {
+		return function (key, value) {
+			if (typeof key == 'string') {
+				for (var i in key) fn.call( this, i, key[i] );
+			} else {
+				fn.call( this, key, value );
+			}
+			return this;
+		};
+	},
 	typeOf: typeOf,
 	clone: clone
 });

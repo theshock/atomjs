@@ -18,12 +18,9 @@ provides: Prototypes.Array
 ...
 */
 
-new function (undefined) {
-var slice = [].slice;
-
 atom.extend(Array, {
 	range: function (from, to, step) {
-		step = (step * 1).limit(0) || 1;
+		step = Number(step).limit(0) || 1;
 		var result = [];
 		do {
 			result.push(from);
@@ -240,5 +237,3 @@ atom.implement(Array, {
 		return value;
 	}
 });
-
-};

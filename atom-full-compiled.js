@@ -20,7 +20,104 @@ inspiration:
 
 (function (Object, Array, undefined) { // AtomJS
 'use strict';
-	
+
+var
+	prototype = 'prototype',
+	toString  = Object[prototype].toString,
+	slice     = [].slice;
+
+var atom = this.atom = function () {
+	if (atom.initialize) return atom.initialize.apply(this, arguments);
+};
+
+atom.global = this;
+
+/*
+---
+
+name: "JavaScript 1.8.5"
+
+description: "JavaScript 1.8.5 Compatiblity."
+
+license:
+	- "[GNU Lesser General Public License](http://opensource.org/licenses/lgpl-license.php)"
+	- "[MIT License](http://opensource.org/licenses/mit-license.php)"
+
+inspiration:
+  - "[JQuery](http://jquery.com)"
+  - "[MooTools](http://mootools.net)"
+
+provides: js185
+
+...
+*/
+
+// https://developer.mozilla.org/en/JavaScript/Reference/Global_Objects/Function/bind
+if (!Function.prototype.bind) {
+	Function.prototype.bind = function(context /*, arg1, arg2... */) {
+		if (typeof this !== "function") throw new TypeError("Function.prototype.bind - what is trying to be bound is not callable");
+
+		var args   = slice.call(arguments, 1),
+			toBind = this,
+			Nop    = function () {},
+			Bound  = function () {
+				var isInstance;
+				// Opera & Safari bug fixed. I must fix it in right way
+				// TypeError: Second argument to 'instanceof' does not implement [[HasInstance]]
+				try {
+					isInstance = this instanceof Nop;
+				} catch (ignored) {
+					// console.log( 'bind error', Nop.prototype );
+					isInstance = false;
+				}
+				return toBind.apply(
+					isInstance ? this : ( context || {} ),
+					args.concat( slice.call(arguments) )
+				);
+			};
+		Nop.prototype   = toBind.prototype;
+		Bound.prototype = new Nop();
+		return Bound;
+	};
+}
+
+// https://developer.mozilla.org/en/JavaScript/Reference/Global_Objects/Object/keys
+if (!Object.keys) (function (has) {
+
+	Object.keys = function(obj) {
+		if (obj !== Object(obj)) throw new TypeError('Object.keys called on non-object');
+
+		var keys = [], i;
+		for (i in obj) if (has.call(obj, i)) keys.push(i);
+		return keys;
+	};
+})({}.hasOwnProperty);
+
+// https://developer.mozilla.org/en/JavaScript/Reference/Global_Objects/Array/isArray
+if (!Array.isArray) {
+	Array.isArray = function(o) {
+		return o && toString.call(o) === '[object Array]';
+	};
+}
+
+// https://developer.mozilla.org/en/JavaScript/Reference/Global_Objects/Object/create
+if (!Object.create) {
+	Object.create = function (o) {
+		if (arguments.length > 1) {
+			throw new Error('Object.create implementation only accepts the first parameter.');
+		}
+		function F() {}
+		F.prototype = o;
+		return new F();
+	};
+}
+
+if (!String.prototype.trim) {
+	String.prototype.trim = function () {
+		return this.replace(/^\s+|\s+$/g, '');
+	}
+}
+
 /*
 ---
 
@@ -38,20 +135,11 @@ inspiration:
 
 provides: atom
 
+requires:
+	- js185
+
 ...
 */
-
-var
-	prototype = 'prototype',
-	apply     = 'apply',
-	toString  = Object[prototype].toString,
-	slice     = [].slice;
-
-var atom = this.atom = function () {
-	if (atom.initialize) return atom.initialize[apply](this, arguments);
-};
-
-atom.global = this;
 
 var innerExtend = function (proto) {
 	return function (elem, from) {
@@ -127,90 +215,34 @@ atom.extend({
 	toArray: function (elem) {
 		return slice.call(elem);
 	},
-	/**
-	 * @deprecated - use console-cap instead:
-	 * @see https://github.com/theshock/console-cap/
-	 */
-	log: function () {
-		// ie9 bug, typeof console.log == 'object'
-		if (atom.global.console) Function.prototype.apply.call(console.log, console, arguments);
-	},
+	/** @deprecated - use console-cap instead: https://github.com/theshock/console-cap/ */
+	log: function () { throw new Error('deprecated') },
 	isEnumerable: function(item){
 		return item != null && toString.call(item) != '[object Function]' && typeof item.length == 'number';
 	},
 	append: function (target, source) {
 		for (var i = 1, l = arguments.length; i < l; i++){
-			source = arguments[i] || {};
-			for (var key in source) {
+			source = arguments[i];
+			if (source) for (var key in source) {
 				target[key] = source[key];
 			}
 		}
 		return target;
 	},
+	overloadSetter: function (fn) {
+		return function (key, value) {
+			if (typeof key == 'string') {
+				for (var i in key) fn.call( this, i, key[i] );
+			} else {
+				fn.call( this, key, value );
+			}
+			return this;
+		};
+	},
 	typeOf: typeOf,
 	clone: clone
 });
 
-// JavaScript 1.8.5 Compatiblity
-// https://developer.mozilla.org/en/JavaScript/Reference/Global_Objects/Function/bind
-
-if (!Function.prototype.bind) {
-	Function.prototype.bind = function(context /*, arg1, arg2... */) {
-		if (typeof this !== "function") throw new TypeError("Function.prototype.bind - what is trying to be bound is not callable");
-
-		var args   = slice.call(arguments, 1),
-			toBind = this,
-			Nop    = function () {},
-			Bound  = function () {
-				var isInstance;
-				// Opera & Safari bug fixed. I must fix it in right way
-				// TypeError: Second argument to 'instanceof' does not implement [[HasInstance]]
-				try {
-					isInstance = this instanceof Nop;
-				} catch (ignored) {
-					// console.log( 'bind error', Nop.prototype );
-					isInstance = false;
-				}
-				return toBind.apply(
-					isInstance ? this : ( context || {} ),
-					args.concat( slice.call(arguments) )
-				);
-			};
-		Nop.prototype   = toBind.prototype;
-		Bound.prototype = new Nop();
-		return Bound;
-	};
-}
-
-// https://developer.mozilla.org/en/JavaScript/Reference/Global_Objects/Object/keys
-if (!Object.keys) {
-	Object.keys = function(obj) {
-		if (obj !== Object(obj)) throw new TypeError('Object.keys called on non-object');
-
-		var keys = [], i, has = Object[prototype].hasOwnProperty;
-		for (i in obj) if (has.call(obj, i)) keys.push(i);
-		return keys;
-	};
-}
-
-// https://developer.mozilla.org/en/JavaScript/Reference/Global_Objects/Array/isArray
-if (!Array.isArray) {
-	Array.isArray = function(o) {
-		return o && toString.call(o) === '[object Array]';
-	};
-}
-
-// https://developer.mozilla.org/en/JavaScript/Reference/Global_Objects/Object/create
-if (!Object.create) {
-	Object.create = function (o) {
-		if (arguments.length > 1) {
-			throw new Error('Object.create implementation only accepts the first parameter.');
-		}
-		function F() {}
-		F.prototype = o;
-		return new F();
-	};
-}
 
 /*
 ---
@@ -324,27 +356,18 @@ provides: dom
 
 ...
 */
-new function () {
-	var undefined,
-		win = window,
-		doc = win.document,
-		tagNameRE = /^[-_a-z0-9]+$/i,
-		classNameRE = /^\.[-_a-z0-9]+$/i,
-		idRE = /^#[-_a-z0-9]+$/i,
+(function (window, document) {
+	var
+		regexp = {
+			Tag  : /^[-_a-z0-9]+$/i,
+			Class: /^\.[-_a-z0-9]+$/i,
+			Id   : /^#[-_a-z0-9]+$/i
+		},
 		toArray = atom.toArray,
 		isArray = Array.isArray,
 		length = 'length',
-		getElement = 'getElement',
-		getElementById = getElement + 'ById',
-		getElementsByClassName = getElement + 'sByClassName',
-		getElementsByTagName = getElement + 'sByTagName',
-		querySelectorAll = 'querySelectorAll',
-		EventListener = 'EventListener',
-		addEventListener = 'add' + EventListener,
-		removeEventListener = 'remove' + EventListener,
-		appendChild = 'appendChild',
 		setter = function (args) {
-			if (args.length == 1) {
+			if (args[length] == 1) {
 				return args[0];
 			} else {
 				var r = {};
@@ -369,24 +392,7 @@ new function () {
 			return str.replace(/-\D/g, function(match){
 				return match[1].toUpperCase();
 			});
-		},
-		bind = function (fn, context) {
-			for (var i = 0 ; i<bind.contexts.length ; i++) {
-				if (bind.contexts[i] === context && bind.functions[i] === fn) {
-					return bind.results[i];
-				}
-			}
-			
-			bind.results.push( fn.bind(context) );
-			bind.contexts.push(context);
-			bind.functions.push(fn);
-			
-			return bind.results[bind.results.length-1];
 		};
-		
-		bind.contexts  = [];
-		bind.functions = [];
-		bind.results   = [];
 	
 	new function () {
 		var ready = function () {
@@ -399,8 +405,8 @@ new function () {
 			onDomReady = [];
 		};
 		
-		doc[addEventListener]('DOMContentLoaded', ready, false);
-		win[addEventListener]('load', ready, false);
+		document.addEventListener('DOMContentLoaded', ready, false);
+		window.addEventListener('load', ready, false);
 	};
 
 	var dom = function (sel, context) {
@@ -409,19 +415,19 @@ new function () {
 		}
 
 		if (!arguments[length]) {
-			this.elems = [doc];
+			this.elems = [document];
 			return this;
 		}
 
 		if (!context && sel === 'body') {
-			this.elems = [doc.body];
+			this.elems = [document.body];
 			return this;
 		}
 
 		if (context !== undefined) {
-			return new dom(context || doc).find(sel);
+			return new dom(context || document).find(sel);
 		}
-		context = context || doc;
+		context = context || document;
 
 		if (typeof sel == 'function' && !(sel instanceof dom)) {
 			// onDomReady
@@ -445,10 +451,10 @@ new function () {
 	};
 	atom.extend(dom, {
 		query : function (context, sel) {
-			return sel.match(idRE)        ?        [context[getElementById        ](sel.substr(1))] :
-			       sel.match(classNameRE) ? toArray(context[getElementsByClassName](sel.substr(1))) :
-			       sel.match(tagNameRE)   ? toArray(context[getElementsByTagName  ](sel)) :
-			                                toArray(context[querySelectorAll      ](sel));
+			return sel.match(regexp.Id)    ?        [context.getElementById        (sel.substr(1))] :
+			       sel.match(regexp.Class) ? toArray(context.getElementsByClassName(sel.substr(1))) :
+			       sel.match(regexp.Tag)   ? toArray(context.getElementsByTagName  (sel)) :
+			                                 toArray(context.querySelectorAll      (sel));
 		},
 		find: function (context, sel) {
 			if (!sel) return context == null ? [] : [context];
@@ -476,11 +482,11 @@ new function () {
 			return this.elems[0];
 		},
 		get : function (index) {
-			return this.elems[index * 1 || 0];
+			return this.elems[Number(index) || 0];
 		},
 		parent : function(step) {
-			if(step === undefined)
-				var step = 1;
+			if(step == null) step = 1;
+
 			var stepCount = function(elem, step) {
 				if(step > 0) {
 					step--;
@@ -490,22 +496,32 @@ new function () {
 			};
 			return stepCount(this, step);
 		},
-		filter: function (sel) {
-			if (sel.match(tagNameRE)) var tag = sel.toUpperCase();
-			if (sel.match(idRE     )) var id  = sel.substr(1).toUpperCase();
+		filter: function (selector) {
+			var property = null;
+			// speed optimization for "tag" & "id" filtering
+			if (selector.match(regexp.Tag)) {
+				selector = selector.toUpperCase();
+				property = 'tagName';
+			} else if (selector.match(regexp.Id )) {
+				selector = selector.substr(1).toUpperCase();
+				property = 'id';
+			}
+
 			return new dom(this.elems.filter(function (elem) {
-				return tag ? elem.tagName.toUpperCase() == tag :
-				       id  ? elem.id     .toUpperCase() == id :
-				  elem.parentNode && toArray(
-				    elem.parentNode.querySelectorAll(sel)
-				  ).indexOf(elem) >= 0;
+				if (property) {
+					return elem[property].toUpperCase() == selector;
+				} else {
+					return elem.parentNode && toArray(
+						elem.parentNode.querySelectorAll(selector)
+					).indexOf(elem) >= 0;
+				}
 			}));
 		},
 		is: function (selector) {
 			return this.filter(selector).length > 0;
 		},
 		html : function (value) {
-			if (value !== undefined) {
+			if (value != null) {
 				this.first.innerHTML = value;
 				return this;
 			} else {
@@ -513,16 +529,11 @@ new function () {
 			}
 		},
 		text : function (value) {
-			if(document.getElementsByTagName("body")[0].innerText != undefined) {
-				if(value === undefined)
-					return this.first.innerText;
-				this.first.innerText = value;
+			var property = document.body.innerText == null ? 'textContent' : 'innerText';
+			if (value == null) {
+				return this.first[property];
 			}
-			else {
-				if(value === undefined)
-					return this.first.textContent;
-				this.first.textContent = value;
-			}
+			this.first[property] = value;
 			return this;
 		},
 		create : function (tagName, index, attr) {
@@ -566,11 +577,11 @@ new function () {
 			var events = setter(arguments);
 			
 			for (var i in events) {
-				var fn = events[i] === false ? prevent : bind(events[i], this);
+				var fn = events[i] === false ? prevent : events[i];
 				
 				this.each(function (elem) {
-					if (elem == doc && i == 'load') elem = win;
-					elem[addEventListener](i, fn, false);
+					if (elem == document && i == 'load') elem = window;
+					elem.addEventListener(i, fn, false);
 				});
 			}
 			
@@ -580,11 +591,11 @@ new function () {
 			var events = setter(arguments);
 			
 			for (var i in events) {
-				var fn = events[i] === false ? prevent : bind(events[i], this);
+				var fn = events[i] === false ? prevent : events[i];
 				
 				this.each(function (elem) {
-					if (elem == doc && i == 'load') elem = win;
-					elem[removeEventListener](i, fn, false);
+					if (elem == document && i == 'load') elem = window;
+					elem.removeEventListener(i, fn, false);
 				});
 			}
 			
@@ -618,11 +629,11 @@ new function () {
 			return new dom(result);
 		},
 		appendTo : function (to) {
-			var fr = doc.createDocumentFragment();
+			var fr = document.createDocumentFragment();
 			this.each(function (elem) {
-				fr[appendChild](elem);
+				fr.appendChild(elem);
 			});
-			dom(to).first[appendChild](fr);
+			dom(to).first.appendChild(fr);
 			return this;
 		},
 		addClass: function (classNames) {
@@ -702,7 +713,7 @@ new function () {
 	});
 
 	atom.extend({ dom: dom });
-};
+}(window, window.document));
 
 
 /*
@@ -910,9 +921,6 @@ license:
 requires:
 	- atom
 
-inspiration:
-  - "[JQuery](http://jquery.org)"
-
 provides: frame
 
 ...
@@ -1020,330 +1028,6 @@ uri.options = {
 };
 
 atom.extend({ uri: uri });
-
-};
-
-/*
----
-
-name: "Number"
-
-description: "Contains Number Prototypes like limit, round, times, and ceil."
-
-license:
-	- "[GNU Lesser General Public License](http://opensource.org/licenses/lgpl-license.php)"
-	- "[MIT License](http://opensource.org/licenses/mit-license.php)"
-
-requires:
-	- atom
-
-provides: Number
-
-...
-*/
-
-new function () {
-	
-atom.extend(Number, {
-	random : function (min, max) {
-		return Math.floor(Math.random() * (max - min + 1) + min);
-	}
-});
-
-atom.implement(Number, {
-	between: function (n1, n2, equals) {
-		return (n1 <= n2) && (
-			(equals == 'L' && this == n1) ||
-			(equals == 'R' && this == n2) ||
-			(  this  > n1  && this  < n2) ||
-			([true,'LR','RL'].indexOf(equals) != -1 && (n1 == this || n2 == this))
-		);
-	},
-	equals : function (to, accuracy) {
-		if (accuracy == null) accuracy = 8;
-		return this.toFixed(accuracy) == to.toFixed(accuracy);
-	},
-	limit: function(min, max){
-		var bottom = Math.max(min, this);
-		return arguments.length == 2 ?
-			Math.min(max, bottom) : bottom;
-	},
-	round: function(precision){
-		precision = Math.pow(10, precision || 0).toFixed(precision < 0 ? -precision : 0);
-		return Math.round(this * precision) / precision;
-	},
-	toFloat: function(){
-		return parseFloat(this);
-	},
-	toInt: function(base){
-		return parseInt(this, base || 10);
-	},
-	stop: function() {
-		var num = Number(this);
-		if (num) {
-			clearInterval(num);
-			clearTimeout (num);
-		}
-		return this;
-	},
-	xor: function (x) {
-		return Boolean.xor( this.valueOf(), x );
-	}
-});
-
-['abs','acos','asin','atan','atan2','ceil','cos','exp','floor','log','max','min','pow','sin','sqrt','tan']
-	.forEach(function(method) {
-		if (Number[method]) return;
-		
-		Number.prototype[method] = function() {
-			return Math[method].apply(null, [this].append(arguments));
-		};
-	});
-
-};
-
-/*
----
-
-name: "Array"
-
-description: "Contains Array Prototypes like include, contains, and erase."
-
-license:
-	- "[GNU Lesser General Public License](http://opensource.org/licenses/lgpl-license.php)"
-	- "[MIT License](http://opensource.org/licenses/mit-license.php)"
-
-requires:
-	- atom
-	- Number
-
-provides: Array
-
-...
-*/
-
-new function (undefined) {
-var slice = [].slice;
-
-atom.extend(Array, {
-	range: function (from, to, step) {
-		step = (step * 1).limit(0) || 1;
-		var result = [];
-		do {
-			result.push(from);
-			from += step;
-		} while (from <= to);
-		return result;
-	},
-	from: function (item) {
-		if (item == null) return [];
-		return (!atom.isEnumerable(item) || typeof item == 'string') ? [item] :
-			(atom.typeOf(item) == 'array') ? item : slice.call(item);
-	},
-	pickFrom: function (args) {
-		return Array.from(
-			   args
-			&& args.length == 1
-			&& ['array', 'arguments'].contains(atom.typeOf(args[0])) ?
-				args[0] : args
-		);
-	},
-	fill: function (array, fill) {
-		array = Array.isArray(array) ? array : new Array(array * 1);
-		for (var i = array.length; i--;) array[i] = fill;
-		return array;
-	},
-	fillMatrix: function (width, height, fill) {
-		var array = new Array(height);
-		while (height--) {
-			array[height] = Array.fill(width, fill);
-		}
-		return array;
-	},
-	collect: function (obj, props, Default) {
-		var array = [];
-		for (var i = 0, l = props.length; i < l; i++) {
-			array.push(props[i] in obj ? obj[props[i]] : Default);
-		}
-		return array;
-	},
-	create: function (length, fn) {
-		var array = new Array(length);
-		for (var i = 0; i < length; i++) array[i] = fn(i, array);
-		return array;
-	},
-	toHash: function () {
-		for (var hash = {}, i = 0, l = this.length; i < l; i++) hash[i] = this[i];
-		return hash;
-	}
-});
-
-atom.implement(Array, {
-	get last(){
-		return this.length ? this[this.length - 1] : null;
-	},
-	get random(){
-		return this.length ? this[Number.random(0, this.length - 1)] : null;
-	},
-	popRandom: function () {
-		if (this.length == 0) return null;
-		var index = Number.random(0, this.length - 1), elem = this[index];
-		this.splice(index, 1);
-		return elem;
-	},
-	property: function (prop) {
-		return this.map(function (elem) {
-			return elem != null ? elem[ prop ] : null;
-		});
-	},
-	// Correctly works with `new Array(10).fullMap(fn)`
-	fullMap: function (fn, bind) {
-		var mapped = new Array(this.length);
-		for (var i = 0, l = mapped.length; i < l; i++) {
-			mapped[i] = fn.call(bind, this[i], i, this);
-		}
-		return mapped;
-	},
-	contains: function (elem, fromIndex) {
-		return this.indexOf(elem, fromIndex) != -1;
-	},
-	include: function(item){
-		if (!this.contains(item)) this.push(item);
-		return this;
-	},
-	append: function (array) {
-		for (var i = 0, l = arguments.length; i < l; i++) if (arguments[i]) {
-			this.push.apply(this, arguments[i]);
-		}
-		return this;
-	},
-	erase: function(item){
-		for (var i = this.length; i--;) {
-			if (this[i] === item) this.splice(i, 1);
-		}
-		return this;
-	},
-	toKeys: function (value) {
-		var useValue = arguments.length == 1, obj = {};
-		for (var i = 0, l = this.length; i < l; i++)
-			obj[this[i]] = useValue ? value : i;
-		return obj;
-	},
-	combine: function(array){
-		for (var i = 0, l = array.length; i < l; i++) this.include(array[i]);
-		return this;
-	},
-	pick: function(){
-		for (var i = 0, l = this.length; i < l; i++) {
-			if (this[i] != null) return this[i];
-		}
-		return null;
-	},
-	invoke: function(context){
-		var args = slice.call(arguments, 1);
-		if (typeof context == 'string') {
-			var methodName = context;
-			context = null;
-		}
-		return this.map(function(item){
-			return item && (methodName ? item[methodName] : item).apply(methodName ? item : context, args);
-		});
-	},
-	shuffle : function () {
-		for (var tmp, moveTo, index = this.length; index--;) {
-			moveTo = Number.random( 0, index );
-			// [ this[index], this[moveTo] ] = [ this[moveTo], this[index] ]
-			tmp          = this[index ];
-			this[index]  = this[moveTo];
-			this[moveTo] = tmp;
-		}
-		return this;
-	},
-	sortBy : function (method, reverse) {
-		var get = function (elem) {
-			return typeof elem[method] == 'function' ? elem[method]() : (elem[method] || 0);
-		};
-		var multi = reverse ? -1 : 1;
-		return this.sort(function ($0, $1) {
-			var diff = get($1) - get($0);
-			return diff ? (diff < 0 ? -1 : 1) * multi : 0;
-		});
-	},
-	min: function(){
-		return Math.min.apply(null, this);
-	},
-	max: function(){
-		return Math.max.apply(null, this);
-	},
-	mul: function (factor) {
-		for (var i = this.length; i--;) this[i] *= factor;
-		return this;
-	},
-	add: function (number) {
-		for (var i = this.length; i--;) this[i] += number;
-		return this;
-	},
-	average: function(){
-		return this.length ? this.sum() / this.length : 0;
-	},
-	sum: function(){
-		for (var result = 0, i = this.length; i--;) result += this[i];
-		return result;
-	},
-	unique: function(){
-		return [].combine(this);
-	},
-	associate: function(keys){
-		var obj = {}, length = this.length, i, isFn = atom.typeOf(keys) == 'function';
-		if (!isFn) length = Math.min(length, keys.length);
-		for (i = 0; i < length; i++) {
-			obj[(isFn ? this : keys)[i]] = isFn ? keys(this[i], i) : this[i];
-		}
-		return obj;
-	},
-	clean: function (){
-		return this.filter(function (item) { return item != null; });
-	},
-	empty: function () {
-		this.length = 0;
-		return this;
-	},
-	clone: function () {
-		return atom.clone(this);
-	},
-	hexToRgb: function(array){
-		if (this.length != 3) return null;
-		var rgb = this.map(function(value){
-			if (value.length == 1) value += value;
-			return parseInt(value, 16);
-		});
-		return (array) ? rgb : 'rgb(' + rgb + ')';
-	},
-	rgbToHex: function(array) {
-		if (this.length < 3) return null;
-		if (this.length == 4 && this[3] == 0 && !array) return 'transparent';
-		var hex = [];
-		for (var i = 0; i < 3; i++){
-			var bit = (this[i] - 0).toString(16);
-			hex.push((bit.length == 1) ? '0' + bit : bit);
-		}
-		return (array) ? hex : '#' + hex.join('');
-	},
-
-	reduce: [].reduce || function(fn, value){
-		for (var i = 0, l = this.length; i < l; i++){
-			if (i in this) value = value === undefined ? this[i] : fn.call(null, value, this[i], i, this);
-		}
-		return value;
-	},
-
-	reduceRight: [].reduceRight || function(fn, value){
-		for (var i = this.length; i--;){
-			if (i in this) value = value === undefined ? this[i] : fn.call(null, value, this[i], i, this);
-		}
-		return value;
-	}
-});
 
 };
 
@@ -1806,9 +1490,9 @@ atom.Class.Options = atom.Class({
 /*
 ---
 
-name: "Boolean"
+name: "Prototypes.Number"
 
-description: "Contains Boolean Prototypes like xor."
+description: "Contains Number Prototypes like limit, round, times, and ceil."
 
 license:
 	- "[GNU Lesser General Public License](http://opensource.org/licenses/lgpl-license.php)"
@@ -1817,27 +1501,312 @@ license:
 requires:
 	- atom
 
-provides: Boolean
+provides: Prototypes.Number
 
 ...
 */
 
-atom.extend(Boolean, {
-	xor: function (a, b) {
-		return !a != !b;
+new function () {
+	
+atom.extend(Number, {
+	random : function (min, max) {
+		return Math.floor(Math.random() * (max - min + 1) + min);
 	}
 });
 
-atom.implement(Boolean, {
-	xor: function (x) {
-		return Boolean.xor( this.valueOf(), x );
+atom.implement(Number, {
+	between: function (n1, n2, equals) {
+		return (n1 <= n2) && (
+			(equals == 'L' && this == n1) ||
+			(equals == 'R' && this == n2) ||
+			(  this  > n1  && this  < n2) ||
+			([true,'LR','RL'].indexOf(equals) != -1 && (n1 == this || n2 == this))
+		);
+	},
+	equals : function (to, accuracy) {
+		if (accuracy == null) accuracy = 8;
+		return this.toFixed(accuracy) == to.toFixed(accuracy);
+	},
+	limit: function(min, max){
+		var bottom = Math.max(min, this);
+		return arguments.length == 2 ?
+			Math.min(max, bottom) : bottom;
+	},
+	round: function(precision){
+		precision = Math.pow(10, precision || 0).toFixed(precision < 0 ? -precision : 0);
+		return Math.round(this * precision) / precision;
+	},
+	toFloat: function(){
+		return parseFloat(this);
+	},
+	toInt: function(base){
+		return parseInt(this, base || 10);
+	},
+	stop: function() {
+		var num = Number(this);
+		if (num) {
+			clearInterval(num);
+			clearTimeout (num);
+		}
+		return this;
+	}
+});
+
+['abs','acos','asin','atan','atan2','ceil','cos','exp','floor','log','max','min','pow','sin','sqrt','tan']
+	.forEach(function(method) {
+		if (Number[method]) return;
+		
+		Number.prototype[method] = function() {
+			return Math[method].apply(null, [this].append(arguments));
+		};
+	});
+
+};
+
+/*
+---
+
+name: "Prototypes.Array"
+
+description: "Contains Array Prototypes like include, contains, and erase."
+
+license:
+	- "[GNU Lesser General Public License](http://opensource.org/licenses/lgpl-license.php)"
+	- "[MIT License](http://opensource.org/licenses/mit-license.php)"
+
+requires:
+	- atom
+	- Prototypes.Number
+
+provides: Prototypes.Array
+
+...
+*/
+
+atom.extend(Array, {
+	range: function (from, to, step) {
+		step = Number(step).limit(0) || 1;
+		var result = [];
+		do {
+			result.push(from);
+			from += step;
+		} while (from <= to);
+		return result;
+	},
+	from: function (item) {
+		if (item == null) return [];
+		return (!atom.isEnumerable(item) || typeof item == 'string') ? [item] :
+			(atom.typeOf(item) == 'array') ? item : slice.call(item);
+	},
+	pickFrom: function (args) {
+		return Array.from(
+			   args
+			&& args.length == 1
+			&& ['array', 'arguments'].contains(atom.typeOf(args[0])) ?
+				args[0] : args
+		);
+	},
+	fill: function (array, fill) {
+		array = Array.isArray(array) ? array : new Array(array * 1);
+		for (var i = array.length; i--;) array[i] = fill;
+		return array;
+	},
+	fillMatrix: function (width, height, fill) {
+		var array = new Array(height);
+		while (height--) {
+			array[height] = Array.fill(width, fill);
+		}
+		return array;
+	},
+	collect: function (obj, props, Default) {
+		var array = [];
+		for (var i = 0, l = props.length; i < l; i++) {
+			array.push(props[i] in obj ? obj[props[i]] : Default);
+		}
+		return array;
+	},
+	create: function (length, fn) {
+		var array = new Array(length);
+		for (var i = 0; i < length; i++) array[i] = fn(i, array);
+		return array;
+	},
+	toHash: function () {
+		for (var hash = {}, i = 0, l = this.length; i < l; i++) hash[i] = this[i];
+		return hash;
+	}
+});
+
+atom.implement(Array, {
+	get last(){
+		return this.length ? this[this.length - 1] : null;
+	},
+	get random(){
+		return this.length ? this[Number.random(0, this.length - 1)] : null;
+	},
+	popRandom: function () {
+		if (this.length == 0) return null;
+		var index = Number.random(0, this.length - 1), elem = this[index];
+		this.splice(index, 1);
+		return elem;
+	},
+	property: function (prop) {
+		return this.map(function (elem) {
+			return elem != null ? elem[ prop ] : null;
+		});
+	},
+	// Correctly works with `new Array(10).fullMap(fn)`
+	fullMap: function (fn, bind) {
+		var mapped = new Array(this.length);
+		for (var i = 0, l = mapped.length; i < l; i++) {
+			mapped[i] = fn.call(bind, this[i], i, this);
+		}
+		return mapped;
+	},
+	contains: function (elem, fromIndex) {
+		return this.indexOf(elem, fromIndex) != -1;
+	},
+	include: function(item){
+		if (!this.contains(item)) this.push(item);
+		return this;
+	},
+	append: function (array) {
+		for (var i = 0, l = arguments.length; i < l; i++) if (arguments[i]) {
+			this.push.apply(this, arguments[i]);
+		}
+		return this;
+	},
+	erase: function(item){
+		for (var i = this.length; i--;) {
+			if (this[i] === item) this.splice(i, 1);
+		}
+		return this;
+	},
+	toKeys: function (value) {
+		var useValue = arguments.length == 1, obj = {};
+		for (var i = 0, l = this.length; i < l; i++)
+			obj[this[i]] = useValue ? value : i;
+		return obj;
+	},
+	combine: function(array){
+		for (var i = 0, l = array.length; i < l; i++) this.include(array[i]);
+		return this;
+	},
+	pick: function(){
+		for (var i = 0, l = this.length; i < l; i++) {
+			if (this[i] != null) return this[i];
+		}
+		return null;
+	},
+	invoke: function(context){
+		var args = slice.call(arguments, 1);
+		if (typeof context == 'string') {
+			var methodName = context;
+			context = null;
+		}
+		return this.map(function(item){
+			return item && (methodName ? item[methodName] : item).apply(methodName ? item : context, args);
+		});
+	},
+	shuffle : function () {
+		for (var tmp, moveTo, index = this.length; index--;) {
+			moveTo = Number.random( 0, index );
+			// [ this[index], this[moveTo] ] = [ this[moveTo], this[index] ]
+			tmp          = this[index ];
+			this[index]  = this[moveTo];
+			this[moveTo] = tmp;
+		}
+		return this;
+	},
+	sortBy : function (method, reverse) {
+		var get = function (elem) {
+			return typeof elem[method] == 'function' ? elem[method]() : (elem[method] || 0);
+		};
+		var multi = reverse ? -1 : 1;
+		return this.sort(function ($0, $1) {
+			var diff = get($1) - get($0);
+			return diff ? (diff < 0 ? -1 : 1) * multi : 0;
+		});
+	},
+	min: function(){
+		return Math.min.apply(null, this);
+	},
+	max: function(){
+		return Math.max.apply(null, this);
+	},
+	mul: function (factor) {
+		for (var i = this.length; i--;) this[i] *= factor;
+		return this;
+	},
+	add: function (number) {
+		for (var i = this.length; i--;) this[i] += number;
+		return this;
+	},
+	average: function(){
+		return this.length ? this.sum() / this.length : 0;
+	},
+	sum: function(){
+		for (var result = 0, i = this.length; i--;) result += this[i];
+		return result;
+	},
+	unique: function(){
+		return [].combine(this);
+	},
+	associate: function(keys){
+		var obj = {}, length = this.length, i, isFn = atom.typeOf(keys) == 'function';
+		if (!isFn) length = Math.min(length, keys.length);
+		for (i = 0; i < length; i++) {
+			obj[(isFn ? this : keys)[i]] = isFn ? keys(this[i], i) : this[i];
+		}
+		return obj;
+	},
+	clean: function (){
+		return this.filter(function (item) { return item != null; });
+	},
+	empty: function () {
+		this.length = 0;
+		return this;
+	},
+	clone: function () {
+		return atom.clone(this);
+	},
+	hexToRgb: function(array){
+		if (this.length != 3) return null;
+		var rgb = this.map(function(value){
+			if (value.length == 1) value += value;
+			return parseInt(value, 16);
+		});
+		return (array) ? rgb : 'rgb(' + rgb + ')';
+	},
+	rgbToHex: function(array) {
+		if (this.length < 3) return null;
+		if (this.length == 4 && this[3] == 0 && !array) return 'transparent';
+		var hex = [];
+		for (var i = 0; i < 3; i++){
+			var bit = (this[i] - 0).toString(16);
+			hex.push((bit.length == 1) ? '0' + bit : bit);
+		}
+		return (array) ? hex : '#' + hex.join('');
+	},
+
+	reduce: [].reduce || function(fn, value){
+		for (var i = 0, l = this.length; i < l; i++){
+			if (i in this) value = value === undefined ? this[i] : fn.call(null, value, this[i], i, this);
+		}
+		return value;
+	},
+
+	reduceRight: [].reduceRight || function(fn, value){
+		for (var i = this.length; i--;){
+			if (i in this) value = value === undefined ? this[i] : fn.call(null, value, this[i], i, this);
+		}
+		return value;
 	}
 });
 
 /*
 ---
 
-name: "Function"
+name: "Prototypes.Function"
 
 description: "Contains Function Prototypes like context, periodical and delay."
 
@@ -1847,9 +1816,9 @@ license:
 
 requires:
 	- atom
-	- Array
+	- Prototypes.Array
 
-provides: Function
+provides: Prototypes.Function
 
 ...
 */
@@ -1934,7 +1903,7 @@ new function () {
 /*
 ---
 
-name: "Object"
+name: "Prototypes.Object"
 
 description: "Object generic methods"
 
@@ -1945,7 +1914,7 @@ license:
 requires:
 	- atom
 
-provides: Object
+provides: Prototypes.Object
 
 ...
 */
@@ -2063,7 +2032,7 @@ atom.extend(Object, {
 /*
 ---
 
-name: "String"
+name: "Prototypes.String"
 
 description: "Contains String Prototypes like repeat, substitute, replaceAll and begins."
 
@@ -2074,7 +2043,7 @@ license:
 requires:
 	- atom
 
-provides: String
+provides: Prototypes.String
 
 ...
 */
@@ -2134,9 +2103,6 @@ atom.implement(String, {
 	},
 	lcfirst : function () {
 		return this[0].toLowerCase() + this.substr(1);
-	},
-	trim: ''.trim || function () {
-		return this.trimLeft().trimRight();
 	},
 	trimLeft : ''.trimLeft || function () {
 		return this.replace(/^\s+/, '');

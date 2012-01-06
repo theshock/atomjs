@@ -20,27 +20,18 @@ provides: dom
 
 ...
 */
-new function () {
-	var undefined,
-		win = window,
-		doc = win.document,
-		tagNameRE = /^[-_a-z0-9]+$/i,
-		classNameRE = /^\.[-_a-z0-9]+$/i,
-		idRE = /^#[-_a-z0-9]+$/i,
+(function (window, document) {
+	var
+		regexp = {
+			Tag  : /^[-_a-z0-9]+$/i,
+			Class: /^\.[-_a-z0-9]+$/i,
+			Id   : /^#[-_a-z0-9]+$/i
+		},
 		toArray = atom.toArray,
 		isArray = Array.isArray,
 		length = 'length',
-		getElement = 'getElement',
-		getElementById = getElement + 'ById',
-		getElementsByClassName = getElement + 'sByClassName',
-		getElementsByTagName = getElement + 'sByTagName',
-		querySelectorAll = 'querySelectorAll',
-		EventListener = 'EventListener',
-		addEventListener = 'add' + EventListener,
-		removeEventListener = 'remove' + EventListener,
-		appendChild = 'appendChild',
 		setter = function (args) {
-			if (args.length == 1) {
+			if (args[length] == 1) {
 				return args[0];
 			} else {
 				var r = {};
@@ -65,24 +56,7 @@ new function () {
 			return str.replace(/-\D/g, function(match){
 				return match[1].toUpperCase();
 			});
-		},
-		bind = function (fn, context) {
-			for (var i = 0 ; i<bind.contexts.length ; i++) {
-				if (bind.contexts[i] === context && bind.functions[i] === fn) {
-					return bind.results[i];
-				}
-			}
-			
-			bind.results.push( fn.bind(context) );
-			bind.contexts.push(context);
-			bind.functions.push(fn);
-			
-			return bind.results[bind.results.length-1];
 		};
-		
-		bind.contexts  = [];
-		bind.functions = [];
-		bind.results   = [];
 	
 	new function () {
 		var ready = function () {
@@ -95,8 +69,8 @@ new function () {
 			onDomReady = [];
 		};
 		
-		doc[addEventListener]('DOMContentLoaded', ready, false);
-		win[addEventListener]('load', ready, false);
+		document.addEventListener('DOMContentLoaded', ready, false);
+		window.addEventListener('load', ready, false);
 	};
 
 	var dom = function (sel, context) {
@@ -105,19 +79,19 @@ new function () {
 		}
 
 		if (!arguments[length]) {
-			this.elems = [doc];
+			this.elems = [document];
 			return this;
 		}
 
 		if (!context && sel === 'body') {
-			this.elems = [doc.body];
+			this.elems = [document.body];
 			return this;
 		}
 
 		if (context !== undefined) {
-			return new dom(context || doc).find(sel);
+			return new dom(context || document).find(sel);
 		}
-		context = context || doc;
+		context = context || document;
 
 		if (typeof sel == 'function' && !(sel instanceof dom)) {
 			// onDomReady
@@ -141,10 +115,10 @@ new function () {
 	};
 	atom.extend(dom, {
 		query : function (context, sel) {
-			return sel.match(idRE)        ?        [context[getElementById        ](sel.substr(1))] :
-			       sel.match(classNameRE) ? toArray(context[getElementsByClassName](sel.substr(1))) :
-			       sel.match(tagNameRE)   ? toArray(context[getElementsByTagName  ](sel)) :
-			                                toArray(context[querySelectorAll      ](sel));
+			return sel.match(regexp.Id)    ?        [context.getElementById        (sel.substr(1))] :
+			       sel.match(regexp.Class) ? toArray(context.getElementsByClassName(sel.substr(1))) :
+			       sel.match(regexp.Tag)   ? toArray(context.getElementsByTagName  (sel)) :
+			                                 toArray(context.querySelectorAll      (sel));
 		},
 		find: function (context, sel) {
 			if (!sel) return context == null ? [] : [context];
@@ -172,11 +146,11 @@ new function () {
 			return this.elems[0];
 		},
 		get : function (index) {
-			return this.elems[index * 1 || 0];
+			return this.elems[Number(index) || 0];
 		},
 		parent : function(step) {
-			if(step === undefined)
-				var step = 1;
+			if(step == null) step = 1;
+
 			var stepCount = function(elem, step) {
 				if(step > 0) {
 					step--;
@@ -186,22 +160,32 @@ new function () {
 			};
 			return stepCount(this, step);
 		},
-		filter: function (sel) {
-			if (sel.match(tagNameRE)) var tag = sel.toUpperCase();
-			if (sel.match(idRE     )) var id  = sel.substr(1).toUpperCase();
+		filter: function (selector) {
+			var property = null;
+			// speed optimization for "tag" & "id" filtering
+			if (selector.match(regexp.Tag)) {
+				selector = selector.toUpperCase();
+				property = 'tagName';
+			} else if (selector.match(regexp.Id )) {
+				selector = selector.substr(1).toUpperCase();
+				property = 'id';
+			}
+
 			return new dom(this.elems.filter(function (elem) {
-				return tag ? elem.tagName.toUpperCase() == tag :
-				       id  ? elem.id     .toUpperCase() == id :
-				  elem.parentNode && toArray(
-				    elem.parentNode.querySelectorAll(sel)
-				  ).indexOf(elem) >= 0;
+				if (property) {
+					return elem[property].toUpperCase() == selector;
+				} else {
+					return elem.parentNode && toArray(
+						elem.parentNode.querySelectorAll(selector)
+					).indexOf(elem) >= 0;
+				}
 			}));
 		},
 		is: function (selector) {
 			return this.filter(selector).length > 0;
 		},
 		html : function (value) {
-			if (value !== undefined) {
+			if (value != null) {
 				this.first.innerHTML = value;
 				return this;
 			} else {
@@ -209,16 +193,11 @@ new function () {
 			}
 		},
 		text : function (value) {
-			if(document.getElementsByTagName("body")[0].innerText != undefined) {
-				if(value === undefined)
-					return this.first.innerText;
-				this.first.innerText = value;
+			var property = document.body.innerText == null ? 'textContent' : 'innerText';
+			if (value == null) {
+				return this.first[property];
 			}
-			else {
-				if(value === undefined)
-					return this.first.textContent;
-				this.first.textContent = value;
-			}
+			this.first[property] = value;
 			return this;
 		},
 		create : function (tagName, index, attr) {
@@ -262,11 +241,11 @@ new function () {
 			var events = setter(arguments);
 			
 			for (var i in events) {
-				var fn = events[i] === false ? prevent : bind(events[i], this);
+				var fn = events[i] === false ? prevent : events[i];
 				
 				this.each(function (elem) {
-					if (elem == doc && i == 'load') elem = win;
-					elem[addEventListener](i, fn, false);
+					if (elem == document && i == 'load') elem = window;
+					elem.addEventListener(i, fn, false);
 				});
 			}
 			
@@ -276,11 +255,11 @@ new function () {
 			var events = setter(arguments);
 			
 			for (var i in events) {
-				var fn = events[i] === false ? prevent : bind(events[i], this);
+				var fn = events[i] === false ? prevent : events[i];
 				
 				this.each(function (elem) {
-					if (elem == doc && i == 'load') elem = win;
-					elem[removeEventListener](i, fn, false);
+					if (elem == document && i == 'load') elem = window;
+					elem.removeEventListener(i, fn, false);
 				});
 			}
 			
@@ -314,11 +293,11 @@ new function () {
 			return new dom(result);
 		},
 		appendTo : function (to) {
-			var fr = doc.createDocumentFragment();
+			var fr = document.createDocumentFragment();
 			this.each(function (elem) {
-				fr[appendChild](elem);
+				fr.appendChild(elem);
 			});
-			dom(to).first[appendChild](fr);
+			dom(to).first.appendChild(fr);
 			return this;
 		},
 		addClass: function (classNames) {
@@ -398,4 +377,4 @@ new function () {
 	});
 
 	atom.extend({ dom: dom });
-};
+}(window, window.document));
