@@ -103,7 +103,7 @@ atom.extend({
 	append: function (target, source) {
 		for (var i = 1, l = arguments.length; i < l; i++){
 			source = arguments[i];
-			if (source) for (var key in source) {
+			if (source) for (var key in source) if (hasOwn.call(source, key)) {
 				target[key] = source[key];
 			}
 		}

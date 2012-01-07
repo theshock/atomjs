@@ -29,16 +29,18 @@ atom.Class.Options = atom.Class({
 			this.options = {};
 		} else if (this.options == this.self.prototype.options) {
 			// it shouldn't be link to static options
-			this.options = atom.clone(this.options);
+			if (this.fastSetOptions) {
+				this.options = atom.append({}, this.options);
+			} else {
+				this.options = atom.clone(this.options);
+			}
 		}
 		var options = this.options;
 
 		for (var a = arguments, i = 0, l = a.length; i < l; i++) {
 			if (typeof a[i] == 'object') {
 				if (this.fastSetOptions) {
-					for (var k in a[i]) if (a[i].hasOwnProperty(k)) {
-						options[k] = a[i][k];
-					}
+					atom.append(options, a[i]);
 				} else {
 					atom.extend(options, a[i]);
 				}

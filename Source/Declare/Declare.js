@@ -18,7 +18,7 @@ provides: declare
 ...
 */
 
-(function(atom){
+var declare = (function(atom){
 
 var
 	declare, methods,
@@ -181,6 +181,6 @@ declare.config.mutator({
 	}
 });
 
-atom.declare = declare;
+return atom.declare = declare;
 
 })(atom);

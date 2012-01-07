@@ -22,8 +22,9 @@ inspiration:
 
 var
 	prototype = 'prototype',
-	toString  = Object[prototype].toString,
-	slice     = [].slice;
+	toString  = Object.prototype.toString,
+	hasOwn    = Object.prototype.hasOwnProperty,
+	slice     = Array .prototype.slice;
 
 var atom = this.atom = function () {
 	if (atom.initialize) return atom.initialize.apply(this, arguments);
