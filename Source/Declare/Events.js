@@ -206,3 +206,24 @@ declare( 'atom.Events',
 		}
 	}
 });
+
+declare( 'atom.Events.Mixin', new function () {
+	var method = function (method, useReturn) {
+		return function () {
+			var result, events = this._events;
+			if (!events) events = this._events = new atom.Events(this);
+
+			result = events.apply( events, arguments );
+			return useReturn ? result : this;
+		}
+	};
+
+	/** @class atom.Events.Mixin */
+	return {
+		isEventAdded: method( 'exists', true ),
+		addEvent    : method( 'add', true ),
+		removeEvent : method( 'remove', true ),
+		fireEvent   : method( 'fire', true ),
+		readyEvent  : method( 'ready', true )
+	};
+});
