@@ -323,68 +323,54 @@ test('With Class', function () {
 });
 
 
-	module('[Atom Plugins] Class Plugins');
+module('[Atom Plugins] Declare Plugins');
 
-	asyncTest('Events', 9, function(){
-		var events = new atom.Events({ foo: 'fooValue' });
+asyncTest('Events', 9, function(){
+	var events = new atom.Events({ foo: 'fooValue' });
 
-		var callback = function (arg) {
-			ok(true, 'Event fired!');
-			equal(arg, 'bar', 'Argument is correct');
-			equal(this.foo, 'fooValue', 'Context is correct');
-		};
+	var callback = function (arg) {
+		ok(true, 'Event fired!');
+		equal(arg, 'bar', 'Argument is correct');
+		equal(this.foo, 'fooValue', 'Context is correct');
+	};
 
-		events.add('foo', callback);
-		events.fire( 'foo', ['bar'] );
+	events.add('foo', callback);
+	events.fire( 'foo', ['bar'] );
 
-		events.remove('foo', callback);
-		events.fire( 'foo', ['qux'] );
+	events.remove('foo', callback);
+	events.fire( 'foo', ['qux'] );
 
-		events.add( 'qwe', function (arg) {
-			ok(true, 'Ready event pre-binded');
-			equal(arg, 'rush', 'Ready event pre-binded argument is correct');
-			equal(this.foo, 'fooValue', 'Ready event pre-binded context is correct');
-		});
-		events.ready( 'qwe', [ 'rush' ]);
-		events.add( 'qwe', function (arg) {
-			ok(true, 'Ready event post-binded');
-			equal(arg, 'rush', 'Ready event post-binded argument is correct');
-			equal(this.foo, 'fooValue', 'Ready event post-binded context is correct');
-		});
-
-
-		setTimeout(function () {
-			// it has 1 sec for onDomReady
-			start();
-		}, 20);
+	events.add( 'qwe', function (arg) {
+		ok(true, 'Ready event pre-binded');
+		equal(arg, 'rush', 'Ready event pre-binded argument is correct');
+		equal(this.foo, 'fooValue', 'Ready event pre-binded context is correct');
+	});
+	events.ready( 'qwe', [ 'rush' ]);
+	events.add( 'qwe', function (arg) {
+		ok(true, 'Ready event post-binded');
+		equal(arg, 'rush', 'Ready event post-binded argument is correct');
+		equal(this.foo, 'fooValue', 'Ready event post-binded context is correct');
 	});
 
-	test('Options', function(){
-		var Foo = atom.Class({
-			Implements: [ atom.Class.Options ]
-		});
 
-		var foo = new Foo();
-		var fooOptions = { a: 15, b: 31, c: { m : 12 } };
-		deepEqual(foo.options, {}, 'Empty options object');
-		foo.setOptions(fooOptions);
-		deepEqual(foo.options, fooOptions, 'Recursive setting options');
-		notEqual (foo.options, fooOptions, 'Options cloned');
-		fooOptions.b = 3;
-		fooOptions.d = 4;
-		foo.setOptions({ b : 3 } , { d : 4 });
-		deepEqual(foo.options, fooOptions, 'Several arguments added');
+	setTimeout(function () {
+		// it has 1 sec for onDomReady
+		start();
+	}, 20);
+});
 
-		var Bar = atom.Class({
-			Implements: [ atom.Class.Options ],
-			options: { k: 15 }
-		});
-		var bar  = new Bar();
-		var bar2 = new Bar();
-		bar.setOptions({ z: 5 });
+test('Options', function(){
+	var options = atom.Options();
 
-		deepEqual( bar.options, { k: 15, z: 5 }, 'default options linked success');
-		deepEqual(bar2.options, { k: 15 },       'options cloned');
-	});
+	var foo = { a: 15, b: 31, c: { m : 12 } };
+	deepEqual(options.values, {}, 'Empty options object');
+	options.set(foo);
+	deepEqual(options.values, foo, 'Recursive setting options');
+	notEqual (options.values, foo, 'Options cloned');
+
+	var another = atom.Options({ k: 15 });
+	another.set({ z: 5 });
+	deepEqual( another.values, { k: 15, z: 5 }, 'default options linked success');
+});
 
 };
