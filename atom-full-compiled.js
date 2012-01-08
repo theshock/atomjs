@@ -911,6 +911,416 @@ atom.extend({
 /*
 ---
 
+name: "Declare"
+
+description: "Contains the Class Function for easily creating, extending, and implementing reusable Classes."
+
+license:
+	- "[GNU Lesser General Public License](http://opensource.org/licenses/lgpl-license.php)"
+	- "[MIT License](http://opensource.org/licenses/mit-license.php)"
+
+requires:
+	- atom
+	- accessors
+
+provides: declare
+
+...
+*/
+
+var declare = (function(atom){
+
+var
+	declare, methods,
+	accessors   = atom.accessors.inherit,
+	factory     = false,
+	prototyping = false,
+	mutators    = [];
+
+declare = function (declareName, params) {
+	if (prototyping) return this;
+
+	if (typeof declareName != 'string') {
+		params = declareName;
+		declareName   = null;
+	}
+
+	if (!params      ) params = {};
+	if (!params.proto) params = { proto: params };
+	if (!params.name ) params.name = declareName;
+	if (!params.proto.initialize) {
+		params.proto.initialize = function () {
+			if (!params.parent) return;
+			return params.parent.prototype.initialize.apply(this, arguments);
+		};
+	}
+
+	// we need this for shorter line in chrome debugger;
+	function make (a) {
+		return methods.construct.call(this, Constructor, a);
+	}
+
+	// line break for more user-friendly debug string
+	function Constructor()
+	{ return make.call(this, arguments) }
+
+	for (var i = 0, l = mutators.length; i < l; i++) {
+		mutators[i].fn( Constructor, params[mutators[i].name] );
+	}
+
+	Constructor.prototype.constructor = Constructor;
+
+	if (declareName) methods.define( declareName, Constructor );
+
+	return Constructor;
+};
+
+declare.prototype.bindMethods = function (methods) {
+	var i = methods.length, name;
+	while (i--) {
+		name = methods[i];
+		this[name] = this[name].bind(this);
+	}
+	return this;
+};
+
+declare.invoke = function () {
+	return this.factory( arguments );
+};
+
+declare.factory = function (args) {
+	factory = true;
+	return new this(args);
+};
+
+methods = {
+	define: function (path, value) {
+		var key, part, target = atom.global;
+
+		path   = path.split('.');
+		key    = path.pop();
+
+		while (path.length) {
+			part = path.shift();
+			if (!target[part]) {
+				target = target[part] = {};
+			} else {
+				target = target[part];
+			}
+		}
+
+		target[key] = value;
+	},
+	mixin: function (target, items) {
+		if (!Array.isArray(items)) items = [ items ];
+		for (var i = 0, l = items.length; i < l; i++) {
+			methods.addTo( target.prototype, methods.proto(items) );
+		}
+		return this;
+	},
+	addTo: function (target, source) {
+		for (var i in source) if (i != 'constructor') {
+			if (!accessors(source, target, i)) {
+				if (source[i] != declare.config) {
+					target[i] = source[i];
+				}
+			}
+		}
+		return target;
+	},
+	proto: function (Fn) {
+		prototyping = true;
+		var result = new Fn;
+		prototyping = false;
+		return result;
+	},
+	fetchArgs: function (args) {
+		args = slice.call(factory ? args[0] : args);
+		factory = false;
+		return args;
+	},
+	construct: function (Constructor, args) {
+		args = methods.fetchArgs(args);
+
+		if (prototyping) return this;
+
+		if (this instanceof Constructor) {
+			return this.initialize.apply(this, args);
+		} else {
+			return Constructor.invoke.apply(Constructor, args);
+		}
+	}
+};
+
+declare.config = {
+	methods: methods,
+	mutator: atom.overloadSetter(function (name, fn) {
+		mutators.push({ name: name, fn: fn });
+		return this;
+	})
+};
+
+declare.config.mutator({
+	parent: function (Constructor, parent) {
+		parent = parent || declare;
+		methods.addTo( Constructor, parent );
+		Constructor.prototype = methods.proto( parent );
+	},
+	mixin: function (Constructor, mixin) {
+		if (mixin) mixin( Constructor, mixin );
+	},
+	name: function (Constructor, name) {
+		if (!name) return;
+		Constructor.NAME = name;
+	},
+	own: function (Constuctor, properties) {
+		methods.addTo(Constuctor, properties);
+	},
+	proto: function (Constuctor, properties) {
+		methods.addTo(Constuctor.prototype, properties);
+	}
+});
+
+return atom.declare = declare;
+
+})(atom);
+
+/*
+---
+
+name: "Events"
+
+description: ""
+
+license:
+	- "[GNU Lesser General Public License](http://opensource.org/licenses/lgpl-license.php)"
+	- "[MIT License](http://opensource.org/licenses/mit-license.php)"
+
+requires:
+	- atom
+	- declare
+
+inspiration:
+  - "[MooTools](http://mootools.net)"
+
+provides: Events
+
+...
+*/
+
+declare( 'atom.Events',
+/** @class atom.Events */
+{
+
+	/** @constructs */
+	initialize: function (context) {
+		this.context   = context || this;
+		this.locked    = [];
+		this.events    = {};
+		this.actions   = {};
+		this.readyList = {};
+	},
+
+	/**
+	 * @param {String} name
+	 * @return Boolean
+	 */
+	exists: function (name) {
+		var array = this.events[this.removeOn( name )];
+		return array && !!array.length;
+	},
+
+	/**
+	 * @param {String} name
+	 * @param {Function} callback
+	 * @return Boolean
+	 */
+	add: function (name, callback) {
+		this.run( 'addOne', name, callback );
+		return this;
+	},
+
+	/**
+	 * @param {String} name
+	 * @param {Function} callback
+	 * @return Boolean
+	 */
+	remove: function (name, callback) {
+		if (typeof name == 'string' && !callback) {
+			this.removeAll( name );
+		} else {
+			this.run( 'removeOne', name, callback );
+		}
+		return this;
+	},
+
+	/**
+	 * @param {String} name
+	 * @param {Array} args
+	 * @return atom.Events
+	 */
+	fire: function (name, args) {
+		args = args ? slice.call( args ) : [];
+		name = this.removeOn( name );
+
+		this.locked.push(name);
+		var i = 0, l, events = this.events[name];
+		if (events) for (l = events.length; i < l; i++) {
+			events[i].apply( this.context, args );
+		}
+		this.unlock( name );
+		return this;
+	},
+
+	/**
+	 * @param {String} name
+	 * @param {Array} args
+	 * @return atom.Events
+	 */
+	ready: function (name, args) {
+		name = this.removeOn( name );
+		this.locked.push(name);
+		if (name in this.readyList) {
+			throw new Error( 'Event «'+name+'» is ready' );
+		}
+		this.readyList[name] = args;
+		this.fire(name, args);
+		this.removeAll(name);
+		this.unlock( name );
+		return this;
+	},
+
+	// only private are below
+
+	/** @private */
+	context: null,
+	/** @private */
+	events: {},
+	/** @private */
+	readyList: {},
+	/** @private */
+	locked: [],
+	/** @private */
+	actions: {},
+
+	/** @private */
+	removeOn: function (name) {
+		return (name || '').replace(/^on([A-Z])/, function(full, first){
+			return first.toLowerCase();
+		});
+	},
+	/** @private */
+	removeAll: function (name) {
+		var events = this.events[name];
+		if (event) for (var i = events.length; i--;) {
+			this.removeOne( name, events[i] );
+		}
+	},
+	/** @private */
+	unlock: function (name) {
+		var action,
+			all    = this.actions[name],
+			index  = this.locked.indexOf( name );
+
+		this.locked.splice(index, 1);
+
+		if (all) for (index = 0; index < all.length; index++) {
+			action = all[index];
+
+			this[action.method]( name, action.callback );
+		}
+	},
+	/** @private */
+	run: function (method, name, callback) {
+		var i = 0, l = 0;
+
+		if (Array.isArray(name)) {
+			for (i = 0, l = name.length; i < l; i++) {
+				this[method](name[i], callback);
+			}
+		} else if (typeof name == 'object') {
+			for (i in name) {
+				this[method](name, name[i]);
+			}
+		} else if (typeof name == 'string') {
+			this[method](name, callback);
+		} else {
+			throw new TypeError( 'Wrong arguments in Events.' + method );
+		}
+	},
+	/** @private */
+	register: function (name, method, callback) {
+		var actions = this.actions;
+		if (!actions[name]) {
+			actions[name] = [];
+		}
+		actions[name].push({ method: method, callback: callback })
+	},
+	/** @private */
+	addOne: function (name, callback) {
+		var events, ready, context;
+
+		name = this.removeOn( name );
+
+		if (this.locked.indexOf(name) == -1) {
+			ready = this.readyList[name];
+			if (ready) {
+				context = this.context;
+				setTimeout(function () {
+					callback.apply(context, ready);
+				}, 0);
+				return this;
+			} else {
+				events = this.events;
+				if (!events[name]) {
+					events[name] = [callback];
+				} else {
+					events[name].push(callback);
+				}
+			}
+		} else {
+			this.register(name, 'addOne', callback);
+		}
+	},
+	/** @private */
+	removeOne: function (name, callback) {
+		name = this.removeOn( name );
+
+		if (this.locked.indexOf(name) == -1) {
+			var events = this.events[name], i = events.length;
+			while (i--) if (events[i] == callback) {
+				events.splice(i, 1);
+			}
+		} else {
+			this.register(name, 'removeOne', callback);
+		}
+	}
+});
+
+declare( 'atom.Events.Mixin', new function () {
+	var method = function (method, useReturn) {
+		return function () {
+			var result, events = this.events;
+			if (!events) events = this.events = new atom.Events(this);
+
+			result = events.apply( events, arguments );
+			return useReturn ? result : this;
+		}
+	};
+
+	/** @class atom.Events.Mixin */
+	return {
+		isEventAdded: method( 'exists', true ),
+		addEvent    : method( 'add', true ),
+		removeEvent : method( 'remove', true ),
+		fireEvent   : method( 'fire', true ),
+		readyEvent  : method( 'ready', true )
+	};
+});
+
+/*
+---
+
 name: "Frame"
 
 description: "Provides cross-browser interface for requestAnimationFrame"
@@ -983,6 +1393,143 @@ provides: frame
 	});
 
 }());
+
+/*
+---
+
+name: "Settings"
+
+description: ""
+
+license:
+	- "[GNU Lesser General Public License](http://opensource.org/licenses/lgpl-license.php)"
+	- "[MIT License](http://opensource.org/licenses/mit-license.php)"
+
+requires:
+	- declare
+
+provides: Settings
+
+...
+*/
+
+
+declare( 'atom.Settings',
+/** @class atom.Settings */
+{
+	/** @private */
+	fast: false,
+
+	/** @private */
+	values: {},
+
+	/**
+	 * @constructs
+	 * @param {Object} [initialValues]
+	 * @param {Boolean} [fast=false]
+	 */
+	initialize: function (initialValues, fast) {
+		if (!this.isValidOptions(initialValues)) {
+			fast = !!initialValues;
+			initialValues = null;
+		}
+
+		this.values = initialValues || {};
+		this.fast   = !!fast;
+	},
+
+	/**
+	 * @param {atom.Events} events
+	 * @return atom.Options
+	 */
+	addEvents: function (events) {
+		this.events = events;
+		return this.invokeEvents();
+	},
+
+	/**
+	 * @param {String} name
+	 */
+	get: function (name) {
+		return this.values[name];
+	},
+
+	/**
+	 * @param {Object} options
+	 * @return atom.Options
+	 */
+	set: function (options) {
+		var method = this.fast ? 'append' : 'extend';
+		if (this.isValidOptions(options)) {
+			atom[method](this.values, options);
+		}
+		this.invokeEvents();
+		return this;
+	},
+
+	/**
+	 * @param {String} name
+	 * @return atom.Options
+	 */
+	unset: function (name) {
+		delete this.values[name];
+		return this;
+	},
+
+	/** @private */
+	isValidOptions: function (options) {
+		return options && typeof options == 'object';
+	},
+
+	/** @private */
+	invokeEvents: function () {
+		if (!this.events) return this;
+
+		var values = this.values, name, option;
+		for (name in values) {
+			option = values[name];
+			if (this.isInvokable(name, option)) {
+				this.events.add(name, option);
+				this.unset(name);
+			}
+		}
+		return this;
+	},
+
+	/** @private */
+	isInvokable: function (name, option) {
+		return name &&
+			option &&
+			atom.typeOf(option) == 'function' &&
+			(/^on[A-Z]/).test(name);
+	}
+});
+
+declare( 'atom.Settings.Mixin',
+/** @class atom.Settings.Mixin */
+{
+	/**
+	 * @private
+	 * @property atom.Settings
+	 */
+	settings: null,
+	options : {},
+
+	setOptions: function (options) {
+		if (!this.settings) {
+			this.settings = new atom.Settings(
+				atom.clone(this.options || {})
+			);
+			this.options = this.settings.values;
+		}
+
+		for (var i = 0; i < arguments.length; i++) {
+			this.settings.set(arguments[i]);
+		}
+
+		return this;
+	}
+});
 
 /*
 ---
@@ -1434,6 +1981,45 @@ atom.extend(Class, {
 /*
 ---
 
+name: "Class.Mutators.Generators"
+
+description: "Provides Generators mutator"
+
+license:
+	- "[GNU Lesser General Public License](http://opensource.org/licenses/lgpl-license.php)"
+	- "[MIT License](http://opensource.org/licenses/mit-license.php)"
+
+authors:
+	- "Shock <shocksilien@gmail.com>"
+
+requires:
+	- atom
+	- accessors
+	- Class
+
+provides: Class.Mutators.Generators
+
+...
+*/
+
+new function () {
+
+var getter = function (key, fn) {
+	return function() {
+		var pr = '_' + key, obj = this;
+		return pr in obj ? obj[pr] : (obj[pr] = fn.call(obj));
+	};
+};
+
+atom.Class.Mutators.Generators = function(properties) {
+	for (var i in properties) atom.accessors.define(this.prototype, i, { get: getter(i, properties[i]) });
+};
+
+};
+
+/*
+---
+
 name: "Class.Options"
 
 description: ""
@@ -1486,553 +2072,6 @@ atom.Class.Options = atom.Class({
 				delete options[option];
 			}
 		}
-		return this;
-	}
-});
-
-/*
----
-
-name: "Declare"
-
-description: "Contains the Class Function for easily creating, extending, and implementing reusable Classes."
-
-license:
-	- "[GNU Lesser General Public License](http://opensource.org/licenses/lgpl-license.php)"
-	- "[MIT License](http://opensource.org/licenses/mit-license.php)"
-
-requires:
-	- atom
-	- accessors
-
-provides: declare
-
-...
-*/
-
-var declare = (function(atom){
-
-var
-	declare, methods,
-	accessors   = atom.accessors.inherit,
-	factory     = false,
-	prototyping = false,
-	mutators    = [];
-
-declare = function (declareName, params) {
-	if (prototyping) return this;
-
-	if (typeof declareName != 'string') {
-		params = declareName;
-		declareName   = null;
-	}
-
-	if (!params      ) params = {};
-	if (!params.proto) params = { proto: params };
-	if (!params.name ) params.name = declareName;
-	if (!params.proto.initialize) {
-		params.proto.initialize = function () {
-			if (!params.parent) return;
-			return params.parent.prototype.initialize.apply(this, arguments);
-		};
-	}
-
-	// we need this for shorter line in chrome debugger;
-	function make (a) {
-		return methods.construct.call(this, Constructor, a);
-	}
-
-	// line break for more user-friendly debug string
-	function Constructor()
-	{ return make.call(this, arguments) }
-
-	for (var i = 0, l = mutators.length; i < l; i++) {
-		mutators[i].fn( Constructor, params[mutators[i].name] );
-	}
-
-	Constructor.prototype.constructor = Constructor;
-
-	if (declareName) methods.define( declareName, Constructor );
-
-	return Constructor;
-};
-
-declare.prototype.bindMethods = function (methods) {
-	var i = methods.length, name;
-	while (i--) {
-		name = methods[i];
-		this[name] = this[name].bind(this);
-	}
-	return this;
-};
-
-declare.invoke = function () {
-	return this.factory( arguments );
-};
-
-declare.factory = function (args) {
-	factory = true;
-	return new this(args);
-};
-
-methods = {
-	define: function (path, value) {
-		var key, part, target = atom.global;
-
-		path   = path.split('.');
-		key    = path.pop();
-
-		while (path.length) {
-			part = path.shift();
-			if (!target[part]) {
-				target = target[part] = {};
-			} else {
-				target = target[part];
-			}
-		}
-
-		target[key] = value;
-	},
-	mixin: function (target, items) {
-		if (!Array.isArray(items)) items = [ items ];
-		for (var i = 0, l = items.length; i < l; i++) {
-			methods.addTo( target.prototype, methods.proto(items) );
-		}
-		return this;
-	},
-	addTo: function (target, source) {
-		for (var i in source) if (i != 'constructor') {
-			if (!accessors(source, target, i)) {
-				if (source[i] != declare.config) {
-					target[i] = source[i];
-				}
-			}
-		}
-		return target;
-	},
-	proto: function (Fn) {
-		prototyping = true;
-		var result = new Fn;
-		prototyping = false;
-		return result;
-	},
-	fetchArgs: function (args) {
-		args = slice.call(factory ? args[0] : args);
-		factory = false;
-		return args;
-	},
-	construct: function (Constructor, args) {
-		args = methods.fetchArgs(args);
-
-		if (prototyping) return this;
-
-		if (this instanceof Constructor) {
-			return this.initialize.apply(this, args);
-		} else {
-			return Constructor.invoke.apply(Constructor, args);
-		}
-	}
-};
-
-declare.config = {
-	methods: methods,
-	mutator: atom.overloadSetter(function (name, fn) {
-		mutators.push({ name: name, fn: fn });
-		return this;
-	})
-};
-
-declare.config.mutator({
-	parent: function (Constructor, parent) {
-		parent = parent || declare;
-		methods.addTo( Constructor, parent );
-		Constructor.prototype = methods.proto( parent );
-	},
-	mixin: function (Constructor, mixin) {
-		if (mixin) mixin( Constructor, mixin );
-	},
-	name: function (Constructor, name) {
-		if (!name) return;
-		Constructor.NAME = name;
-	},
-	own: function (Constuctor, properties) {
-		methods.addTo(Constuctor, properties);
-	},
-	proto: function (Constuctor, properties) {
-		methods.addTo(Constuctor.prototype, properties);
-	}
-});
-
-return atom.declare = declare;
-
-})(atom);
-
-/*
----
-
-name: "Events"
-
-description: ""
-
-license:
-	- "[GNU Lesser General Public License](http://opensource.org/licenses/lgpl-license.php)"
-	- "[MIT License](http://opensource.org/licenses/mit-license.php)"
-
-requires:
-	- atom
-	- declare
-
-inspiration:
-  - "[MooTools](http://mootools.net)"
-
-provides: Events
-
-...
-*/
-
-declare( 'atom.Events',
-/** @class atom.Events */
-{
-
-	/** @constructs */
-	initialize: function (context) {
-		this.context   = context || this;
-		this.locked    = [];
-		this.events    = {};
-		this.actions   = {};
-		this.readyList = {};
-	},
-
-	/**
-	 * @param {String} name
-	 * @return Boolean
-	 */
-	exists: function (name) {
-		var array = this.events[this.removeOn( name )];
-		return array && !!array.length;
-	},
-
-	/**
-	 * @param {String} name
-	 * @param {Function} callback
-	 * @return Boolean
-	 */
-	add: function (name, callback) {
-		this.run( 'addOne', name, callback );
-		return this;
-	},
-
-	/**
-	 * @param {String} name
-	 * @param {Function} callback
-	 * @return Boolean
-	 */
-	remove: function (name, callback) {
-		if (typeof name == 'string' && !callback) {
-			this.removeAll( name );
-		} else {
-			this.run( 'removeOne', name, callback );
-		}
-		return this;
-	},
-
-	/**
-	 * @param {String} name
-	 * @param {Array} args
-	 * @return atom.Events
-	 */
-	fire: function (name, args) {
-		args = args ? slice.call( args ) : [];
-		name = this.removeOn( name );
-
-		this.locked.push(name);
-		var i = 0, l, events = this.events[name];
-		if (events) for (l = events.length; i < l; i++) {
-			events[i].apply( this.context, args );
-		}
-		this.unlock( name );
-		return this;
-	},
-
-	/**
-	 * @param {String} name
-	 * @param {Array} args
-	 * @return atom.Events
-	 */
-	ready: function (name, args) {
-		name = this.removeOn( name );
-		this.locked.push(name);
-		if (name in this.readyList) {
-			throw new Error( 'Event «'+name+'» is ready' );
-		}
-		this.readyList[name] = args;
-		this.fire(name, args);
-		this.removeAll(name);
-		this.unlock( name );
-		return this;
-	},
-
-	// only private are below
-
-	/** @private */
-	context: null,
-	/** @private */
-	events: {},
-	/** @private */
-	readyList: {},
-	/** @private */
-	locked: [],
-	/** @private */
-	actions: {},
-
-	/** @private */
-	removeOn: function (name) {
-		return (name || '').replace(/^on([A-Z])/, function(full, first){
-			return first.toLowerCase();
-		});
-	},
-	/** @private */
-	removeAll: function (name) {
-		var events = this.events[name];
-		if (event) for (var i = events.length; i--;) {
-			this.removeOne( name, events[i] );
-		}
-	},
-	/** @private */
-	unlock: function (name) {
-		var action,
-			all    = this.actions[name],
-			index  = this.locked.indexOf( name );
-
-		this.locked.splice(index, 1);
-
-		if (all) for (index = 0; index < all.length; index++) {
-			action = all[index];
-
-			this[action.method]( name, action.callback );
-		}
-	},
-	/** @private */
-	run: function (method, name, callback) {
-		var i = 0, l = 0;
-
-		if (Array.isArray(name)) {
-			for (i = 0, l = name.length; i < l; i++) {
-				this[method](name[i], callback);
-			}
-		} else if (typeof name == 'object') {
-			for (i in name) {
-				this[method](name, name[i]);
-			}
-		} else if (typeof name == 'string') {
-			this[method](name, callback);
-		} else {
-			throw new TypeError( 'Wrong arguments in Events.' + method );
-		}
-	},
-	/** @private */
-	register: function (name, method, callback) {
-		var actions = this.actions;
-		if (!actions[name]) {
-			actions[name] = [];
-		}
-		actions[name].push({ method: method, callback: callback })
-	},
-	/** @private */
-	addOne: function (name, callback) {
-		var events, ready, context;
-
-		name = this.removeOn( name );
-
-		if (this.locked.indexOf(name) == -1) {
-			ready = this.readyList[name];
-			if (ready) {
-				context = this.context;
-				setTimeout(function () {
-					callback.apply(context, ready);
-				}, 0);
-				return this;
-			} else {
-				events = this.events;
-				if (!events[name]) {
-					events[name] = [callback];
-				} else {
-					events[name].push(callback);
-				}
-			}
-		} else {
-			this.register(name, 'addOne', callback);
-		}
-	},
-	/** @private */
-	removeOne: function (name, callback) {
-		name = this.removeOn( name );
-
-		if (this.locked.indexOf(name) == -1) {
-			var events = this.events[name], i = events.length;
-			while (i--) if (events[i] == callback) {
-				events.splice(i, 1);
-			}
-		} else {
-			this.register(name, 'removeOne', callback);
-		}
-	}
-});
-
-declare( 'atom.Events.Mixin', new function () {
-	var method = function (method, useReturn) {
-		return function () {
-			var result, events = this.events;
-			if (!events) events = this.events = new atom.Events(this);
-
-			result = events.apply( events, arguments );
-			return useReturn ? result : this;
-		}
-	};
-
-	/** @class atom.Events.Mixin */
-	return {
-		isEventAdded: method( 'exists', true ),
-		addEvent    : method( 'add', true ),
-		removeEvent : method( 'remove', true ),
-		fireEvent   : method( 'fire', true ),
-		readyEvent  : method( 'ready', true )
-	};
-});
-
-/*
----
-
-name: "Settings"
-
-description: ""
-
-license:
-	- "[GNU Lesser General Public License](http://opensource.org/licenses/lgpl-license.php)"
-	- "[MIT License](http://opensource.org/licenses/mit-license.php)"
-
-requires:
-	- declare
-
-provides: Settings
-
-...
-*/
-
-
-declare( 'atom.Settings',
-/** @class atom.Settings */
-{
-	/** @private */
-	fast: false,
-
-	/** @private */
-	values: {},
-
-	/**
-	 * @constructs
-	 * @param {Object} [initialValues]
-	 * @param {Boolean} [fast=false]
-	 */
-	initialize: function (initialValues, fast) {
-		if (!this.isValidOptions(initialValues)) {
-			fast = !!initialValues;
-			initialValues = null;
-		}
-
-		this.values = initialValues || {};
-		this.fast   = !!fast;
-	},
-
-	/**
-	 * @param {atom.Events} events
-	 * @return atom.Options
-	 */
-	addEvents: function (events) {
-		this.events = events;
-		return this.invokeEvents();
-	},
-
-	/**
-	 * @param {String} name
-	 */
-	get: function (name) {
-		return this.values[name];
-	},
-
-	/**
-	 * @param {Object} options
-	 * @return atom.Options
-	 */
-	set: function (options) {
-		var method = this.fast ? 'append' : 'extend';
-		if (this.isValidOptions(options)) {
-			atom[method](this.values, options);
-		}
-		this.invokeEvents();
-		return this;
-	},
-
-	/**
-	 * @param {String} name
-	 * @return atom.Options
-	 */
-	unset: function (name) {
-		delete this.values[name];
-		return this;
-	},
-
-	/** @private */
-	isValidOptions: function (options) {
-		return options && typeof options == 'object';
-	},
-
-	/** @private */
-	invokeEvents: function () {
-		if (!this.events) return this;
-
-		var values = this.values, name, option;
-		for (name in values) {
-			option = values[name];
-			if (this.isInvokable(name, option)) {
-				this.events.add(name, option);
-				this.unset(name);
-			}
-		}
-		return this;
-	},
-
-	/** @private */
-	isInvokable: function (name, option) {
-		return name &&
-			option &&
-			atom.typeOf(option) == 'function' &&
-			(/^on[A-Z]/).test(name);
-	}
-});
-
-declare( 'atom.Settings.Mixin',
-/** @class atom.Settings.Mixin */
-{
-	/**
-	 * @private
-	 * @property atom.Settings
-	 */
-	settings: null,
-	options : {},
-
-	setOptions: function (options) {
-		if (!this.settings) {
-			this.settings = new atom.Settings(
-				atom.clone(this.options || {})
-			);
-			this.options = this.settings.values;
-		}
-
-		for (var i = 0; i < arguments.length; i++) {
-			this.settings.set(arguments[i]);
-		}
-
 		return this;
 	}
 });
@@ -2375,28 +2414,22 @@ provides: Prototypes.Function
 
 new function () {
 
-	var getContext = function (bind, self) {
-		return (bind === false || bind === Function.context) ? self : bind;
+	Function.lambda = function (value) {
+		var returnThis = (arguments.length == 0);
+		return function () { return returnThis ? this : value; };
 	};
 
-	atom.extend(Function, {
-		lambda : function (value) {
-			var returnThis = (arguments.length == 0);
-			return function () { return returnThis ? this : value; };
-		},
-		copier: function (value) {
-			return function () { return atom.clone(value); }
-		},
-		log: function (msg) {
-			var args = arguments.length ? arguments : null;
-			return function () {
-				atom.log.apply(atom, args || [this]);
-			};
-		},
-		// for pointing at "this" context in "context" method
-		context: {}
-	});
+	var timeout = function (periodical) {
+		var set = periodical ? setInterval : setTimeout;
 
+		return function (time, bind, args) {
+			var fn = this;
+			return set(function () {
+				fn.apply( bind, args || [] );
+			}, time);
+		};
+	};
+	
 	atom.implement(Function, {
 		after: function (fnName) {
 			var onReady = this, after = {}, ready = {};
@@ -2404,33 +2437,18 @@ new function () {
 				for (var i in after) if (!(i in ready)) return;
 				onReady(ready);
 			};
-			for (var i = 0, l = arguments.length; i < l; i++) {
-				(function (key) {
-					after[key] = function () {
-						ready[key] = arguments;
-						checkReady();
-					};
-				})(arguments[i]);
-			}
+			slice.call(arguments).forEach(function (key) {
+				after[key] = function () {
+					ready[key] = arguments;
+					checkReady();
+				};
+			});
 			return after;
-		}
+		},
+		delay:      timeout(false),
+		periodical: timeout(true )
 	});
 
-	var timeout = function (name) {
-		var set = {
-			Timeout : setTimeout,
-			Interval: setInterval
-		}[name];
-
-		return function (time, bind, args) {
-			return set.call(atom.global, this.bind.apply(this, [bind].append(args)), time);
-		};
-	};
-	
-	atom.implement(Function, {
-		delay:      timeout('Timeout'),
-		periodical: timeout('Interval')
-	});
 }(); 
 
 
@@ -2647,44 +2665,5 @@ atom.implement(String, {
 });
 
 }();
-
-/*
----
-
-name: "Class.Mutators.Generators"
-
-description: "Provides Generators mutator"
-
-license:
-	- "[GNU Lesser General Public License](http://opensource.org/licenses/lgpl-license.php)"
-	- "[MIT License](http://opensource.org/licenses/mit-license.php)"
-
-authors:
-	- "Shock <shocksilien@gmail.com>"
-
-requires:
-	- atom
-	- accessors
-	- Class
-
-provides: Class.Mutators.Generators
-
-...
-*/
-
-new function () {
-
-var getter = function (key, fn) {
-	return function() {
-		var pr = '_' + key, obj = this;
-		return pr in obj ? obj[pr] : (obj[pr] = fn.call(obj));
-	};
-};
-
-atom.Class.Mutators.Generators = function(properties) {
-	for (var i in properties) atom.accessors.define(this.prototype, i, { get: getter(i, properties[i]) });
-};
-
-};
 
 }.call(typeof exports == 'undefined' ? window : exports, Object, Array)); 
