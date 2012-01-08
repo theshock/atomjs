@@ -1,7 +1,7 @@
 /*
 ---
 
-name: "Options"
+name: "Settings"
 
 description: ""
 
@@ -12,14 +12,14 @@ license:
 requires:
 	- declare
 
-provides: Options
+provides: Settings
 
 ...
 */
 
 
-declare( 'atom.Options',
-/** @class atom.Options */
+declare( 'atom.Settings',
+/** @class atom.Settings */
 {
 	/** @private */
 	fast: false,
@@ -109,26 +109,26 @@ declare( 'atom.Options',
 	}
 });
 
-declare( 'atom.Options.Mixin',
-/** @class atom.Options.Mixin */
+declare( 'atom.Settings.Mixin',
+/** @class atom.Settings.Mixin */
 {
 	/**
 	 * @private
-	 * @property atom.Options
+	 * @property atom.Settings
 	 */
-	_options: null,
-	options: {},
+	settings: null,
+	options : {},
 
 	setOptions: function (options) {
-		if (!this._options) {
-			this._options = new atom.Options(
+		if (!this.settings) {
+			this.settings = new atom.Settings(
 				atom.clone(this.options || {})
 			);
-			this.options = this._options.values;
+			this.options = this.settings.values;
 		}
 
 		for (var i = 0; i < arguments.length; i++) {
-			this._options.set(arguments[i]);
+			this.settings.set(arguments[i]);
 		}
 
 		return this;

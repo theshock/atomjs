@@ -213,8 +213,8 @@ declare( 'atom.Events',
 declare( 'atom.Events.Mixin', new function () {
 	var method = function (method, useReturn) {
 		return function () {
-			var result, events = this._events;
-			if (!events) events = this._events = new atom.Events(this);
+			var result, events = this.events;
+			if (!events) events = this.events = new atom.Events(this);
 
 			result = events.apply( events, arguments );
 			return useReturn ? result : this;

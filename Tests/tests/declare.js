@@ -322,7 +322,6 @@ test('With Class', function () {
 
 });
 
-
 module('[Atom Plugins] Declare Plugins');
 
 asyncTest('Events', 9, function(){
@@ -354,21 +353,20 @@ asyncTest('Events', 9, function(){
 
 
 	setTimeout(function () {
-		// it has 1 sec for onDomReady
 		start();
 	}, 20);
 });
 
-test('Options', function(){
-	var options = atom.Options();
+test('Settings', function(){
+	var settings = atom.Settings();
 
 	var foo = { a: 15, b: 31, c: { m : 12 } };
-	deepEqual(options.values, {}, 'Empty options object');
-	options.set(foo);
-	deepEqual(options.values, foo, 'Recursive setting options');
-	notEqual (options.values, foo, 'Options cloned');
+	deepEqual(settings.values, {}, 'Empty options object');
+	settings.set(foo);
+	deepEqual(settings.values, foo, 'Recursive setting options');
+	notEqual (settings.values, foo, 'Options cloned');
 
-	var another = atom.Options({ k: 15 });
+	var another = atom.Settings({ k: 15 });
 	another.set({ z: 5 });
 	deepEqual( another.values, { k: 15, z: 5 }, 'default options linked success');
 });
