@@ -20,28 +20,22 @@ provides: Prototypes.Function
 
 new function () {
 
-	var getContext = function (bind, self) {
-		return (bind === false || bind === Function.context) ? self : bind;
+	Function.lambda = function (value) {
+		var returnThis = (arguments.length == 0);
+		return function () { return returnThis ? this : value; };
 	};
 
-	atom.extend(Function, {
-		lambda : function (value) {
-			var returnThis = (arguments.length == 0);
-			return function () { return returnThis ? this : value; };
-		},
-		copier: function (value) {
-			return function () { return atom.clone(value); }
-		},
-		log: function (msg) {
-			var args = arguments.length ? arguments : null;
-			return function () {
-				atom.log.apply(atom, args || [this]);
-			};
-		},
-		// for pointing at "this" context in "context" method
-		context: {}
-	});
+	var timeout = function (periodical) {
+		var set = periodical ? setInterval : setTimeout;
 
+		return function (time, bind, args) {
+			var fn = this;
+			return set(function () {
+				fn.apply( bind, args || [] );
+			}, time);
+		};
+	};
+	
 	atom.implement(Function, {
 		after: function (fnName) {
 			var onReady = this, after = {}, ready = {};
@@ -49,31 +43,16 @@ new function () {
 				for (var i in after) if (!(i in ready)) return;
 				onReady(ready);
 			};
-			for (var i = 0, l = arguments.length; i < l; i++) {
-				(function (key) {
-					after[key] = function () {
-						ready[key] = arguments;
-						checkReady();
-					};
-				})(arguments[i]);
-			}
+			slice.call(arguments).forEach(function (key) {
+				after[key] = function () {
+					ready[key] = arguments;
+					checkReady();
+				};
+			});
 			return after;
-		}
+		},
+		delay:      timeout(false),
+		periodical: timeout(true )
 	});
 
-	var timeout = function (name) {
-		var set = {
-			Timeout : setTimeout,
-			Interval: setInterval
-		}[name];
-
-		return function (time, bind, args) {
-			return set.call(atom.global, this.bind.apply(this, [bind].append(args)), time);
-		};
-	};
-	
-	atom.implement(Function, {
-		delay:      timeout('Timeout'),
-		periodical: timeout('Interval')
-	});
 }(); 
