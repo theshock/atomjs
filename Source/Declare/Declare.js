@@ -65,6 +65,24 @@ declare = function (declareName, params) {
 	return Constructor;
 };
 
+declare.prototype.bindMethods = function (methods) {
+	var i = methods.length, name;
+	while (i--) {
+		name = methods[i];
+		this[name] = this[name].bind(this);
+	}
+	return this;
+};
+
+declare.invoke = function () {
+	return this.factory( arguments );
+};
+
+declare.factory = function (args) {
+	factory = true;
+	return new this(args);
+};
+
 methods = {
 	define: function (path, value) {
 		var key, part, target = atom.global;
@@ -124,15 +142,6 @@ methods = {
 	}
 };
 
-declare.invoke = function () {
-	return this.factory( arguments );
-};
-
-declare.factory = function (args) {
-	factory = true;
-	return new this(args);
-};
-
 declare.config = {
 	methods: methods,
 	mutator: atom.overloadSetter(function (name, fn) {
@@ -159,25 +168,6 @@ declare.config.mutator({
 	},
 	proto: function (Constuctor, properties) {
 		methods.addTo(Constuctor.prototype, properties);
-	},
-	bind: function (Constructor, methods) {
-		if (!methods) return;
-		if (typeof methods == 'string') methods = [ methods ];
-
-		var
-			proto = Constructor.prototype,
-			original = proto.initialize;
-
-		proto.initialize = function () {
-			var i = methods.length, method;
-			while (i--) {
-				method = methods[i];
-				if (method != null && typeof proto[method] == 'function') {
-					proto[method] = proto[method].bind(this);
-				}
-			}
-			return original.apply( this, arguments );
-		};
 	}
 });
 

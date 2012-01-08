@@ -247,15 +247,15 @@ test('invoke', function () {
 test('bind', function () {
 
 	var Foo = atom.declare({
-		bind: 'foo',
-		proto: {
-			value: 'proto',
-			foo: function () {
-				return this.value;
-			},
-			bar: function () {
-				return this.value;
-			}
+		value: 'proto',
+		initialize: function () {
+			this.bindMethods([ 'foo' ]);
+		},
+		foo: function () {
+			return this.value;
+		},
+		bar: function () {
+			return this.value;
 		}
 	});
 
