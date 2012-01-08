@@ -1418,7 +1418,7 @@ declare( 'atom.Settings',
 /** @class atom.Settings */
 {
 	/** @private */
-	fast: false,
+	recursive: false,
 
 	/** @private */
 	values: {},
@@ -1426,16 +1426,16 @@ declare( 'atom.Settings',
 	/**
 	 * @constructs
 	 * @param {Object} [initialValues]
-	 * @param {Boolean} [fast=false]
+	 * @param {Boolean} [recursive=false]
 	 */
-	initialize: function (initialValues, fast) {
+	initialize: function (initialValues, recursive) {
 		if (!this.isValidOptions(initialValues)) {
-			fast = !!initialValues;
+			recursive = !!initialValues;
 			initialValues = null;
 		}
 
-		this.values = initialValues || {};
-		this.fast   = !!fast;
+		this.values    = initialValues || {};
+		this.recursive = !!recursive;
 	},
 
 	/**
@@ -1459,7 +1459,7 @@ declare( 'atom.Settings',
 	 * @return atom.Options
 	 */
 	set: function (options) {
-		var method = this.fast ? 'append' : 'extend';
+		var method = this.recursive ? 'extend' : 'append';
 		if (this.isValidOptions(options)) {
 			atom[method](this.values, options);
 		}
