@@ -66,11 +66,21 @@ declare = function (declareName, params) {
 };
 
 declare.prototype.bindMethods = function (methods) {
-	var i = methods.length, name;
-	while (i--) {
-		name = methods[i];
-		this[name] = this[name].bind(this);
+	var i;
+
+	if (typeof methods == 'string') {
+		if (typeof this[methods] == 'function') {
+			this[methods] = this[methods].bind(this);
+		}
+		return this;
 	}
+
+	if (!methods) {
+		for (i in this) this.bindMethods(i);
+		return this;
+	}
+
+	for (i = methods.length; i--;) this.bindMethods( methods[i] );
 	return this;
 };
 
