@@ -31,12 +31,12 @@ var getter = function (key, fn) {
 	};
 };
 
-atom.Class.Mutators.Generators.init = function (Class, properties) {
-	for (var i in properties) atom.accessors.define(Class.prototype, i, { get: getter(i, properties[i]) });
-};
-
 atom.Class.Mutators.Generators = function(properties) {
 	atom.Class.Mutators.Generators.init(this, properties);
+};
+
+atom.Class.Mutators.Generators.init = function (Class, properties) {
+	for (var i in properties) atom.accessors.define(Class.prototype, i, { get: getter(i, properties[i]) });
 };
 
 };
