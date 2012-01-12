@@ -166,8 +166,8 @@ declare.config.mutator({
 		methods.addTo( Constructor, parent );
 		Constructor.prototype = methods.proto( parent );
 	},
-	mixin: function (Constructor, mixin) {
-		if (mixin) mixin( Constructor, mixin );
+	mixin: function (Constructor, mixins) {
+		if (mixins) mixin( Constructor, mixins );
 	},
 	name: function (Constructor, name) {
 		if (!name) return;
