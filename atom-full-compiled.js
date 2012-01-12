@@ -1250,7 +1250,7 @@ declare( 'atom.Events',
 			}
 		} else if (typeof name == 'object') {
 			for (i in name) {
-				this[method](name, name[i]);
+				this[method](i, name[i]);
 			}
 		} else if (typeof name == 'string') {
 			this[method](name, callback);
@@ -1652,6 +1652,8 @@ var Class = function (params) {
 				return function(args) { return new Factory(args || []); }
 			}()
 		});
+
+	Constructor.prototype.constructor = Constructor;
 
 	return Constructor;
 };

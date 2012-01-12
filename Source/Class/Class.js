@@ -62,6 +62,8 @@ var Class = function (params) {
 			}()
 		});
 
+	Constructor.prototype.constructor = Constructor;
+
 	return Constructor;
 };
 
