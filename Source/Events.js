@@ -224,9 +224,9 @@ declare( 'atom.Events.Mixin', new function () {
 	/** @class atom.Events.Mixin */
 	return {
 		isEventAdded: method( 'exists', true ),
-		addEvent    : method( 'add', true ),
-		removeEvent : method( 'remove', true ),
-		fireEvent   : method( 'fire', true ),
-		readyEvent  : method( 'ready', true )
+		addEvent    : method( 'add'   , false ),
+		removeEvent : method( 'remove', false ),
+		fireEvent   : method( 'fire'  , false ),
+		readyEvent  : method( 'ready' , false )
 	};
 });
