@@ -1024,7 +1024,7 @@ methods = {
 	mixin: function (target, items) {
 		if (!Array.isArray(items)) items = [ items ];
 		for (var i = 0, l = items.length; i < l; i++) {
-			methods.addTo( target.prototype, methods.proto(items) );
+			methods.addTo( target.prototype, methods.proto(items[i]) );
 		}
 		return this;
 	},
@@ -1077,7 +1077,7 @@ declare.config.mutator({
 		Constructor.prototype = methods.proto( parent );
 	},
 	mixin: function (Constructor, mixins) {
-		if (mixins) mixin( Constructor, mixins );
+		if (mixins) methods.mixin( Constructor, mixins );
 	},
 	name: function (Constructor, name) {
 		if (!name) return;
@@ -1313,7 +1313,7 @@ declare( 'atom.Events.Mixin', new function () {
 			var result, events = this.events;
 			if (!events) events = this.events = new atom.Events(this);
 
-			result = events.apply( events, arguments );
+			result = events[method].apply( events, arguments );
 			return useReturn ? result : this;
 		}
 	};
