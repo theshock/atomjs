@@ -1222,7 +1222,7 @@ declare( 'atom.Events',
 	/** @private */
 	removeAll: function (name) {
 		var events = this.events[name];
-		if (event) for (var i = events.length; i--;) {
+		if (events) for (var i = events.length; i--;) {
 			this.removeOne( name, events[i] );
 		}
 	},
@@ -1308,10 +1308,22 @@ declare( 'atom.Events',
 });
 
 declare( 'atom.Events.Mixin', new function () {
+	var init = function () {
+		var events = this.__events;
+		if (!events) events = this.__events = new atom.Events(this);
+		if (this._events) {
+			for (var name in this._events) if (name != '$ready') {
+				this._events[name].forEach(function (fn) {
+					events.add(name, fn);
+				});
+			}
+		}
+		return events;
+	};
+
 	var method = function (method, useReturn) {
 		return function () {
-			var result, events = this.events;
-			if (!events) events = this.events = new atom.Events(this);
+			var result, events = init.call(this);
 
 			result = events[method].apply( events, arguments );
 			return useReturn ? result : this;
@@ -1320,6 +1332,8 @@ declare( 'atom.Events.Mixin', new function () {
 
 	/** @class atom.Events.Mixin */
 	return {
+		get events ( ) { return init.call(this); },
+		set events (e) { this.__events = e;       },
 		isEventAdded: method( 'exists', true ),
 		addEvent    : method( 'add'   , false ),
 		removeEvent : method( 'remove', false ),
