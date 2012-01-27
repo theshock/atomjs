@@ -10,230 +10,55 @@ license:
 	- "[MIT License](http://opensource.org/licenses/mit-license.php)"
 
 requires:
-	- atom
-	- Prototypes.Number
+	- Types.Array
 
 provides: Prototypes.Array
 
 ...
 */
 
-atom.extend(Array, {
-	range: function (from, to, step) {
-		step = Number(step).limit(0) || 1;
-		var result = [];
-		do {
-			result.push(from);
-			from += step;
-		} while (from <= to);
-		return result;
-	},
-	from: function (item) {
-		if (item == null) return [];
-		return (atom.isArrayLike(item)) ? [item] :
-			(atom.typeOf(item) == 'array') ? item : slice.call(item);
-	},
-	pickFrom: function (args) {
-		return Array.from(
-			   args
-			&& args.length == 1
-			&& ['array', 'arguments'].contains(atom.typeOf(args[0])) ?
-				args[0] : args
-		);
-	},
-	fill: function (array, fill) {
-		array = Array.isArray(array) ? array : new Array(array * 1);
-		for (var i = array.length; i--;) array[i] = fill;
-		return array;
-	},
-	fillMatrix: function (width, height, fill) {
-		var array = new Array(height);
-		while (height--) {
-			array[height] = Array.fill(width, fill);
-		}
-		return array;
-	},
-	collect: function (obj, props, Default) {
-		var array = [];
-		for (var i = 0, l = props.length; i < l; i++) {
-			array.push(props[i] in obj ? obj[props[i]] : Default);
-		}
-		return array;
-	},
-	create: function (length, fn) {
-		var array = new Array(length);
-		for (var i = 0; i < length; i++) array[i] = fn(i, array);
-		return array;
-	},
-	toHash: function () {
-		for (var hash = {}, i = 0, l = this.length; i < l; i++) hash[i] = this[i];
-		return hash;
-	}
-});
+(function () {
+
+var proto = function (methodName) {
+	return function () {
+		var args = slice.call(arguments);
+		args.unshift(this);
+		return atom.array[methodName].apply(atom.array, args);
+	};
+};
+
+atom.extend(Array, atom.array.collect( atom.array,
+	'range from pickFrom fill fillMatrix collect create toHash'.split(' ')
+));
+
+atom.implement(Array, atom.array.associate(
+	'randomIndex property contains include append erase combine pick invoke shuffle sortBy min max mul add sum product average unique associate clean empty clone hexToRgb rgbToHex'
+		.split(' '), proto
+));
 
 atom.implement(Array, {
 	get last(){
-		return this.length ? this[this.length - 1] : null;
+		return atom.array.last(this);
 	},
 	get random(){
-		return this.length ? this[Number.random(0, this.length - 1)] : null;
+		return atom.array.random(this, false);
 	},
 	popRandom: function () {
-		if (this.length == 0) return null;
-		var index = Number.random(0, this.length - 1), elem = this[index];
-		this.splice(index, 1);
-		return elem;
+		return atom.array.random(this, true);
 	},
-	property: function (prop) {
-		return this.map(function (elem) {
-			return elem != null ? elem[ prop ] : null;
-		});
+	/** @deprecated */
+	toKeys: function () {
+		console.log( '[].toKeys is deprecated. Use forEach instead' );
+		return atom.array.toKeys(this);
 	},
-	// Correctly works with `new Array(10).fullMap(fn)`
-	fullMap: function (fn, bind) {
-		var mapped = new Array(this.length);
-		for (var i = 0, l = mapped.length; i < l; i++) {
-			mapped[i] = fn.call(bind, this[i], i, this);
-		}
-		return mapped;
-	},
-	contains: function (elem, fromIndex) {
-		return this.indexOf(elem, fromIndex) != -1;
-	},
-	include: function(item){
-		if (!this.contains(item)) this.push(item);
-		return this;
-	},
-	append: function (array) {
-		for (var i = 0, l = arguments.length; i < l; i++) if (arguments[i]) {
-			this.push.apply(this, arguments[i]);
-		}
-		return this;
-	},
-	erase: function(item){
-		for (var i = this.length; i--;) {
-			if (this[i] === item) this.splice(i, 1);
-		}
-		return this;
-	},
-	toKeys: function (value) {
-		var useValue = arguments.length == 1, obj = {};
-		for (var i = 0, l = this.length; i < l; i++)
-			obj[this[i]] = useValue ? value : i;
-		return obj;
-	},
-	combine: function(array){
-		for (var i = 0, l = array.length; i < l; i++) this.include(array[i]);
-		return this;
-	},
-	pick: function(){
-		for (var i = 0, l = this.length; i < l; i++) {
-			if (this[i] != null) return this[i];
-		}
-		return null;
-	},
-	invoke: function(context){
-		var args = slice.call(arguments, 1);
-		if (typeof context == 'string') {
-			var methodName = context;
-			context = null;
-		}
-		return this.map(function(item){
-			return item && (methodName ? item[methodName] : item).apply(methodName ? item : context, args);
-		});
-	},
-	shuffle : function () {
-		for (var tmp, moveTo, index = this.length; index--;) {
-			moveTo = Number.random( 0, index );
-			// [ this[index], this[moveTo] ] = [ this[moveTo], this[index] ]
-			tmp          = this[index ];
-			this[index]  = this[moveTo];
-			this[moveTo] = tmp;
-		}
-		return this;
-	},
-	sortBy : function (method, reverse) {
-		var get = function (elem) {
-			return typeof elem[method] == 'function' ? elem[method]() : (elem[method] || 0);
-		};
-		var multi = reverse ? -1 : 1;
-		return this.sort(function ($0, $1) {
-			var diff = get($1) - get($0);
-			return diff ? (diff < 0 ? -1 : 1) * multi : 0;
-		});
-	},
-	min: function(){
-		return Math.min.apply(null, this);
-	},
-	max: function(){
-		return Math.max.apply(null, this);
-	},
-	mul: function (factor) {
-		for (var i = this.length; i--;) this[i] *= factor;
-		return this;
-	},
-	add: function (number) {
-		for (var i = this.length; i--;) this[i] += number;
-		return this;
-	},
-	average: function(){
-		return this.length ? this.sum() / this.length : 0;
-	},
-	sum: function(){
-		for (var result = 0, i = this.length; i--;) result += this[i];
-		return result;
-	},
-	unique: function(){
-		return [].combine(this);
-	},
-	associate: function(keys){
-		var obj = {}, length = this.length, i, isFn = atom.typeOf(keys) == 'function';
-		if (!isFn) length = Math.min(length, keys.length);
-		for (i = 0; i < length; i++) {
-			obj[(isFn ? this : keys)[i]] = isFn ? keys(this[i], i) : this[i];
-		}
-		return obj;
-	},
-	clean: function (){
-		return this.filter(function (item) { return item != null; });
-	},
-	empty: function () {
-		this.length = 0;
-		return this;
-	},
-	clone: function () {
-		return atom.clone(this);
-	},
-	hexToRgb: function(array){
-		if (this.length != 3) return null;
-		var rgb = this.map(function(value){
-			if (value.length == 1) value += value;
-			return parseInt(value, 16);
-		});
-		return (array) ? rgb : 'rgb(' + rgb + ')';
-	},
-	rgbToHex: function(array) {
-		if (this.length < 3) return null;
-		if (this.length == 4 && this[3] == 0 && !array) return 'transparent';
-		var hex = [];
-		for (var i = 0; i < 3; i++){
-			var bit = (this[i] - 0).toString(16);
-			hex.push((bit.length == 1) ? '0' + bit : bit);
-		}
-		return (array) ? hex : '#' + hex.join('');
-	},
-
-	reduce: [].reduce || function(fn, value){
-		for (var i = 0, l = this.length; i < l; i++){
-			if (i in this) value = value === undefined ? this[i] : fn.call(null, value, this[i], i, this);
-		}
-		return value;
-	},
-
-	reduceRight: [].reduceRight || function(fn, value){
-		for (var i = this.length; i--;){
-			if (i in this) value = value === undefined ? this[i] : fn.call(null, value, this[i], i, this);
-		}
-		return value;
+	/** @deprecated */
+	fullMap: function (callback, context) {
+		console.log( '[].fullMap is deprecated. Use atom.array.create instead' );
+		return atom.array.create(this.length, callback, context);
 	}
 });
+
+if (!Array.prototype.reduce     ) Array.prototype.reduce      = proto('reduce');
+if (!Array.prototype.reduceRight) Array.prototype.reduceRight = proto('reduceRight');
+
+})();
