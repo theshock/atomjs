@@ -11,8 +11,10 @@ Supported browsers:
 * Google Chrome
 * Safari 4+
 * Opera 10+
+* Internet Explorer 9+
 * Mobile Safari
 * Android Browser
+* Opera Mobile
 
 Distributed under terms of MIT or LGPL.
 
