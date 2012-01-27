@@ -336,13 +336,21 @@ test('bindAll', function(){
 	var overall = new Overall('oa');
 	var bindAll = new BindAll('ba');
 	var bindOne = new BindOne('bo');
+	
+			debugger;
 
-	equal( (1, overall.getTitle )(), undefined, 'Plain - context losted' );
-	equal( (1, overall.getTitle2)(), undefined, 'Plain - context losted' );
+	raises(function () {
+		(1, overall.getTitle )();
+	}, TypeError, 'Plain - context losted');
+	raises(function () {
+		(1, overall.getTitle2 )();
+	}, TypeError, 'Plain - context losted');
 	equal( (1, bindAll.getTitle )(),      'ba', 'bindAll - context saved' );
 	equal( (1, bindAll.getTitle2)(),      'ba', 'bindAll - context saved' );
 	equal( (1, bindOne.getTitle )(),      'bo', 'bindOne - context saved' );
-	equal( (1, bindOne.getTitle2)(), undefined, 'bindOne - context losted' );
+	raises(function () {
+		(1, bindOne.getTitle2 )();
+	}, TypeError, 'bindOne - context losted');
 });
 
 };

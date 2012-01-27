@@ -119,6 +119,18 @@ if (!String.prototype.trim) {
 	}
 }
 
+if (!String.prototype.trimLeft) {
+	String.prototype.trimLeft = function () {
+		return this.replace(/^\s+/, '');
+	}
+}
+
+if (!String.prototype.trimRight) {
+	String.prototype.trimRight = function () {
+		return this.replace(/\s+$/g, '');
+	}
+}
+
 /*
 ---
 
@@ -176,7 +188,7 @@ var typeOf = function (item) {
 
 	if (item && type == 'object') {
 		if (atom.Class && item instanceof atom.Class) return 'class';
-		if (atom.isEnumerable(item)) return 'arguments';
+		if (atom.isArrayLike(item)) return 'arguments';
 	}
 
 	return type;
@@ -185,6 +197,10 @@ typeOf.types = {};
 ['Boolean', 'Number', 'String', 'Function', 'Array', 'Date', 'RegExp', 'Class'].forEach(function(name) {
 	typeOf.types['[object ' + name + ']'] = name.toLowerCase();
 });
+
+var isFunction = function (item) {
+	return item && toString.call(item) == '[object Function]';
+};
 
 
 var clone = function (object) {
@@ -218,8 +234,12 @@ atom.extend({
 	},
 	/** @deprecated - use console-cap instead: https://github.com/theshock/console-cap/ */
 	log: function () { throw new Error('deprecated') },
-	isEnumerable: function(item){
-		return item != null && toString.call(item) != '[object Function]' && typeof item.length == 'number';
+	isArrayLike: function(item) {
+		return item && (Array.isArray(item) || (
+			typeof item != 'string' &&
+			!isFunction(item) &&
+			typeof item.length == 'number'
+		));
 	},
 	append: function (target, source) {
 		for (var i = 1, l = arguments.length; i < l; i++){
@@ -1686,6 +1706,7 @@ var wrap = function(self, key, method){
 	if (method.$origin) method = method.$origin;
 	
 	var wrapper = function() {
+		if (!this || this == atom.global) throw new TypeError('Context lost');
 		if (method.$protected && !this.$caller) throw new Error('The method «' + key + '» is protected.');
 		var current = this.$caller;
 		this.$caller = wrapper;
@@ -1838,7 +1859,7 @@ atom.Class.bindAll = function (object, methods) {
 		if (
 			methods != '$caller' &&
 			!atom.accessors.has(object, methods) &&
-			atom.typeOf(object[methods]) == 'function'
+			isFunction(object[methods])
 		) {
 			object[methods] = object[methods].bind( object );
 		}
@@ -2109,9 +2130,9 @@ atom.Class.Options = atom.Class({
 /*
 ---
 
-name: "Prototypes.Number"
+name: "Types.Number"
 
-description: "Contains Number Prototypes like limit, round, times, and ceil."
+description: "Contains number-manipulation methods like limit, round, times, and ceil."
 
 license:
 	- "[GNU Lesser General Public License](http://opensource.org/licenses/lgpl-license.php)"
@@ -2120,74 +2141,54 @@ license:
 requires:
 	- atom
 
-provides: Prototypes.Number
+provides: Types.Number
 
 ...
 */
 
-new function () {
-	
-atom.extend(Number, {
+atom.number = {
 	random : function (min, max) {
 		return Math.floor(Math.random() * (max - min + 1) + min);
-	}
-});
-
-atom.implement(Number, {
-	between: function (n1, n2, equals) {
+	},
+	between: function (number, n1, n2, equals) {
+		number = Number(number);
+		n1 = Number(n1);
+		n2 = Number(n2);
 		return (n1 <= n2) && (
-			(equals == 'L' && this == n1) ||
-			(equals == 'R' && this == n2) ||
-			(  this  > n1  && this  < n2) ||
-			([true,'LR','RL'].indexOf(equals) != -1 && (n1 == this || n2 == this))
+			(equals == 'L' && number == n1) ||
+			(equals == 'R' && number == n2) ||
+			(number  > n1  && number  < n2) ||
+			([true,'LR','RL'].indexOf(equals) != -1 && (n1 == number || n2 == number))
 		);
 	},
-	equals : function (to, accuracy) {
+	equals : function (number, to, accuracy) {
 		if (accuracy == null) accuracy = 8;
-		return this.toFixed(accuracy) == to.toFixed(accuracy);
+		return number.toFixed(accuracy) == to.toFixed(accuracy);
 	},
-	limit: function(min, max){
-		var bottom = Math.max(min, this);
-		return arguments.length == 2 ?
-			Math.min(max, bottom) : bottom;
+	limit: function(number, min, max){
+		var bottom = Math.max(min, Number(number));
+		return max != null ? Math.min(max, bottom) : bottom;
 	},
-	round: function(precision){
-		precision = Math.pow(10, precision || 0).toFixed(precision < 0 ? -precision : 0);
-		return Math.round(this * precision) / precision;
+	round: function(number, precision){
+		precision = Number( Math.pow(10, precision || 0).toFixed(precision < 0 ? -precision : 0) );
+		return Math.round(number * precision) / precision;
 	},
-	toFloat: function(){
-		return parseFloat(this);
-	},
-	toInt: function(base){
-		return parseInt(this, base || 10);
-	},
-	stop: function() {
-		var num = Number(this);
+	stop: function(num) {
+		num = Number(num);
 		if (num) {
 			clearInterval(num);
 			clearTimeout (num);
 		}
 		return this;
 	}
-});
-
-['abs','acos','asin','atan','atan2','ceil','cos','exp','floor','log','max','min','pow','sin','sqrt','tan']
-	.forEach(function(method) {
-		if (Number[method]) return;
-		
-		Number.prototype[method] = function() {
-			return Math[method].apply(null, [this].append(arguments));
-		};
-	});
-
 };
 
 /*
 ---
 
-name: "Prototypes.Array"
+name: "Types.Array"
 
-description: "Contains Array Prototypes like include, contains, and erase."
+description: "Contains array-manipulation methods like include, contains, and erase."
 
 license:
 	- "[GNU Lesser General Public License](http://opensource.org/licenses/lgpl-license.php)"
@@ -2195,41 +2196,89 @@ license:
 
 requires:
 	- atom
-	- Prototypes.Number
+	- Types.Number
 
-provides: Prototypes.Array
+provides: Types.Array
 
 ...
 */
 
-atom.extend(Array, {
+atom.array = {
+	/**
+	 * Checks if arguments is array
+	 * @param {Array} array
+	 * @returns {boolean}
+	 */
+	is: function (array) {
+		return Array.isArray(array);
+	},
+	/**
+	 * Creates rangearray
+	 * @param {int} from
+	 * @param {int} to
+	 * @param {int} [step=1] - should be
+	 * @returns {int[]}
+	 */
 	range: function (from, to, step) {
-		step = Number(step).limit(0) || 1;
+		from = Number(from);
+		to   = Number(to  );
+		step = Number(step);
+
+		if (typeof from != 'number') throw new TypeError( '`from` should be number' );
+		if (typeof to   != 'number') throw new TypeError(   '`to` should be number' );
+
+		var increase = to > from, stepIncrease = step > 0;
+
+		if (!step) {
+			step = increase ? 1 : -1;
+		} else if ( increase != stepIncrease ) {
+			throw new RangeError( 'step direction is wrong' );
+		}
+
 		var result = [];
 		do {
 			result.push(from);
 			from += step;
-		} while (from <= to);
+		} while (increase ? from <= to : from >= to);
+
 		return result;
 	},
+	/**
+	 * @param {*} item
+	 * @returns {Array}
+	 */
 	from: function (item) {
 		if (item == null) return [];
-		return (!atom.isEnumerable(item) || typeof item == 'string') ? [item] :
-			(atom.typeOf(item) == 'array') ? item : slice.call(item);
+		return (!atom.isArrayLike(item)) ? [item] :
+			Array.isArray(item) ? item : slice.call(item);
 	},
+	/**
+	 * @param {Array} args
+	 * @returns {Array}
+	 */
 	pickFrom: function (args) {
-		return Array.from(
-			   args
+		var fromZeroArgument = args
 			&& args.length == 1
-			&& ['array', 'arguments'].contains(atom.typeOf(args[0])) ?
-				args[0] : args
-		);
+			&& atom.isArrayLike( args[0] );
+
+		return atom.array.from( fromZeroArgument ? args[0] : args );
 	},
+	/**
+	 * @param {number|Array} array
+	 * @param {*} fill
+	 * @returns {Array}
+	 */
 	fill: function (array, fill) {
-		array = Array.isArray(array) ? array : new Array(array * 1);
+		array = Array.isArray(array) ? array : new Array(Number(array));
 		for (var i = array.length; i--;) array[i] = fill;
 		return array;
 	},
+	/**
+	 * @param {number} width
+	 * @param {number} height
+	 * @param {*} fill
+	 * @returns {Array[]}
+	 */
 	fillMatrix: function (width, height, fill) {
 		var array = new Array(height);
 		while (height--) {
@@ -2237,255 +2286,393 @@ atom.extend(Array, {
 		}
 		return array;
 	},
-	collect: function (obj, props, Default) {
-		var array = [];
-		for (var i = 0, l = props.length; i < l; i++) {
-			array.push(props[i] in obj ? obj[props[i]] : Default);
+	// #todo: why in array, not in object?
+	/**
+	 * @param {Object} source
+	 * @param {Array} props
+	 * @param {*} [defaultValue=undefined]
+	 * @returns {Array}
+	 */
+	collect: function (source, props, defaultValue) {
+		var array = [], i = 0, l = props.length, prop;
+		for (;i < l; i++) {
+			prop = props[i];
+			array.push(prop in source ? source[prop] : defaultValue);
 		}
 		return array;
 	},
-	create: function (length, fn) {
-		var array = new Array(length);
-		for (var i = 0; i < length; i++) array[i] = fn(i, array);
+	/**
+	 * @param {Number} length
+	 * @param {function} callback
+	 * @param {Object} [context=undefined]
+	 * @returns {Array}
+	 */
+	create: function (length, callback, context) {
+		if (!isFunction(callback)) {
+			throw new TypeError('callback should be function');
+		}
+		var array = new Array(Number(length));
+		for (var i = 0; i < length; i++) {
+			array[i] = callback.call(context, i, array);
+		}
 		return array;
 	},
-	toHash: function () {
-		for (var hash = {}, i = 0, l = this.length; i < l; i++) hash[i] = this[i];
+	/**
+	 * @param {Array} array
+	 * @returns {Object}
+	 */
+	toHash: function (array) {
+		var hash = {}, i = 0, l = array.length;
+		for (; i < l; i++) {
+			hash[i] = array[i];
+		}
 		return hash;
-	}
-});
+	},
+	/**
+	 * @param {Array} array
+	 * @returns {*}
+	 */
+	last: function (array) {
+		return array.length ? array[array.length - 1] : null;
+	},
+	// #todo: atom.number.random
+	/**
+	 * @param {Array} array
+	 * @returns number
+	 */
+	randomIndex: function (array) {
+		return atom.number.random(0, array.length - 1);
+	},
+	/**
+	 * @param {Array} array
+	 * @param {boolean} erase - erase element after splice, or leave at place
+	 * @returns {*}
+	 */
+	random: function (array, erase) {
+		if (array.length == 0) return null;
 
-atom.implement(Array, {
-	get last(){
-		return this.length ? this[this.length - 1] : null;
+		var index = atom.array.randomIndex(array);
+
+		return erase ? array.splice(index, 1)[0] : array[index];
 	},
-	get random(){
-		return this.length ? this[Number.random(0, this.length - 1)] : null;
-	},
-	popRandom: function () {
-		if (this.length == 0) return null;
-		var index = Number.random(0, this.length - 1), elem = this[index];
-		this.splice(index, 1);
-		return elem;
-	},
-	property: function (prop) {
-		return this.map(function (elem) {
-			return elem != null ? elem[ prop ] : null;
+	/**
+	 * Return array of property `name` values of objects
+	 * @param {Array} array
+	 * @param {string} name
+	 * @returns {Array}
+	 */
+	property: function (array, name) {
+		return array.map(function (elem) {
+			return elem != null ? elem[ name ] : null;
 		});
 	},
-	// Correctly works with `new Array(10).fullMap(fn)`
-	fullMap: function (fn, bind) {
-		var mapped = new Array(this.length);
+	/** @deprecated - use `create` instead */
+	fullMap: function (array, fn, bind) {
+		var mapped = new Array(array.length);
 		for (var i = 0, l = mapped.length; i < l; i++) {
-			mapped[i] = fn.call(bind, this[i], i, this);
+			mapped[i] = fn.call(bind, array[i], i, array);
 		}
 		return mapped;
 	},
-	contains: function (elem, fromIndex) {
-		return this.indexOf(elem, fromIndex) != -1;
+	/**
+	 * Check, if array contains elem
+	 * @param {Array} array
+	 * @param {*} elem
+	 * @param {number} [fromIndex=0]
+	 * @returns {boolean}
+	 */
+	contains: function (array, elem, fromIndex) {
+		return array.indexOf(elem, fromIndex) != -1;
 	},
-	include: function(item){
-		if (!this.contains(item)) this.push(item);
-		return this;
+	/**
+	 * Push element to array, if it doesn't contains such element
+	 * @param {Array} target
+	 * @param {*} item
+	 * @returns {Array} - target array
+	 */
+	include: function(target, item){
+		if (target.indexOf(item) == -1) target.push(item);
+		return target;
 	},
-	append: function (array) {
-		for (var i = 0, l = arguments.length; i < l; i++) if (arguments[i]) {
-			this.push.apply(this, arguments[i]);
+	/**
+	 * `push` source array values to the end of target array
+	 * @param {Array} target
+	 * @param {Array} source
+	 * @returns {Array} - target array
+	 */
+	append: function (target, source) {
+		for (var i = 1, l = arguments.length; i < l; i++) if (arguments[i]) {
+			target.push.apply(target, arguments[i]);
 		}
-		return this;
+		return target;
 	},
-	erase: function(item){
-		for (var i = this.length; i--;) {
-			if (this[i] === item) this.splice(i, 1);
+	/**
+	 * Erase item from array
+	 * @param {Array} target
+	 * @param {*} item
+	 * @returns {Array} - target array
+	 */
+	erase: function(target, item){
+		for (var i = target.length; i--;) {
+			if (target[i] === item) target.splice(i, 1);
 		}
-		return this;
+		return target;
 	},
+	/** @deprecated */
 	toKeys: function (value) {
 		var useValue = arguments.length == 1, obj = {};
 		for (var i = 0, l = this.length; i < l; i++)
 			obj[this[i]] = useValue ? value : i;
 		return obj;
 	},
-	combine: function(array){
-		for (var i = 0, l = array.length; i < l; i++) this.include(array[i]);
-		return this;
+	/**
+	 * `include` source array values to the end of target array
+	 * @param {Array} target
+	 * @param {Array} source
+	 * @returns {Array} - target array
+	 */
+	combine: function(target, source){
+		for (var i = 0, l = source.length; i < l; i++) {
+			atom.array.include(target, source[i]);
+		}
+		return target;
 	},
-	pick: function(){
-		for (var i = 0, l = this.length; i < l; i++) {
-			if (this[i] != null) return this[i];
+	/**
+	 * returns first not-null value, or returns null
+	 * @param {Array} source
+	 * @returns {*}
+	 */
+	pick: function(source){
+		for (var i = 0, l = source.length; i < l; i++) {
+			if (source[i] != null) return source[i];
 		}
 		return null;
 	},
-	invoke: function(context){
-		var args = slice.call(arguments, 1);
+	/**
+	 * You can invoke array of functions with context "context"
+	 * Or all methods of objects in array
+	 * all params except zero & first will be sed as argument
+	 * @param {Array} array
+	 * @param {Object|string} [context=null]
+	 * @returns {Array} - array of results
+	 */
+	invoke: function(array, context){
+		var args = slice.call(arguments, 2);
 		if (typeof context == 'string') {
 			var methodName = context;
 			context = null;
 		}
-		return this.map(function(item){
+		return array.map(function(item){
 			return item && (methodName ? item[methodName] : item).apply(methodName ? item : context, args);
 		});
 	},
-	shuffle : function () {
-		for (var tmp, moveTo, index = this.length; index--;) {
-			moveTo = Number.random( 0, index );
-			// [ this[index], this[moveTo] ] = [ this[moveTo], this[index] ]
-			tmp          = this[index ];
-			this[index]  = this[moveTo];
-			this[moveTo] = tmp;
+	/**
+	 * shuffle array with smart algorithm
+	 * @param {Array} array
+	 * @returns {Array}
+	 */
+	shuffle : function (array) {
+		var tmp, moveTo, index = array.length;
+		while (index--) {
+			moveTo = atom.number.random( 0, index );
+			tmp           = array[index ];
+			array[index]  = array[moveTo];
+			array[moveTo] = tmp;
 		}
-		return this;
+		return array;
 	},
-	sortBy : function (method, reverse) {
+	/**
+	 * sort array by property value or method returns
+	 * @param {Array} array
+	 * @param {string} method
+	 * @param {boolean} [reverse=false]
+	 * @returns {Array}
+	 */
+	sortBy : function (array, method, reverse) {
 		var get = function (elem) {
-			return typeof elem[method] == 'function' ? elem[method]() : (elem[method] || 0);
+			return (isFunction(elem[method]) ? elem[method]() : elem[method]) || 0;
 		};
 		var multi = reverse ? -1 : 1;
-		return this.sort(function ($0, $1) {
+		return array.sort(function ($0, $1) {
 			var diff = get($1) - get($0);
 			return diff ? (diff < 0 ? -1 : 1) * multi : 0;
 		});
 	},
-	min: function(){
-		return Math.min.apply(null, this);
+	/**
+	 * Returns min value in array
+	 * @param {Array} array
+	 * @returns {Array}
+	 */
+	min: function(array){
+		return Math.min.apply(null, array);
 	},
-	max: function(){
-		return Math.max.apply(null, this);
+	/**
+	 * Returns max value in array
+	 * @param {Array} array
+	 * @returns {Array}
+	 */
+	max: function(array){
+		return Math.max.apply(null, array);
 	},
-	mul: function (factor) {
-		for (var i = this.length; i--;) this[i] *= factor;
-		return this;
+	/**
+	 * Multiply all values in array to factor & returns result array
+	 * @param {Array} array
+	 * @param {number} factor
+	 * @returns {Array}
+	 */
+	mul: function (array, factor) {
+		for (var i = array.length; i--;) array[i] *= factor;
+		return array;
 	},
-	add: function (number) {
-		for (var i = this.length; i--;) this[i] += number;
-		return this;
+	/**
+	 * Add to all values in array number & returns result array
+	 * @param {Array} array
+	 * @param {number} number
+	 * @returns {Array}
+	 */
+	add: function (array, number) {
+		for (var i = array.length; i--;) array[i] += number;
+		return array;
 	},
-	average: function(){
-		return this.length ? this.sum() / this.length : 0;
-	},
-	sum: function(){
-		for (var result = 0, i = this.length; i--;) result += this[i];
+	/**
+	 * Returns sum of all elements in array
+	 * @param {Array} array
+	 * @returns {number}
+	 */
+	sum: function (array) {
+		for (var result = 0, i = array.length; i--;) result += array[i];
 		return result;
 	},
-	unique: function(){
-		return [].combine(this);
+	/**
+	 * Returns product (result of multiplying) of all elements in array
+	 * @param {Array} array
+	 * @returns {number}
+	 */
+	product: function (array) {
+		for (var result = 1, i = array.length; i--;) result *= array[i];
+		return result;
 	},
-	associate: function(keys){
-		var obj = {}, length = this.length, i, isFn = atom.typeOf(keys) == 'function';
+	/**
+	 * Returns average value in array ( sum / length )
+	 * @param {Array} array
+	 * @returns {number}
+	 */
+	average: function (array) {
+		return array.length ? atom.array.sum(array) / array.length : 0;
+	},
+	/**
+	 * returns array with only unique values ( [1,2,2,3] => [1,2,3] )
+	 * @param {Array} array
+	 * @returns {Array}
+	 */
+	unique: function(array){
+		return atom.array.combine([], array);
+	},
+	/**
+	 * associate array values with keys
+	 * if `keys` is array it used as keys names, and array used as values
+	 * if `keys` if function it used as function, generated values & array used as keys
+	 * @param {Array} array
+	 * @param {Function|Array} keys
+	 * @returns {Object}
+	 */
+	associate: function(array, keys){
+		var
+			i = 0,
+			obj = {},
+			length = array.length,
+			isFn = isFunction(keys),
+			keysSource = isFn ? array : keys;
+
 		if (!isFn) length = Math.min(length, keys.length);
-		for (i = 0; i < length; i++) {
-			obj[(isFn ? this : keys)[i]] = isFn ? keys(this[i], i) : this[i];
+		for (;i < length; i++) {
+			obj[ keysSource[i] ] = isFn ? keys(array[i], i) : array[i];
 		}
 		return obj;
 	},
-	clean: function (){
-		return this.filter(function (item) { return item != null; });
+	/**
+	 * clean array from empty values & returns empty array
+	 * @param {Array} array
+	 * @returns {Array}
+	 */
+	clean: function (array){
+		return array.filter(function (item) { return item != null });
 	},
-	empty: function () {
-		this.length = 0;
-		return this;
+	/**
+	 * quickly erase all values from array
+	 * @param {Array} array
+	 * @returns {Array}
+	 */
+	empty: function (array) {
+		array.length = 0;
+		return array;
 	},
-	clone: function () {
-		return atom.clone(this);
-	},
-	hexToRgb: function(array){
-		if (this.length != 3) return null;
-		var rgb = this.map(function(value){
+	/** @deprecated */
+	clone: function (array) { return atom.clone(array) },
+	/**
+	 * @param array
+	 * @param {boolean} [asArray=false] - returns result as array, or as string
+	 * @returns {Array|string}
+	 */
+	hexToRgb: function(array, asArray){
+		if (array.length != 3) return null;
+		var rgb = array.map(function(value){
 			if (value.length == 1) value += value;
 			return parseInt(value, 16);
 		});
-		return (array) ? rgb : 'rgb(' + rgb + ')';
+		return asArray ? rgb : 'rgb(' + rgb + ')';
 	},
-	rgbToHex: function(array) {
-		if (this.length < 3) return null;
-		if (this.length == 4 && this[3] == 0 && !array) return 'transparent';
-		var hex = [];
-		for (var i = 0; i < 3; i++){
-			var bit = (this[i] - 0).toString(16);
+	/**
+	 * @param array
+	 * @param {boolean} [asArray=false] - returns result as array, or as string
+	 * @returns {Array|string}
+	 */
+	rgbToHex: function(array, asArray) {
+		if (array.length < 3) return null;
+		if (array.length == 4 && array[3] == 0 && !asArray) return 'transparent';
+		var hex = [], i = 0, bit;
+		for (; i < 3; i++){
+			bit = (array[i] - 0).toString(16);
 			hex.push((bit.length == 1) ? '0' + bit : bit);
 		}
-		return (array) ? hex : '#' + hex.join('');
+		return asArray ? hex : '#' + hex.join('');
 	},
 
-	reduce: [].reduce || function(fn, value){
-		for (var i = 0, l = this.length; i < l; i++){
-			if (i in this) value = value === undefined ? this[i] : fn.call(null, value, this[i], i, this);
+	/**
+	 * @param {Array} array
+	 * @param {Function} callback
+	 * @param {*} value
+	 * @returns {*}
+	 */
+	reduce: function(array, callback, value){
+		if (isFunction(array.reduce)) return array.reduce(callback, value);
+
+		for (var i = 0, l = array.length; i < l; i++) if (i in array) {
+			value = value === undefined ? array[i] : callback.call(null, value, array[i], i, array);
 		}
 		return value;
 	},
 
-	reduceRight: [].reduceRight || function(fn, value){
-		for (var i = this.length; i--;){
-			if (i in this) value = value === undefined ? this[i] : fn.call(null, value, this[i], i, this);
+	/**
+	 * @param {Array} array
+	 * @param {Function} callback
+	 * @param {*} value
+	 * @returns {*}
+	 */
+	reduceRight: function(array, callback, value){
+		if (isFunction(array.reduceRight)) return array.reduceRight(callback, value);
+
+		for (var i = array.length; i--;) if (i in array) {
+			value = value === undefined ? array[i] : callback.call(null, value, array[i], i, array);
 		}
 		return value;
 	}
-});
+};
 
 /*
 ---
 
-name: "Prototypes.Function"
-
-description: "Contains Function Prototypes like context, periodical and delay."
-
-license:
-	- "[GNU Lesser General Public License](http://opensource.org/licenses/lgpl-license.php)"
-	- "[MIT License](http://opensource.org/licenses/mit-license.php)"
-
-requires:
-	- atom
-	- Prototypes.Array
-
-provides: Prototypes.Function
-
-...
-*/
-
-new function () {
-
-	Function.lambda = function (value) {
-		var returnThis = (arguments.length == 0);
-		return function () { return returnThis ? this : value; };
-	};
-
-	var timeout = function (periodical) {
-		var set = periodical ? setInterval : setTimeout;
-
-		return function (time, bind, args) {
-			var fn = this;
-			return set(function () {
-				fn.apply( bind, args || [] );
-			}, time);
-		};
-	};
-	
-	atom.implement(Function, {
-		after: function (fnName) {
-			var onReady = this, after = {}, ready = {};
-			var checkReady = function () {
-				for (var i in after) if (!(i in ready)) return;
-				onReady(ready);
-			};
-			slice.call(arguments).forEach(function (key) {
-				after[key] = function () {
-					ready[key] = arguments;
-					checkReady();
-				};
-			});
-			return after;
-		},
-		delay:      timeout(false),
-		periodical: timeout(true )
-	});
-
-}(); 
-
-
-/*
----
-
-name: "Prototypes.Object"
+name: "Types.Object"
 
 description: "Object generic methods"
 
@@ -2496,12 +2683,12 @@ license:
 requires:
 	- atom
 
-provides: Prototypes.Object
+provides: Types.Object
 
 ...
 */
 
-atom.extend(Object, {
+atom.object = {
 	invert: function (object) {
 		var newObj = {};
 		for (var i in object) newObj[object[i]] = i;
@@ -2509,15 +2696,10 @@ atom.extend(Object, {
 	},
 	collect: function (obj, props, Default) {
 		var newObj = {};
-		for (var i in props.toKeys()) {
+		props.forEach(function (i){
 			newObj[i] = i in obj ? obj[i] : Default;
-		}
+		});
 		return newObj;
-	},
-	keys: function (obj) {
-		var keys = [];
-		for (var i in obj) keys.push(i);
-		return keys;
 	},
 	values: function (obj) {
 		var values = [];
@@ -2569,6 +2751,9 @@ atom.extend(Object, {
 
 		return true;
 	},
+	isEmpty: function (object) {
+		return Object.keys(object).length == 0;
+	},
 	ifEmpty: function (object, key, defaultValue) {
 		if (!(key in object)) {
 			object[key] = defaultValue;
@@ -2609,7 +2794,392 @@ atom.extend(Object, {
 			}
 		}
 	}
+};
+
+/*
+---
+
+name: "Prototypes.Abstract"
+
+description: "Contains office methods for prototypes extension."
+
+license:
+	- "[GNU Lesser General Public License](http://opensource.org/licenses/lgpl-license.php)"
+	- "[MIT License](http://opensource.org/licenses/mit-license.php)"
+
+requires:
+	- atom
+	- Types.Array
+	- Types.Object
+
+provides: Prototypes.Abstract
+
+...
+*/
+
+var prototypize = {
+	fn: function (source) {
+		return function (methodName) {
+			return function () {
+				var args = slice.call(arguments);
+				args.unshift(this);
+				return source[methodName].apply(source, args);
+			};
+		};
+	},
+	proto: function (object, proto, methodsString) {
+		atom.implement(object, atom.array.associate(
+			methodsString.split(' '), proto
+		));
+		return prototypize;
+	},
+	own: function (object, source, methodsString) {
+		console.log( atom.object.collect( source, methodsString.split(' ') ) );
+		atom.extend(object, atom.object.collect( source, methodsString.split(' ') ));
+		return prototypize;
+	}
+};
+
+/*
+---
+
+name: "Prototypes.Array"
+
+description: "Contains Array Prototypes like include, contains, and erase."
+
+license:
+	- "[GNU Lesser General Public License](http://opensource.org/licenses/lgpl-license.php)"
+	- "[MIT License](http://opensource.org/licenses/mit-license.php)"
+
+requires:
+	- Types.Array
+	- Prototypes.Abstract
+
+provides: Prototypes.Array
+
+...
+*/
+
+(function () {
+
+var proto = prototypize.fn(atom.array);
+
+prototypize
+	.own(Array, atom.array, 'range from pickFrom fill fillMatrix collect create toHash')
+	.proto(Array, proto, 'randomIndex property contains include append erase combine pick invoke shuffle sortBy min max mul add sum product average unique associate clean empty clone hexToRgb rgbToHex' );
+
+atom.implement(Array, {
+	get last(){
+		return atom.array.last(this);
+	},
+	get random(){
+		return atom.array.random(this, false);
+	},
+	popRandom: function () {
+		return atom.array.random(this, true);
+	},
+	/** @deprecated */
+	toKeys: function () {
+		console.log( '[].toKeys is deprecated. Use forEach instead' );
+		return atom.array.toKeys(this);
+	},
+	/** @deprecated */
+	fullMap: function (callback, context) {
+		console.log( '[].fullMap is deprecated. Use atom.array.create instead' );
+		return atom.array.create(this.length, callback, context);
+	}
 });
+
+if (!Array.prototype.reduce     ) Array.prototype.reduce      = proto('reduce');
+if (!Array.prototype.reduceRight) Array.prototype.reduceRight = proto('reduceRight');
+
+})();
+
+/*
+---
+
+name: "Types.Function"
+
+description: "Contains function manipulation methods."
+
+license:
+	- "[GNU Lesser General Public License](http://opensource.org/licenses/lgpl-license.php)"
+	- "[MIT License](http://opensource.org/licenses/mit-license.php)"
+
+requires:
+	- atom
+	- Types.Array
+
+provides: Types.Function
+
+...
+*/
+
+atom.fn = {
+	lambda: function (value) {
+		var returnThis = (arguments.length == 0);
+		return function () { return returnThis ? this : value; };
+	},
+
+	after: function (onReady, fnName) {
+		var after = {}, ready = {};
+		function checkReady (){
+			for (var i in after) if (!ready[i]) return;
+			onReady(ready);
+		}
+		slice.call(arguments, 1).forEach(function (key) {
+			after[key] = function () {
+				ready[key] = slice.call(arguments);
+				ready[key].context = this;
+				checkReady();
+			};
+		});
+		return after;
+	}
+};
+
+
+/*
+---
+
+name: "Prototypes.Function"
+
+description: "Contains Function Prototypes like after, periodical and delay."
+
+license:
+	- "[GNU Lesser General Public License](http://opensource.org/licenses/lgpl-license.php)"
+	- "[MIT License](http://opensource.org/licenses/mit-license.php)"
+
+requires:
+	- atom
+	- Types.Function
+	- Prototypes.Abstract
+
+provides: Prototypes.Function
+
+...
+*/
+
+new function () {
+
+	Function.lambda = atom.fn.lambda;
+
+	function timer (periodical) {
+		var set = periodical ? setInterval : setTimeout;
+
+		return function (time, bind, args) {
+			var fn = this;
+			return set(function () {
+				fn.apply( bind, args || [] );
+			}, time);
+		};
+	}
+	
+	atom.implement(Function, {
+		after: prototypize.fn(atom.fn)('after'),
+		delay     : timer(false),
+		periodical: timer(true )
+	});
+
+}(); 
+
+
+/*
+---
+
+name: "Prototypes.Number"
+
+description: "Contains Number Prototypes like limit, round, times, and ceil."
+
+license:
+	- "[GNU Lesser General Public License](http://opensource.org/licenses/lgpl-license.php)"
+	- "[MIT License](http://opensource.org/licenses/mit-license.php)"
+
+requires:
+	- Types.Number
+	- Prototypes.Abstract
+
+provides: Prototypes.Number
+
+...
+*/
+
+prototypize
+	.own(Number, atom.number, 'random')
+	.proto(Number, prototypize.fn(atom.number), 'between equals limit round stop' );
+
+atom.implement(Number, {
+	toFloat: function(){
+		return parseFloat(this);
+	},
+	toInt: function(base){
+		return parseInt(this, base || 10);
+	}
+});
+
+'abs acos asin atan atan2 ceil cos exp floor log max min pow sin sqrt tan'
+	.split(' ')
+	.forEach(function(method) {
+		if (Number[method]) return;
+		
+		Number.prototype[method] = function() {
+			return Math[method].apply(null, [this].append(arguments));
+		};
+	});
+
+
+
+
+/*
+---
+
+name: "Prototypes.Object"
+
+description: "Object generic methods"
+
+license:
+	- "[GNU Lesser General Public License](http://opensource.org/licenses/lgpl-license.php)"
+	- "[MIT License](http://opensource.org/licenses/mit-license.php)"
+
+requires:
+	- Types.Object
+
+provides: Prototypes.Object
+
+...
+*/
+
+atom.extend(Object, atom.object);
+
+/*
+---
+
+name: "Types.String"
+
+description: "Contains string-manipulation methods like repeat, substitute, replaceAll and begins."
+
+license:
+	- "[GNU Lesser General Public License](http://opensource.org/licenses/lgpl-license.php)"
+	- "[MIT License](http://opensource.org/licenses/mit-license.php)"
+
+requires:
+	- atom
+
+provides: Types.String
+
+...
+*/
+
+new function () {
+
+var UID = Date.now();
+
+atom.string = {
+	/**
+	 * @returns {string} - unique for session value in 36-radix
+	 */
+	uniqueID: function () {
+		return (UID++).toString(36);
+	},
+	/**
+	 * escape all html unsafe characters - & ' " < >
+	 * @param {string} string
+	 * @returns {string}
+	 */
+	safeHtml: function (string) {
+		return string.replaceAll(/[<'&">]/g, {
+			'&'  : '&amp;',
+			'\'' : '&#039;',
+			'\"' : '&quot;',
+			'<'  : '&lt;',
+			'>'  : '&gt;'
+		});
+	},
+	/**
+	 * repeat string `times` times
+	 * @param {string} string
+	 * @param {int} times
+	 * @returns {string}
+	 */
+	repeat: function(string, times) {
+		return new Array(times + 1).join(string);
+	},
+	/**
+	 * @param {string} string
+	 * @param {Object} object
+	 * @param {RegExp} [regexp=null]
+	 * @returns {string}
+	 */
+	substitute: function(string, object, regexp){
+		return string.replace(regexp || /\\?\{([^{}]+)\}/g, function(match, name){
+			return (match[0] == '\\') ? match.slice(1) : (object[name] == null ? '' : object[name]);
+		});
+	},
+	/**
+	 * @param {string} string
+	 * @param {Object|RegExp|string} find
+	 * @param {Object|string} [replace=null]
+	 * @returns {String}
+	 */
+	replaceAll: function (string, find, replace) {
+		var type = atom.typeOf(find);
+		if (type == 'regexp') {
+			return string.replace(find, function (symb) { return replace[symb]; });
+		} else if (type == 'object') {
+			for (var i in find) string = string.replaceAll(i, find[i]);
+			return string;
+		}
+		return string.split(find).join(replace);
+	},
+	/**
+	 * Checks if string contains such substring
+	 * @param {string} string
+	 * @param {string} substr
+	 */
+	contains: function (string, substr) {
+		return string.indexOf( substr ) >= 0;
+	},
+	/**
+	 * Checks if string begins with such substring
+	 * @param {string} string
+	 * @param {string} substring
+	 * @param {boolean} [caseInsensitive=false]
+	 * @returns {boolean}
+	 */
+	begins: function (string, substring, caseInsensitive) {
+		return (!caseInsensitive) ? substring == string.substr(0, substring.length) :
+			substring.toLowerCase() == string.substr(0, substring.length).toLowerCase();
+	},
+	/**
+	 * Checks if string ends with such substring
+	 * @param {string} string
+	 * @param {string} substring
+	 * @param {boolean} [caseInsensitive=false]
+	 * @returns {boolean}
+	 */
+	ends: function (string, substring, caseInsensitive) {
+		return (!caseInsensitive) ? substring == string.substr(string.length - substring.length) :
+			substring.toLowerCase() == string.substr(string.length - substring.length).toLowerCase();
+	},
+	/**
+	 * Uppercase first character
+	 * @param {string} string
+	 * @returns {string}
+	 */
+	ucfirst : function (string) {
+		return string[0].toUpperCase() + string.substr(1);
+	},
+	/**
+	 * Lowercase first character
+	 * @param {string} string
+	 * @returns {string}
+	 */
+	lcfirst : function (string) {
+		return string[0].toLowerCase() + string.substr(1);
+	}
+};
+
+}();
 
 /*
 ---
@@ -2623,77 +3193,16 @@ license:
 	- "[MIT License](http://opensource.org/licenses/mit-license.php)"
 
 requires:
-	- atom
+	- Types.String
+	- Prototypes.Abstract
 
 provides: Prototypes.String
 
 ...
 */
 
-new function () {
-
-var substituteRE = /\\?\{([^{}]+)\}/g,
-	safeHtmlRE = /[<'&">]/g,
-	UID = Date.now();
-
-String.uniqueID = function () {
-	return (UID++).toString(36);
-};
-
-atom.implement(String, {
-	safeHtml: function () {
-		return this.replaceAll(safeHtmlRE, {
-			'&'  : '&amp;',
-			'\'' : '&#039;',
-			'\"' : '&quot;',
-			'<'  : '&lt;',
-			'>'  : '&gt;'
-		});
-	},
-	repeat: function(times) {
-		return new Array(times + 1).join(this);
-	},
-	substitute: function(object, regexp){
-		return this.replace(regexp || substituteRE, function(match, name){
-			return (match[0] == '\\') ? match.slice(1) : (object[name] == null ? '' : object[name]);
-		});
-	},
-	replaceAll: function (find, replace) {
-		var type = atom.typeOf(find);
-		if (type == 'regexp') {
-			return this.replace(find, function (symb) { return replace[symb]; });
-		} else if (type == 'object') {
-			var result = this;
-			for (var i in find) result = result.replaceAll(i, find[i]);
-			return result;
-		}
-		return this.split(find).join(replace);
-	},
-	contains: function (substr) {
-		return this.indexOf( substr ) >= 0;
-	},
-	begins: function (w, caseInsensitive) {
-		return (!caseInsensitive) ? w == this.substr(0, w.length) :
-			w.toLowerCase() == this.substr(0, w.length).toLowerCase();
-	},
-	ends: function (w, caseInsensitive) {
-		return (!caseInsensitive) ? w == this.substr(this.length - w.length) :
-			w.toLowerCase() == this.substr(this.length - w.length).toLowerCase();
-	},
-	ucfirst : function () {
-		return this[0].toUpperCase() + this.substr(1);
-	},
-	lcfirst : function () {
-		return this[0].toLowerCase() + this.substr(1);
-	},
-	trimLeft : ''.trimLeft || function () {
-		return this.replace(/^\s+/, '');
-	},
-	trimRight: ''.trimRight || function () {
-		return this.replace(/\s+$/, '');
-	}
-});
-
-}();
+prototypize.proto(String, prototypize.fn(atom.string),
+	'safeHtml repeat substitute replaceAll contains begins ends ucfirst lcfirst'
+);
 
 }.call(typeof exports == 'undefined' ? window : exports, Object, Array)); 

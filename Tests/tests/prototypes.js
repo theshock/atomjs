@@ -70,7 +70,8 @@ equal('ab-'.repeat(3), 'ab-ab-ab-', 'String.repeat');
 equal('result is {here}!'.substitute({ here: 123 }), 'result is 123!', 'String.substitute');
 
 // replaceAll
-equal('Repl/ace /all "/a"'.replaceAll('/a', '0'), 'Repl0ce 0ll "0"', 'String.replaceAll');
+equal('Repl/ace /all "/a"'.replaceAll('/a', '0'), 'Repl0ce 0ll "0"', 'String.replaceAll(from, to)');
+equal('Repl/ace /all "/a"'.replaceAll({ '/a': '0' }), 'Repl0ce 0ll "0"', 'String.replaceAll(object)');
 
 // begins
 ok( 'String'.begins('Str'), 'String.begins("Str")');
@@ -108,9 +109,6 @@ deepEqual([1,2,3].append([2,3,4], [5,6,7]), [1,2,3,2,3,4,5,6,7], '[1,2,3].append
 
 // erase
 deepEqual([1,2,3,1,2,3].erase(2), [1,3,1,3], 'array.erase');
-// toKeys
-deepEqual(['a','b','c'].toKeys( ), {a:0, b:1, c:2}, 'array.toKeys()');
-deepEqual(['a','b','c'].toKeys(9), {a:9, b:9, c:9}, 'array.toKeys(value)');
 
 // combine
 deepEqual([1,2,3].combine([2,3,4]), [1,2,3,4], 'array.combine');
