@@ -55,7 +55,7 @@ var typeOf = function (item) {
 
 	if (item && type == 'object') {
 		if (atom.Class && item instanceof atom.Class) return 'class';
-		if (atom.isEnumerable(item)) return 'arguments';
+		if (atom.isArrayLike(item)) return 'arguments';
 	}
 
 	return type;
@@ -64,6 +64,10 @@ typeOf.types = {};
 ['Boolean', 'Number', 'String', 'Function', 'Array', 'Date', 'RegExp', 'Class'].forEach(function(name) {
 	typeOf.types['[object ' + name + ']'] = name.toLowerCase();
 });
+
+var isFunction = function (item) {
+	return item && toString.call(item) != '[object Function]';
+};
 
 
 var clone = function (object) {
@@ -97,8 +101,12 @@ atom.extend({
 	},
 	/** @deprecated - use console-cap instead: https://github.com/theshock/console-cap/ */
 	log: function () { throw new Error('deprecated') },
-	isEnumerable: function(item){
-		return item != null && toString.call(item) != '[object Function]' && typeof item.length == 'number';
+	isArrayLike: function(item) {
+		return item && (Array.isArray(item) || (
+			typeof item != 'string' &&
+			!isFunction(item) &&
+			typeof item.length == 'number'
+		));
 	},
 	append: function (target, source) {
 		for (var i = 1, l = arguments.length; i < l; i++){

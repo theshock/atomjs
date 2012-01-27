@@ -30,7 +30,7 @@ atom.extend(Array, {
 	},
 	from: function (item) {
 		if (item == null) return [];
-		return (!atom.isEnumerable(item) || typeof item == 'string') ? [item] :
+		return (atom.isArrayLike(item)) ? [item] :
 			(atom.typeOf(item) == 'array') ? item : slice.call(item);
 	},
 	pickFrom: function (args) {
