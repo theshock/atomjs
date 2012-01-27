@@ -11,6 +11,7 @@ license:
 
 requires:
 	- Types.Array
+	- Prototypes.Abstract
 
 provides: Prototypes.Array
 
@@ -19,22 +20,11 @@ provides: Prototypes.Array
 
 (function () {
 
-var proto = function (methodName) {
-	return function () {
-		var args = slice.call(arguments);
-		args.unshift(this);
-		return atom.array[methodName].apply(atom.array, args);
-	};
-};
+var proto = prototypize.fn(atom.array);
 
-atom.extend(Array, atom.array.collect( atom.array,
-	'range from pickFrom fill fillMatrix collect create toHash'.split(' ')
-));
-
-atom.implement(Array, atom.array.associate(
-	'randomIndex property contains include append erase combine pick invoke shuffle sortBy min max mul add sum product average unique associate clean empty clone hexToRgb rgbToHex'
-		.split(' '), proto
-));
+prototypize
+	.own(Array, atom.array, 'range from pickFrom fill fillMatrix collect create toHash')
+	.proto(Array, proto, 'randomIndex property contains include append erase combine pick invoke shuffle sortBy min max mul add sum product average unique associate clean empty clone hexToRgb rgbToHex' );
 
 atom.implement(Array, {
 	get last(){
