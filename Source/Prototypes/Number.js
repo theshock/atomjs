@@ -10,60 +10,29 @@ license:
 	- "[MIT License](http://opensource.org/licenses/mit-license.php)"
 
 requires:
-	- atom
+	- Types.Number
+	- Prototypes.Abstract
 
 provides: Prototypes.Number
 
 ...
 */
 
-new function () {
-	
-atom.extend(Number, {
-	random : function (min, max) {
-		return Math.floor(Math.random() * (max - min + 1) + min);
-	}
-});
+prototypize
+	.own(Number, atom.number, 'random')
+	.proto(Number, prototypize.fn(atom.number), 'between equals limit round stop' );
 
 atom.implement(Number, {
-	between: function (n1, n2, equals) {
-		return (n1 <= n2) && (
-			(equals == 'L' && this == n1) ||
-			(equals == 'R' && this == n2) ||
-			(  this  > n1  && this  < n2) ||
-			([true,'LR','RL'].indexOf(equals) != -1 && (n1 == this || n2 == this))
-		);
-	},
-	equals : function (to, accuracy) {
-		if (accuracy == null) accuracy = 8;
-		return this.toFixed(accuracy) == to.toFixed(accuracy);
-	},
-	limit: function(min, max){
-		var bottom = Math.max(min, this);
-		return arguments.length == 2 ?
-			Math.min(max, bottom) : bottom;
-	},
-	round: function(precision){
-		precision = Math.pow(10, precision || 0).toFixed(precision < 0 ? -precision : 0);
-		return Math.round(this * precision) / precision;
-	},
 	toFloat: function(){
 		return parseFloat(this);
 	},
 	toInt: function(base){
 		return parseInt(this, base || 10);
-	},
-	stop: function() {
-		var num = Number(this);
-		if (num) {
-			clearInterval(num);
-			clearTimeout (num);
-		}
-		return this;
 	}
 });
 
-['abs','acos','asin','atan','atan2','ceil','cos','exp','floor','log','max','min','pow','sin','sqrt','tan']
+'abs acos asin atan atan2 ceil cos exp floor log max min pow sin sqrt tan'
+	.split(' ')
 	.forEach(function(method) {
 		if (Number[method]) return;
 		
@@ -72,4 +41,4 @@ atom.implement(Number, {
 		};
 	});
 
-};
+
