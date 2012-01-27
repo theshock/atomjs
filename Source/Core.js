@@ -66,7 +66,7 @@ typeOf.types = {};
 });
 
 var isFunction = function (item) {
-	return item && toString.call(item) != '[object Function]';
+	return item && toString.call(item) == '[object Function]';
 };
 
 

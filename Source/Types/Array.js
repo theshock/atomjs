@@ -423,7 +423,7 @@ atom.array = {
 		return array;
 	},
 	/** @deprecated */
-	clone: function () { return atom.clone(this) },
+	clone: function (array) { return atom.clone(array) },
 	/**
 	 * @param array
 	 * @param {boolean} [asArray=false] - returns result as array, or as string

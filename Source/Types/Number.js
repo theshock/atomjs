@@ -37,9 +37,8 @@ atom.number = {
 		return number.toFixed(accuracy) == to.toFixed(accuracy);
 	},
 	limit: function(number, min, max){
-		var bottom = Math.max(min, number);
-		return arguments.length == 2 ?
-			Math.min(max, bottom) : bottom;
+		var bottom = Math.max(min, Number(number));
+		return max != null ? Math.min(max, bottom) : bottom;
 	},
 	round: function(number, precision){
 		precision = Number( Math.pow(10, precision || 0).toFixed(precision < 0 ? -precision : 0) );

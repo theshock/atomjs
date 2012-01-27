@@ -81,6 +81,7 @@ var wrap = function(self, key, method){
 	if (method.$origin) method = method.$origin;
 	
 	var wrapper = function() {
+		if (!this || this == atom.global) throw new TypeError('Context lost');
 		if (method.$protected && !this.$caller) throw new Error('The method «' + key + '» is protected.');
 		var current = this.$caller;
 		this.$caller = wrapper;

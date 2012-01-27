@@ -26,7 +26,7 @@ atom.Class.bindAll = function (object, methods) {
 		if (
 			methods != '$caller' &&
 			!atom.accessors.has(object, methods) &&
-			atom.typeOf(object[methods]) == 'function'
+			isFunction(object[methods])
 		) {
 			object[methods] = object[methods].bind( object );
 		}

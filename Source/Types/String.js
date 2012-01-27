@@ -63,20 +63,20 @@ atom.string = {
 		});
 	},
 	/**
+	 * @param {string} string
 	 * @param {Object|RegExp|string} find
 	 * @param {Object|string} [replace=null]
 	 * @returns {String}
 	 */
-	replaceAll: function (find, replace) {
+	replaceAll: function (string, find, replace) {
 		var type = atom.typeOf(find);
 		if (type == 'regexp') {
-			return this.replace(find, function (symb) { return replace[symb]; });
+			return string.replace(find, function (symb) { return replace[symb]; });
 		} else if (type == 'object') {
-			var result = this;
-			for (var i in find) result = result.replaceAll(i, find[i]);
-			return result;
+			for (var i in find) string = string.replaceAll(i, find[i]);
+			return string;
 		}
-		return this.split(find).join(replace);
+		return string.split(find).join(replace);
 	},
 	/**
 	 * Checks if string contains such substring

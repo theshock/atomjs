@@ -12,6 +12,7 @@ license:
 requires:
 	- atom
 	- Types.Array
+	- Types.Object
 
 provides: Prototypes.Abstract
 
@@ -24,7 +25,7 @@ var prototypize = {
 			return function () {
 				var args = slice.call(arguments);
 				args.unshift(this);
-				return source[methodName].apply(atom.array, args);
+				return source[methodName].apply(source, args);
 			};
 		};
 	},
@@ -32,10 +33,11 @@ var prototypize = {
 		atom.implement(object, atom.array.associate(
 			methodsString.split(' '), proto
 		));
-		return prototypize
+		return prototypize;
 	},
 	own: function (object, source, methodsString) {
-		atom.extend(object, atom.array.collect( source, methodsString.split(' ') ));
-		return prototypize
+		console.log( atom.object.collect( source, methodsString.split(' ') ) );
+		atom.extend(object, atom.object.collect( source, methodsString.split(' ') ));
+		return prototypize;
 	}
 };

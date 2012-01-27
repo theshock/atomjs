@@ -25,9 +25,9 @@ atom.object = {
 	},
 	collect: function (obj, props, Default) {
 		var newObj = {};
-		for (var i in props.toKeys()) {
+		props.forEach(function (i){
 			newObj[i] = i in obj ? obj[i] : Default;
-		}
+		});
 		return newObj;
 	},
 	values: function (obj) {
