@@ -75,12 +75,16 @@ var clone = function (object) {
 	return type in clone.types ? clone.types[type](object) : object;
 };
 clone.types = {
-	array: function (array) {
+	'array': function (array) {
 		var i = array.length, c = new Array(i);
 		while (i--) c[i] = clone(array[i]);
 		return c;
 	},
-	object: function (object) {
+	'class':function (object) {
+		return typeof object.clone == 'function' ?
+			object.clone() : object;
+	},
+	'object': function (object) {
 		if (typeof object.clone == 'function') return object.clone();
 
 		var c = {}, accessors = atom.accessors && atom.accessors.inherit;

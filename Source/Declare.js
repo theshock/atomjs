@@ -32,14 +32,14 @@ declare = function (declareName, params) {
 
 	if (typeof declareName != 'string') {
 		params = declareName;
-		declareName   = null;
+		declareName = null;
 	}
 
-	if (!params      ) params = {};
-	if (!params.proto) params = { proto: params };
-	if (!params.name ) params.name = declareName;
-	if (!params.proto.initialize) {
-		params.proto.initialize = function () {
+	if (!params) params = {};
+	if (!params.prototype) params = { prototype: params.proto || params };
+	if (!params.name) params.name = declareName;
+	if (!params.prototype.initialize) {
+		params.prototype.initialize = function () {
 			if (!params.parent) return;
 			return params.parent.prototype.initialize.apply(this, arguments);
 		};
@@ -176,7 +176,7 @@ declare.config.mutator({
 	own: function (Constuctor, properties) {
 		methods.addTo(Constuctor, properties);
 	},
-	proto: function (Constuctor, properties) {
+	prototype: function (Constuctor, properties) {
 		methods.addTo(Constuctor.prototype, properties);
 	}
 });
