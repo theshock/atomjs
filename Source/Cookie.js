@@ -29,10 +29,11 @@ atom.extend({
 			options = options || {};
 			var exp = options.expires;
 			if (exp) {
+				if (typeof exp == 'number') {
+					exp = new Date(exp * 1000 + Date.now());
+				}
 				if (exp.toUTCString) {
 					exp = exp.toUTCString();
-				} else if (typeof exp == 'number') {
-					exp = exp * 1000 + Date.now();
 				}
 				options.expires = exp;
 			}
