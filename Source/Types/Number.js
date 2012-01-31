@@ -41,7 +41,13 @@ atom.number = {
 		return max != null ? Math.min(max, bottom) : bottom;
 	},
 	round: function(number, precision){
-		precision = Number( Math.pow(10, precision || 0).toFixed(precision < 0 ? -precision : 0) );
+		if (!precision) return Math.round(number);
+
+		if (precision < 0) {
+			precision = Number( Math.pow(10, precision).toFixed( -precision ) );
+		} else {
+			precision = Math.pow(10, precision);
+		}
 		return Math.round(number * precision) / precision;
 	},
 	stop: function(num) {
