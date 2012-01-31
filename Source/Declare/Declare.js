@@ -93,6 +93,15 @@ declare.factory = function (args) {
 	return new this(args);
 };
 
+declare.castArguments = function (args) {
+	if (args == null) return null;
+
+	var constructor = this;
+
+	return (typeof args == 'object' && args[0] instanceof constructor) ?
+		args[0] : args instanceof constructor ? args : new constructor(args);
+};
+
 methods = {
 	define: function (path, value) {
 		var key, part, target = atom.global;
