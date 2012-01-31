@@ -36,7 +36,9 @@ declare = function (declareName, params) {
 	}
 
 	if (!params) params = {};
-	if (!params.prototype) params = { prototype: params.proto || params };
+	if (!params.prototype) {
+		params.prototype = params.proto || params;
+	}
 	if (!params.name) params.name = declareName;
 	if (!params.prototype.initialize) {
 		params.prototype.initialize = function () {

@@ -1599,7 +1599,9 @@ declare = function (declareName, params) {
 	}
 
 	if (!params) params = {};
-	if (!params.prototype) params = { prototype: params.proto || params };
+	if (!params.prototype) {
+		params.prototype = params.proto || params;
+	}
 	if (!params.name) params.name = declareName;
 	if (!params.prototype.initialize) {
 		params.prototype.initialize = function () {
@@ -2436,7 +2438,7 @@ declare( 'atom.Color',
 
 		/** @private */
 		safeAlphaSet: function (v) {
-			if (v != null) this.alpha = v;
+			if (v != null) this.alpha = atom.number.round(v, 3);
 		},
 
 		/** @private */
@@ -2504,11 +2506,13 @@ declare( 'atom.Color',
 			string = string.toLowerCase();
 			string = this.constructor.colorNames[string] || string;
 			
-			if (hex = string.match(/^#(\w{1,2})(\w{1,2})(\w{1,2})$/)) {
-				array = hex.slice(1).map(function (part) {
+			if (hex = string.match(/^#(\w{1,2})(\w{1,2})(\w{1,2})(\w{1,2})?$/)) {
+				array = hex.slice(1).clean();
+				array = array.map(function (part) {
 					if (part.length == 1) part += part;
 					return parseInt(part, 16);
 				});
+				if (array.length == 4) array[3] /= 255;
 			} else {
 				array = string.match(/([\.\d]{1,3})/g).map( Number );
 			}
@@ -2533,9 +2537,7 @@ declare( 'atom.Color',
 				parseInt(string[0] + string[1], 16),
 				parseInt(string[2] + string[3], 16),
 				parseInt(string[4] + string[5], 16),
-				atom.number.round(
-					parseInt(string[6] + string[7], 16) / 255
-				, 3)
+				parseInt(string[6] + string[7], 16) / 255
 			]);
 		},
 
