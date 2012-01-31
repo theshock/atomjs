@@ -36,7 +36,7 @@ atom.object = {
 		return values;
 	},
 	isDefined: function (obj) {
-		return typeof obj != 'undefined';
+		return typeof obj !== 'undefined';
 	},
 	isReal: function (obj) {
 		return obj || obj === 0;

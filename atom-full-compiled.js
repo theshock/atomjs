@@ -1760,502 +1760,6 @@ return atom.declare = declare;
 /*
 ---
 
-name: "Color"
-
-description: "Provides Color class"
-
-license:
-	- "[GNU Lesser General Public License](http://opensource.org/licenses/lgpl-license.php)"
-	- "[MIT License](http://opensource.org/licenses/mit-license.php)"
-
-requires:
-	- atom
-	- declare
-
-provides: Color
-
-...
-*/
-
-
-declare( 'atom.Color',
-/** @class atom.Color */
-{
-	/** @private */
-	recursive: false,
-
-	/** @private */
-	values: {},
-
-	/**
-	 * @constructs
-	 * @param {Object} [initialValues]
-	 * @param {Boolean} [recursive=false]
-	 */
-	initialize: function (initialValues, recursive) {
-		if (!this.isValidOptions(initialValues)) {
-			recursive = !!initialValues;
-			initialValues = null;
-		}
-
-		this.values    = initialValues || {};
-		this.recursive = !!recursive;
-	},
-
-	/**
-	 * @param {atom.Events} events
-	 * @return atom.Options
-	 */
-	addEvents: function (events) {
-		this.events = events;
-		return this.invokeEvents();
-	},
-
-	/**
-	 * @param {String} name
-	 */
-	get: function (name) {
-		return this.values[name];
-	},
-
-	/**
-	 * @param {Object} options
-	 * @return atom.Options
-	 */
-	set: function (options) {
-		var method = this.recursive ? 'extend' : 'append';
-		if (this.isValidOptions(options)) {
-			atom[method](this.values, options);
-		}
-		this.invokeEvents();
-		return this;
-	},
-
-	/**
-	 * @param {String} name
-	 * @return atom.Options
-	 */
-	unset: function (name) {
-		delete this.values[name];
-		return this;
-	},
-
-	/** @private */
-	isValidOptions: function (options) {
-		return options && typeof options == 'object';
-	},
-
-	/** @private */
-	invokeEvents: function () {
-		if (!this.events) return this;
-
-		var values = this.values, name, option;
-		for (name in values) {
-			option = values[name];
-			if (this.isInvokable(name, option)) {
-				this.events.add(name, option);
-				this.unset(name);
-			}
-		}
-		return this;
-	},
-
-	/** @private */
-	isInvokable: function (name, option) {
-		return name &&
-			option &&
-			atom.typeOf(option) == 'function' &&
-			(/^on[A-Z]/).test(name);
-	}
-});
-
-/*
----
-
-name: "Events"
-
-description: ""
-
-license:
-	- "[GNU Lesser General Public License](http://opensource.org/licenses/lgpl-license.php)"
-	- "[MIT License](http://opensource.org/licenses/mit-license.php)"
-
-requires:
-	- atom
-	- declare
-
-inspiration:
-  - "[MooTools](http://mootools.net)"
-
-provides: Events
-
-...
-*/
-
-declare( 'atom.Events',
-/** @class atom.Events */
-{
-
-	/** @constructs */
-	initialize: function (context) {
-		this.context   = context || this;
-		this.locked    = [];
-		this.events    = {};
-		this.actions   = {};
-		this.readyList = {};
-	},
-
-	/**
-	 * @param {String} name
-	 * @return Boolean
-	 */
-	exists: function (name) {
-		var array = this.events[this.removeOn( name )];
-		return array && !!array.length;
-	},
-
-	/**
-	 * @param {String} name
-	 * @param {Function} callback
-	 * @return Boolean
-	 */
-	add: function (name, callback) {
-		this.run( 'addOne', name, callback );
-		return this;
-	},
-
-	/**
-	 * @param {String} name
-	 * @param {Function} callback
-	 * @return Boolean
-	 */
-	remove: function (name, callback) {
-		if (typeof name == 'string' && !callback) {
-			this.removeAll( name );
-		} else {
-			this.run( 'removeOne', name, callback );
-		}
-		return this;
-	},
-
-	/**
-	 * @param {String} name
-	 * @param {Array} args
-	 * @return atom.Events
-	 */
-	fire: function (name, args) {
-		args = args ? slice.call( args ) : [];
-		name = this.removeOn( name );
-
-		this.locked.push(name);
-		var i = 0, l, events = this.events[name];
-		if (events) for (l = events.length; i < l; i++) {
-			events[i].apply( this.context, args );
-		}
-		this.unlock( name );
-		return this;
-	},
-
-	/**
-	 * @param {String} name
-	 * @param {Array} args
-	 * @return atom.Events
-	 */
-	ready: function (name, args) {
-		name = this.removeOn( name );
-		this.locked.push(name);
-		if (name in this.readyList) {
-			throw new Error( 'Event «'+name+'» is ready' );
-		}
-		this.readyList[name] = args;
-		this.fire(name, args);
-		this.removeAll(name);
-		this.unlock( name );
-		return this;
-	},
-
-	// only private are below
-
-	/** @private */
-	context: null,
-	/** @private */
-	events: {},
-	/** @private */
-	readyList: {},
-	/** @private */
-	locked: [],
-	/** @private */
-	actions: {},
-
-	/** @private */
-	removeOn: function (name) {
-		return (name || '').replace(/^on([A-Z])/, function(full, first){
-			return first.toLowerCase();
-		});
-	},
-	/** @private */
-	removeAll: function (name) {
-		var events = this.events[name];
-		if (events) for (var i = events.length; i--;) {
-			this.removeOne( name, events[i] );
-		}
-	},
-	/** @private */
-	unlock: function (name) {
-		var action,
-			all    = this.actions[name],
-			index  = this.locked.indexOf( name );
-
-		this.locked.splice(index, 1);
-
-		if (all) for (index = 0; index < all.length; index++) {
-			action = all[index];
-
-			this[action.method]( name, action.callback );
-		}
-	},
-	/** @private */
-	run: function (method, name, callback) {
-		var i = 0, l = 0;
-
-		if (Array.isArray(name)) {
-			for (i = 0, l = name.length; i < l; i++) {
-				this[method](name[i], callback);
-			}
-		} else if (typeof name == 'object') {
-			for (i in name) {
-				this[method](i, name[i]);
-			}
-		} else if (typeof name == 'string') {
-			this[method](name, callback);
-		} else {
-			throw new TypeError( 'Wrong arguments in Events.' + method );
-		}
-	},
-	/** @private */
-	register: function (name, method, callback) {
-		var actions = this.actions;
-		if (!actions[name]) {
-			actions[name] = [];
-		}
-		actions[name].push({ method: method, callback: callback })
-	},
-	/** @private */
-	addOne: function (name, callback) {
-		var events, ready, context;
-
-		name = this.removeOn( name );
-
-		if (this.locked.indexOf(name) == -1) {
-			ready = this.readyList[name];
-			if (ready) {
-				context = this.context;
-				setTimeout(function () {
-					callback.apply(context, ready);
-				}, 0);
-				return this;
-			} else {
-				events = this.events;
-				if (!events[name]) {
-					events[name] = [callback];
-				} else {
-					events[name].push(callback);
-				}
-			}
-		} else {
-			this.register(name, 'addOne', callback);
-		}
-	},
-	/** @private */
-	removeOne: function (name, callback) {
-		name = this.removeOn( name );
-
-		if (this.locked.indexOf(name) == -1) {
-			var events = this.events[name], i = events.length;
-			while (i--) if (events[i] == callback) {
-				events.splice(i, 1);
-			}
-		} else {
-			this.register(name, 'removeOne', callback);
-		}
-	}
-});
-
-declare( 'atom.Events.Mixin', new function () {
-	var init = function () {
-		var events = this.__events;
-		if (!events) events = this.__events = new atom.Events(this);
-		if (this._events) {
-			for (var name in this._events) if (name != '$ready') {
-				this._events[name].forEach(function (fn) {
-					events.add(name, fn);
-				});
-			}
-		}
-		return events;
-	};
-
-	var method = function (method, useReturn) {
-		return function () {
-			var result, events = init.call(this);
-
-			result = events[method].apply( events, arguments );
-			return useReturn ? result : this;
-		}
-	};
-
-	/** @class atom.Events.Mixin */
-	return {
-		get events ( ) { return init.call(this); },
-		set events (e) { this.__events = e;       },
-		isEventAdded: method( 'exists', true ),
-		addEvent    : method( 'add'   , false ),
-		removeEvent : method( 'remove', false ),
-		fireEvent   : method( 'fire'  , false ),
-		readyEvent  : method( 'ready' , false )
-	};
-});
-
-/*
----
-
-name: "Settings"
-
-description: ""
-
-license:
-	- "[GNU Lesser General Public License](http://opensource.org/licenses/lgpl-license.php)"
-	- "[MIT License](http://opensource.org/licenses/mit-license.php)"
-
-requires:
-	- declare
-
-provides: Settings
-
-...
-*/
-
-
-declare( 'atom.Settings',
-/** @class atom.Settings */
-{
-	/** @private */
-	recursive: false,
-
-	/** @private */
-	values: {},
-
-	/**
-	 * @constructs
-	 * @param {Object} [initialValues]
-	 * @param {Boolean} [recursive=false]
-	 */
-	initialize: function (initialValues, recursive) {
-		if (!this.isValidOptions(initialValues)) {
-			recursive = !!initialValues;
-			initialValues = null;
-		}
-
-		this.values    = initialValues || {};
-		this.recursive = !!recursive;
-	},
-
-	/**
-	 * @param {atom.Events} events
-	 * @return atom.Options
-	 */
-	addEvents: function (events) {
-		this.events = events;
-		return this.invokeEvents();
-	},
-
-	/**
-	 * @param {String} name
-	 */
-	get: function (name) {
-		return this.values[name];
-	},
-
-	/**
-	 * @param {Object} options
-	 * @return atom.Options
-	 */
-	set: function (options) {
-		var method = this.recursive ? 'extend' : 'append';
-		if (this.isValidOptions(options)) {
-			atom[method](this.values, options);
-		}
-		this.invokeEvents();
-		return this;
-	},
-
-	/**
-	 * @param {String} name
-	 * @return atom.Options
-	 */
-	unset: function (name) {
-		delete this.values[name];
-		return this;
-	},
-
-	/** @private */
-	isValidOptions: function (options) {
-		return options && typeof options == 'object';
-	},
-
-	/** @private */
-	invokeEvents: function () {
-		if (!this.events) return this;
-
-		var values = this.values, name, option;
-		for (name in values) {
-			option = values[name];
-			if (this.isInvokable(name, option)) {
-				this.events.add(name, option);
-				this.unset(name);
-			}
-		}
-		return this;
-	},
-
-	/** @private */
-	isInvokable: function (name, option) {
-		return name &&
-			option &&
-			atom.typeOf(option) == 'function' &&
-			(/^on[A-Z]/).test(name);
-	}
-});
-
-declare( 'atom.Settings.Mixin',
-/** @class atom.Settings.Mixin */
-{
-	/**
-	 * @private
-	 * @property atom.Settings
-	 */
-	settings: null,
-	options : {},
-
-	setOptions: function (options) {
-		if (!this.settings) {
-			this.settings = new atom.Settings(
-				atom.clone(this.options || {})
-			);
-			this.options = this.settings.values;
-		}
-
-		for (var i = 0; i < arguments.length; i++) {
-			this.settings.set(arguments[i]);
-		}
-
-		return this;
-	}
-});
-
-/*
----
-
 name: "Types.Number"
 
 description: "Contains number-manipulation methods like limit, round, times, and ceil."
@@ -2296,7 +1800,13 @@ atom.number = {
 		return max != null ? Math.min(max, bottom) : bottom;
 	},
 	round: function(number, precision){
-		precision = Number( Math.pow(10, precision || 0).toFixed(precision < 0 ? -precision : 0) );
+		if (!precision) return Math.round(number);
+
+		if (precision < 0) {
+			precision = Number( Math.pow(10, precision).toFixed( -precision ) );
+		} else {
+			precision = Math.pow(10, precision);
+		}
 		return Math.round(number * precision) / precision;
 	},
 	stop: function(num) {
@@ -2798,6 +2308,718 @@ atom.array = {
 /*
 ---
 
+name: "Color"
+
+description: "Provides Color class"
+
+license:
+	- "[GNU Lesser General Public License](http://opensource.org/licenses/lgpl-license.php)"
+	- "[MIT License](http://opensource.org/licenses/mit-license.php)"
+
+requires:
+	- atom
+	- declare
+	- Types.Number
+	- Types.Array
+
+provides: Color
+
+...
+*/
+
+
+declare( 'atom.Color',
+/** @class atom.Color */
+{
+	own: {
+		invoke: declare.castArguments,
+
+		/**
+		 * Checks if string is color description
+		 * @param {string} string
+		 * @returns {boolean}
+		 */
+		isColorString : function (string) {
+			if (typeof string != 'string') return false;
+			return string in this.colorNames ||
+				string.match(/^#\w{3,6}$/) ||
+				string.match(/^rgba?\([\d, ]+\)$/);
+		},
+
+		colorNames: {
+			white:  '#ffffff',
+			silver: '#c0c0c0',
+			gray:   '#808080',
+			black:  '#000000',
+			red:    '#ff0000',
+			maroon: '#800000',
+			yellow: '#ffff00',
+			olive:  '#808000',
+			lime:   '#00ff00',
+			green:  '#008000',
+			aqua:   '#00ffff',
+			teal:   '#008080',
+			blue:   '#0000ff',
+			navy:   '#000080',
+			fuchsia:'#ff00ff',
+			purple: '#800080',
+			orange: '#ffa500'
+		},
+
+		/**
+		 * @param {boolean} [html=false] - only html color names
+		 * @returns {atom.Color}
+		 */
+		random: function (html) {
+			var random = atom.number.random;
+			if (html) {
+				return new this(atom.array.random(
+					Object.keys(this.colorNames)
+				));
+			} else {
+				return new this([
+					random(0, 255),
+					random(0, 255),
+					random(0, 255)
+				]);
+			}
+		}
+	},
+
+	prototype: {
+		initialize: function (value) {
+			var a = arguments, type;
+			if (a.length == 4 || a.length == 3) {
+				value = slice.call(a);
+			} else if (value && value.length == 1) {
+				value = value[0];
+			}
+
+			type = typeof value;
+			if (Array.isArray(value)) {
+				this.fromArray(value);
+			} else if (type == 'number') {
+				this.fromNumber(value);
+			} else if (type == 'string') {
+				this.fromString(value);
+			} else if (type == 'object') {
+				this.fromObject(value);
+			} else {
+				throw new TypeError('Unknown type in atom.Color: ' + typeof value + ';\n' + value);
+			}
+		},
+
+		/** @private */
+		r: 0,
+		/** @private */
+		g: 0,
+		/** @private */
+		b: 0,
+		/** @private */
+		a: 1,
+
+		/**
+		 * We are array-like object (looks at accessors at bottom of class)
+		 * @constant
+		 */
+		length: 4,
+
+		get red   () { return this.r },
+		get green () { return this.g },
+		get blue  () { return this.b },
+		get alpha () { return this.a },
+
+		set red   (v) { this.setValue('r', v) },
+		set green (v) { this.setValue('g', v) },
+		set blue  (v) { this.setValue('b', v) },
+		set alpha (v) { this.setValue('a', v, true) },
+
+		/** @private */
+		safeAlphaSet: function (v) {
+			if (v != null) this.alpha = v;
+		},
+
+		/** @private */
+		setValue: function (prop, value, isFloat) {
+			value = Number(value);
+			if (value != value) { // isNaN
+				throw new TypeError('Value is NaN (' + prop + '): ' + value);
+			}
+
+			if (!isFloat) value = Math.round(value);
+			// We don't want application down, if user script (e.g. animation)
+			// generates such wrong array: [150, 125, -1]
+			this[prop] = atom.number.limit( value, 0, isFloat ? 1 : 255 );
+		},
+
+		// Parsing
+
+		/**
+		 * @param {int[]} array
+		 * @returns {atom.Color}
+		 */
+		fromArray: function (array) {
+			if (!array || array.length < 3 || array.length > 4) {
+				throw new TypeError('Wrong array in atom.Color: ' + array);
+			}
+			this.red   = array[0];
+			this.green = array[1];
+			this.blue  = array[2];
+			this.safeAlphaSet(array[3]);
+			return this;
+		},
+		/**
+		 * @param {Object} object
+		 * @param {number} object.red
+		 * @param {number} object.green
+		 * @param {number} object.blue
+		 * @returns {atom.Color}
+		 */
+		fromObject: function (object) {
+			if (typeof object != 'object') {
+				throw new TypeError( 'Not object in "fromObject": ' + typeof object );
+			}
+
+			function fetch (p1, p2) {
+				return object[p1] != null ? object[p1] : object[p2]
+			}
+
+			this.red   = fetch('r', 'red'  );
+			this.green = fetch('g', 'green');
+			this.blue  = fetch('b', 'blue' );
+			this.safeAlphaSet(fetch('a', 'alpha'));
+			return this;
+		},
+		/**
+		 * @param {string} string
+		 * @returns {atom.Color}
+		 */
+		fromString: function (string) {
+			if (!this.constructor.isColorString(string)) {
+				throw new TypeError( 'Not color string in "fromString": ' + string );
+			}
+
+			var hex, array;
+
+			string = string.toLowerCase();
+			string = this.constructor.colorNames[string] || string;
+			
+			if (hex = string.match(/^#(\w{1,2})(\w{1,2})(\w{1,2})$/)) {
+				array = hex.slice(1).map(function (part) {
+					if (part.length == 1) part += part;
+					return parseInt(part, 16);
+				});
+			} else {
+				array = string.match(/([\.\d]{1,3})/g).map( Number );
+			}
+			return this.fromArray(array);
+		},
+		/**
+		 * @param {number} number
+		 * @returns {atom.Color}
+		 */
+		fromNumber: function (number) {
+			if (typeof number != 'number' || number < 0 || number > 0xffffffff) {
+				throw new TypeError( 'Not color number in "fromNumber": ' + number );
+			}
+
+			// we can't use bitwize operations because "0xffffffff | 1 == -1"
+			
+			var string = number.toString(16);
+
+			while (string.length < 8) string = '0' + string;
+
+			return this.fromArray([
+				parseInt(string[0] + string[1], 16),
+				parseInt(string[2] + string[3], 16),
+				parseInt(string[4] + string[5], 16),
+				atom.number.round(
+					parseInt(string[6] + string[7], 16) / 255
+				, 3)
+			]);
+		},
+
+		// Casting
+
+		/** @returns {int[]} */
+		toArray: function () {
+			return [this.r, this.g, this.b, this.a];
+		},
+		/** @returns {string} */
+		toString: function (type) {
+			var arr = this.toArray();
+			if (type == 'hex' || type == 'hexA') {
+				return '#' + arr.map(function (color, i) {
+					if (i == 3) { // alpha
+						if (type == 'hex') return '';
+						color = Math.round(color * 255);
+					}
+					var bit = color.toString(16);
+					return bit.length == 1 ? '0' + bit : bit;
+				}).join('');
+			} else {
+				return 'rgba(' + arr + ')';
+			}
+		},
+		/** @returns {number} */
+		toNumber: function () {
+			// maybe needs optimizations
+			return parseInt( this.toString('hexA').substr(1) , 16)
+		},
+		/** @returns {object} */
+		toObject: function (abbreviationNames) {
+			return atom.array.associate( this.toArray(),
+				abbreviationNames ?
+					['r'  , 'g'    , 'b'   ,'a'    ] :
+					['red', 'green', 'blue','alpha']
+			);
+		},
+
+		// manipulations
+
+		/**
+		 * @param {atom.Color} color
+		 * @returns {atom.Color}
+		 */
+		diff: function (color) {
+			color = this.constructor( arguments );
+			return new this.constructor([
+				color.red   - this.red  ,
+				color.green - this.green,
+				color.blue  - this.blue ,
+				color.alpha - this.alpha
+			]);
+		},
+		/**
+		 * @param {atom.Color} color
+		 * @returns {atom.Color}
+		 */
+		move: function (color) {
+			color = this.constructor(arguments);
+			this.red   += color.red  ;
+			this.green += color.green;
+			this.blue  += color.blue ;
+			this.alpha += clone.alpha;
+			return this;
+		},
+		/** @deprecated - use `clone`+`move` instead */
+		shift: function (color) {
+			color = this.constructor(arguments);
+
+			return this.clone().move(color);
+		},
+
+		/** @private */
+		dump: function () {
+			return '[atom.Color(' + this.toString('hexA') + ')]';
+		},
+
+		/**
+		 * @returns {atom.Color}
+		 */
+		clone: function () {
+			return new this.constructor(this);
+		}
+	}
+});
+['red', 'green', 'blue', 'alpha'].forEach(function (color, index) {
+	atom.accessors.define( atom.Color.prototype, index, {
+		get: function () {
+			return this[color];
+		},
+		set: function (value) {
+			this[color] = value;
+		}
+	});
+});
+
+/*
+---
+
+name: "Events"
+
+description: ""
+
+license:
+	- "[GNU Lesser General Public License](http://opensource.org/licenses/lgpl-license.php)"
+	- "[MIT License](http://opensource.org/licenses/mit-license.php)"
+
+requires:
+	- atom
+	- declare
+
+inspiration:
+  - "[MooTools](http://mootools.net)"
+
+provides: Events
+
+...
+*/
+
+declare( 'atom.Events',
+/** @class atom.Events */
+{
+
+	/** @constructs */
+	initialize: function (context) {
+		this.context   = context || this;
+		this.locked    = [];
+		this.events    = {};
+		this.actions   = {};
+		this.readyList = {};
+	},
+
+	/**
+	 * @param {String} name
+	 * @return Boolean
+	 */
+	exists: function (name) {
+		var array = this.events[this.removeOn( name )];
+		return array && !!array.length;
+	},
+
+	/**
+	 * @param {String} name
+	 * @param {Function} callback
+	 * @return Boolean
+	 */
+	add: function (name, callback) {
+		this.run( 'addOne', name, callback );
+		return this;
+	},
+
+	/**
+	 * @param {String} name
+	 * @param {Function} callback
+	 * @return Boolean
+	 */
+	remove: function (name, callback) {
+		if (typeof name == 'string' && !callback) {
+			this.removeAll( name );
+		} else {
+			this.run( 'removeOne', name, callback );
+		}
+		return this;
+	},
+
+	/**
+	 * @param {String} name
+	 * @param {Array} args
+	 * @return atom.Events
+	 */
+	fire: function (name, args) {
+		args = args ? slice.call( args ) : [];
+		name = this.removeOn( name );
+
+		this.locked.push(name);
+		var i = 0, l, events = this.events[name];
+		if (events) for (l = events.length; i < l; i++) {
+			events[i].apply( this.context, args );
+		}
+		this.unlock( name );
+		return this;
+	},
+
+	/**
+	 * @param {String} name
+	 * @param {Array} args
+	 * @return atom.Events
+	 */
+	ready: function (name, args) {
+		name = this.removeOn( name );
+		this.locked.push(name);
+		if (name in this.readyList) {
+			throw new Error( 'Event «'+name+'» is ready' );
+		}
+		this.readyList[name] = args;
+		this.fire(name, args);
+		this.removeAll(name);
+		this.unlock( name );
+		return this;
+	},
+
+	// only private are below
+
+	/** @private */
+	context: null,
+	/** @private */
+	events: {},
+	/** @private */
+	readyList: {},
+	/** @private */
+	locked: [],
+	/** @private */
+	actions: {},
+
+	/** @private */
+	removeOn: function (name) {
+		return (name || '').replace(/^on([A-Z])/, function(full, first){
+			return first.toLowerCase();
+		});
+	},
+	/** @private */
+	removeAll: function (name) {
+		var events = this.events[name];
+		if (events) for (var i = events.length; i--;) {
+			this.removeOne( name, events[i] );
+		}
+	},
+	/** @private */
+	unlock: function (name) {
+		var action,
+			all    = this.actions[name],
+			index  = this.locked.indexOf( name );
+
+		this.locked.splice(index, 1);
+
+		if (all) for (index = 0; index < all.length; index++) {
+			action = all[index];
+
+			this[action.method]( name, action.callback );
+		}
+	},
+	/** @private */
+	run: function (method, name, callback) {
+		var i = 0, l = 0;
+
+		if (Array.isArray(name)) {
+			for (i = 0, l = name.length; i < l; i++) {
+				this[method](name[i], callback);
+			}
+		} else if (typeof name == 'object') {
+			for (i in name) {
+				this[method](i, name[i]);
+			}
+		} else if (typeof name == 'string') {
+			this[method](name, callback);
+		} else {
+			throw new TypeError( 'Wrong arguments in Events.' + method );
+		}
+	},
+	/** @private */
+	register: function (name, method, callback) {
+		var actions = this.actions;
+		if (!actions[name]) {
+			actions[name] = [];
+		}
+		actions[name].push({ method: method, callback: callback })
+	},
+	/** @private */
+	addOne: function (name, callback) {
+		var events, ready, context;
+
+		name = this.removeOn( name );
+
+		if (this.locked.indexOf(name) == -1) {
+			ready = this.readyList[name];
+			if (ready) {
+				context = this.context;
+				setTimeout(function () {
+					callback.apply(context, ready);
+				}, 0);
+				return this;
+			} else {
+				events = this.events;
+				if (!events[name]) {
+					events[name] = [callback];
+				} else {
+					events[name].push(callback);
+				}
+			}
+		} else {
+			this.register(name, 'addOne', callback);
+		}
+	},
+	/** @private */
+	removeOne: function (name, callback) {
+		name = this.removeOn( name );
+
+		if (this.locked.indexOf(name) == -1) {
+			var events = this.events[name], i = events.length;
+			while (i--) if (events[i] == callback) {
+				events.splice(i, 1);
+			}
+		} else {
+			this.register(name, 'removeOne', callback);
+		}
+	}
+});
+
+declare( 'atom.Events.Mixin', new function () {
+	var init = function () {
+		var events = this.__events;
+		if (!events) events = this.__events = new atom.Events(this);
+		if (this._events) {
+			for (var name in this._events) if (name != '$ready') {
+				this._events[name].forEach(function (fn) {
+					events.add(name, fn);
+				});
+			}
+		}
+		return events;
+	};
+
+	var method = function (method, useReturn) {
+		return function () {
+			var result, events = init.call(this);
+
+			result = events[method].apply( events, arguments );
+			return useReturn ? result : this;
+		}
+	};
+
+	/** @class atom.Events.Mixin */
+	return {
+		get events ( ) { return init.call(this); },
+		set events (e) { this.__events = e;       },
+		isEventAdded: method( 'exists', true ),
+		addEvent    : method( 'add'   , false ),
+		removeEvent : method( 'remove', false ),
+		fireEvent   : method( 'fire'  , false ),
+		readyEvent  : method( 'ready' , false )
+	};
+});
+
+/*
+---
+
+name: "Settings"
+
+description: ""
+
+license:
+	- "[GNU Lesser General Public License](http://opensource.org/licenses/lgpl-license.php)"
+	- "[MIT License](http://opensource.org/licenses/mit-license.php)"
+
+requires:
+	- declare
+
+provides: Settings
+
+...
+*/
+
+
+declare( 'atom.Settings',
+/** @class atom.Settings */
+{
+	/** @private */
+	recursive: false,
+
+	/** @private */
+	values: {},
+
+	/**
+	 * @constructs
+	 * @param {Object} [initialValues]
+	 * @param {Boolean} [recursive=false]
+	 */
+	initialize: function (initialValues, recursive) {
+		if (!this.isValidOptions(initialValues)) {
+			recursive = !!initialValues;
+			initialValues = null;
+		}
+
+		this.values    = initialValues || {};
+		this.recursive = !!recursive;
+	},
+
+	/**
+	 * @param {atom.Events} events
+	 * @return atom.Options
+	 */
+	addEvents: function (events) {
+		this.events = events;
+		return this.invokeEvents();
+	},
+
+	/**
+	 * @param {String} name
+	 */
+	get: function (name) {
+		return this.values[name];
+	},
+
+	/**
+	 * @param {Object} options
+	 * @return atom.Options
+	 */
+	set: function (options) {
+		var method = this.recursive ? 'extend' : 'append';
+		if (this.isValidOptions(options)) {
+			atom[method](this.values, options);
+		}
+		this.invokeEvents();
+		return this;
+	},
+
+	/**
+	 * @param {String} name
+	 * @return atom.Options
+	 */
+	unset: function (name) {
+		delete this.values[name];
+		return this;
+	},
+
+	/** @private */
+	isValidOptions: function (options) {
+		return options && typeof options == 'object';
+	},
+
+	/** @private */
+	invokeEvents: function () {
+		if (!this.events) return this;
+
+		var values = this.values, name, option;
+		for (name in values) {
+			option = values[name];
+			if (this.isInvokable(name, option)) {
+				this.events.add(name, option);
+				this.unset(name);
+			}
+		}
+		return this;
+	},
+
+	/** @private */
+	isInvokable: function (name, option) {
+		return name &&
+			option &&
+			atom.typeOf(option) == 'function' &&
+			(/^on[A-Z]/).test(name);
+	}
+});
+
+declare( 'atom.Settings.Mixin',
+/** @class atom.Settings.Mixin */
+{
+	/**
+	 * @private
+	 * @property atom.Settings
+	 */
+	settings: null,
+	options : {},
+
+	setOptions: function (options) {
+		if (!this.settings) {
+			this.settings = new atom.Settings(
+				atom.clone(this.options || {})
+			);
+			this.options = this.settings.values;
+		}
+
+		for (var i = 0; i < arguments.length; i++) {
+			this.settings.set(arguments[i]);
+		}
+
+		return this;
+	}
+});
+
+/*
+---
+
 name: "Types.Object"
 
 description: "Object generic methods"
@@ -2833,7 +3055,7 @@ atom.object = {
 		return values;
 	},
 	isDefined: function (obj) {
-		return typeof obj != 'undefined';
+		return typeof obj !== 'undefined';
 	},
 	isReal: function (obj) {
 		return obj || obj === 0;
