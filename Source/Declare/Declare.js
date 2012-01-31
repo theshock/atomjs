@@ -100,8 +100,8 @@ declare.castArguments = function (args) {
 
 	var constructor = this;
 
-	return (typeof args == 'object' && args[0] instanceof constructor) ?
-		args[0] : args instanceof constructor ? args : new constructor(args);
+	return (args != null && args[0] && args[0] instanceof constructor) ?
+		args[0] : args instanceof constructor ? args : new constructor( args );
 };
 
 methods = {

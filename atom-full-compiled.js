@@ -1663,8 +1663,8 @@ declare.castArguments = function (args) {
 
 	var constructor = this;
 
-	return (typeof args == 'object' && args[0] instanceof constructor) ?
-		args[0] : args instanceof constructor ? args : new constructor(args);
+	return (args != null && args[0] && args[0] instanceof constructor) ?
+		args[0] : args instanceof constructor ? args : new constructor( args );
 };
 
 methods = {
@@ -2426,6 +2426,8 @@ declare( 'atom.Color',
 		 */
 		length: 4,
 
+		noLimits: false,
+
 		get red   () { return this.r },
 		get green () { return this.g },
 		get blue  () { return this.b },
@@ -2451,7 +2453,9 @@ declare( 'atom.Color',
 			if (!isFloat) value = Math.round(value);
 			// We don't want application down, if user script (e.g. animation)
 			// generates such wrong array: [150, 125, -1]
-			this[prop] = atom.number.limit( value, 0, isFloat ? 1 : 255 );
+			// `noLimits` switch off this check
+			this[prop] = this.noLimits ? value :
+				atom.number.limit( value, 0, isFloat ? 1 : 255 );
 		},
 
 		// Parsing
@@ -2584,8 +2588,10 @@ declare( 'atom.Color',
 		 * @returns {atom.Color}
 		 */
 		diff: function (color) {
-			color = this.constructor( arguments );
-			return new this.constructor([
+			// we can't use this.constructor, because context exists in such way
+			// && invoke is not called
+			color = atom.Color( color );
+			return new atom.Color.Shift([
 				color.red   - this.red  ,
 				color.green - this.green,
 				color.blue  - this.blue ,
@@ -2597,18 +2603,28 @@ declare( 'atom.Color',
 		 * @returns {atom.Color}
 		 */
 		move: function (color) {
-			color = this.constructor(arguments);
+			color = atom.Color.Shift(color);
 			this.red   += color.red  ;
 			this.green += color.green;
 			this.blue  += color.blue ;
-			this.alpha += clone.alpha;
+			this.alpha += color.alpha;
 			return this;
 		},
 		/** @deprecated - use `clone`+`move` instead */
 		shift: function (color) {
-			color = this.constructor(arguments);
-
 			return this.clone().move(color);
+		},
+		/**
+		 * @param {atom.Color} color
+		 * @returns {boolean}
+		 */
+		equals: function (color) {
+			return color &&
+				color instanceof this.constructor &&
+				color.red   == this.red   &&
+				color.green == this.green &&
+				color.blue  == this.blue  &&
+				color.alpha == this.alpha;
 		},
 
 		/** @private */
@@ -2624,6 +2640,7 @@ declare( 'atom.Color',
 		}
 	}
 });
+
 ['red', 'green', 'blue', 'alpha'].forEach(function (color, index) {
 	atom.accessors.define( atom.Color.prototype, index, {
 		get: function () {
@@ -2633,6 +2650,15 @@ declare( 'atom.Color',
 			this[color] = value;
 		}
 	});
+});
+
+
+declare( 'atom.Color.Shift',
+/** @class atom.Color.Shift */
+{
+	parent: atom.Color,
+
+	prototype: { noLimits: true }
 });
 
 /*

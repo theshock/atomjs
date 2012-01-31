@@ -1,5 +1,5 @@
-new function (undefined) {
-
+new function () {
+var undefined;
 module('[Atom Plugins] Class');
 
 test('Creating', function(){
@@ -336,8 +336,6 @@ test('bindAll', function(){
 	var overall = new Overall('oa');
 	var bindAll = new BindAll('ba');
 	var bindOne = new BindOne('bo');
-	
-			debugger;
 
 	raises(function () {
 		(1, overall.getTitle )();

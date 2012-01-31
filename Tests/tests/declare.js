@@ -1,4 +1,6 @@
-new function (undefined) {
+new function () {
+
+var undefined;
 
 module('[Atom Plugins] Declare');
 
