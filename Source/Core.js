@@ -131,6 +131,16 @@ atom.extend({
 			return this;
 		};
 	},
+	ensureObjectSetter: function (fn) {
+		return function (properties, value) {
+			if (typeof properties == 'string') {
+				var key = properties;
+				properties = {};
+				properties[key] = value;
+			}
+			return fn.call(this, properties)
+		}
+	},
 	typeOf: typeOf,
 	clone: clone
 });

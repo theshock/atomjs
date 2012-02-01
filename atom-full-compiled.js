@@ -264,6 +264,16 @@ atom.extend({
 			return this;
 		};
 	},
+	ensureObjectSetter: function (fn) {
+		return function (properties, value) {
+			if (typeof properties == 'string') {
+				var key = properties;
+				properties = {};
+				properties[key] = value;
+			}
+			return fn.call(this, properties)
+		}
+	},
 	typeOf: typeOf,
 	clone: clone
 });
@@ -1758,6 +1768,68 @@ declare.config.mutator({
 return atom.declare = declare;
 
 })(atom);
+
+/*
+---
+
+name: "Animatable"
+
+description: "Provides Color class"
+
+license:
+	- "[GNU Lesser General Public License](http://opensource.org/licenses/lgpl-license.php)"
+	- "[MIT License](http://opensource.org/licenses/mit-license.php)"
+
+requires:
+	- atom
+	- declare
+
+provides: Animatable
+
+...
+*/
+
+
+declare( 'atom.Animatable',
+/** @class atom.Animatable */
+{
+	own: {
+
+	},
+
+	prototype: {
+		defaultCallbacks: {
+			get: function (property) {
+				return this[property];
+			},
+			set: atom.overloadSetter(function (property, value) {
+				return this[property] = value;
+			})
+		},
+
+		initialize: function (element, callbacks) {
+			this.element = element;
+			this.callbacks = callbacks || this.defaultCallbacks;
+		},
+
+		animate: function (properties, value) {
+			if (typeof properties == 'string') {
+				var props = {};
+				props[properties] = value;
+			}
+		}
+	}
+});
+
+declare( 'atom.Animation',
+/** @class atom.Animation */
+{
+
+	initialize: function (element, callbacks) {
+		this.element = element;
+		this.callbacks = callbacks || this.defaultCallbacks;
+	}
+});
 
 /*
 ---
