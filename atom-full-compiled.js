@@ -2528,20 +2528,14 @@ declare( 'atom.Color',
 		 */
 		fromNumber: function (number) {
 			if (typeof number != 'number' || number < 0 || number > 0xffffffff) {
-				throw new TypeError( 'Not color number in "fromNumber": ' + number );
+				throw new TypeError( 'Not color number in "fromNumber": ' + (number.toString(16)) );
 			}
 
-			// we can't use bitwize operations because "0xffffffff | 1 == -1"
-			
-			var string = number.toString(16);
-
-			while (string.length < 8) string = '0' + string;
-
 			return this.fromArray([
-				parseInt(string[0] + string[1], 16),
-				parseInt(string[2] + string[3], 16),
-				parseInt(string[4] + string[5], 16),
-				parseInt(string[6] + string[7], 16) / 255
+				(number>>24) & 0xff,
+				(number>>16) & 0xff,
+				(number>> 8) & 0xff,
+				(number      & 0xff) / 255
 			]);
 		},
 
@@ -3210,7 +3204,6 @@ var prototypize = {
 		return prototypize;
 	},
 	own: function (object, source, methodsString) {
-		console.log( atom.object.collect( source, methodsString.split(' ') ) );
 		atom.extend(object, atom.object.collect( source, methodsString.split(' ') ));
 		return prototypize;
 	}

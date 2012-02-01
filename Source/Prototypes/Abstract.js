@@ -36,7 +36,6 @@ var prototypize = {
 		return prototypize;
 	},
 	own: function (object, source, methodsString) {
-		console.log( atom.object.collect( source, methodsString.split(' ') ) );
 		atom.extend(object, atom.object.collect( source, methodsString.split(' ') ));
 		return prototypize;
 	}
