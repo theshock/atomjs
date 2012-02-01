@@ -608,34 +608,26 @@ provides: dom
 			});
 		},
 		
-		bind : function () {
-			var events = setter(arguments);
-			
-			for (var i in events) {
-				var fn = events[i] === false ? prevent : events[i];
-				
-				this.each(function (elem) {
-					if (elem == document && i == 'load') elem = window;
-					elem.addEventListener(i, fn, false);
-				});
-			}
+		bind : atom.overloadSetter(function (event, callback) {
+			if (callback === false) callback = prevent;
+
+			this.each(function (elem) {
+				if (elem == document && event == 'load') elem = window;
+				elem.addEventListener(event, callback, false);
+			});
 			
 			return this;
-		},
-		unbind : function () {
-			var events = setter(arguments);
-			
-			for (var i in events) {
-				var fn = events[i] === false ? prevent : events[i];
+		}),
+		unbind : atom.overloadSetter(function (event, callback) {
+			if (callback === false) callback = prevent;
 				
-				this.each(function (elem) {
-					if (elem == document && i == 'load') elem = window;
-					elem.removeEventListener(i, fn, false);
-				});
-			}
+			this.each(function (elem) {
+				if (elem == document && event == 'load') elem = window;
+				elem.removeEventListener(event, callback, false);
+			});
 			
 			return this;
-		},
+		}),
 		delegate : function (selector, event, fn) {
 			return this.bind(event, function (e) {
 				if (new dom(e.target).is(selector)) {
@@ -1812,12 +1804,9 @@ declare( 'atom.Animatable',
 			this.callbacks = callbacks || this.defaultCallbacks;
 		},
 
-		animate: function (properties, value) {
-			if (typeof properties == 'string') {
-				var props = {};
-				props[properties] = value;
-			}
-		}
+		animate: atom.ensureObjectSetter(function (properties) {
+
+		})
 	}
 });
 
