@@ -96,6 +96,15 @@ clone.types = {
 	}
 };
 
+var objectize = function (properties, value) {
+	if (typeof properties != 'object') {
+		var key = properties;
+		properties = {};
+		properties[key] = value;
+	}
+	return properties;
+};
+
 atom.extend = innerExtend(false);
 
 atom.extend({
@@ -121,24 +130,37 @@ atom.extend({
 		}
 		return target;
 	},
-	overloadSetter: function (fn) {
-		return function (key, value) {
-			if (typeof key != 'string') {
-				for (var i in key) fn.call( this, i, key[i] );
+	/**
+	 * Returns function that calls callbacks.get
+	 * if first parameter is primitive & second parameter is undefined
+	 *     object.attr('name')          - get
+	 *     object.attr('name', 'value') - set
+	 *     object.attr({name: 'value'}) - set
+	 * @param {Object} callbacks
+	 * @param {Function} callbacks.get
+	 * @param {Function} callbacks.set
+	 */
+	slickAccessor: function (callbacks) {
+		var setter =  atom.overloadSetter(callbacks.set);
+
+		return function (properties, value) {
+			if (typeof value === 'undefined' && typeof properties !== 'object') {
+				return callbacks.get.call(this, properties);
 			} else {
-				fn.call( this, key, value );
+				return setter.call(this, properties, value);
 			}
+		};
+	},
+	overloadSetter: function (fn) {
+		return function (properties, value) {
+			properties = objectize(properties, value);
+			for (var i in properties) fn.call( this, i, properties[i] );
 			return this;
 		};
 	},
 	ensureObjectSetter: function (fn) {
 		return function (properties, value) {
-			if (typeof properties == 'string') {
-				var key = properties;
-				properties = {};
-				properties[key] = value;
-			}
-			return fn.call(this, properties)
+			return fn.call(this, objectize(properties, value))
 		}
 	},
 	typeOf: typeOf,

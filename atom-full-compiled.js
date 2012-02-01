@@ -229,6 +229,15 @@ clone.types = {
 	}
 };
 
+var objectize = function (properties, value) {
+	if (typeof properties != 'object') {
+		var key = properties;
+		properties = {};
+		properties[key] = value;
+	}
+	return properties;
+};
+
 atom.extend = innerExtend(false);
 
 atom.extend({
@@ -254,30 +263,42 @@ atom.extend({
 		}
 		return target;
 	},
-	overloadSetter: function (fn) {
-		return function (key, value) {
-			if (typeof key != 'string') {
-				for (var i in key) fn.call( this, i, key[i] );
+	/**
+	 * Returns function that calls callbacks.get
+	 * if first parameter is primitive & second parameter is undefined
+	 *     object.attr('name')          - get
+	 *     object.attr('name', 'value') - set
+	 *     object.attr({name: 'value'}) - set
+	 * @param {Object} callbacks
+	 * @param {Function} callbacks.get
+	 * @param {Function} callbacks.set
+	 */
+	slickAccessor: function (callbacks) {
+		var setter =  atom.overloadSetter(callbacks.set);
+
+		return function (properties, value) {
+			if (typeof value === 'undefined' && typeof properties !== 'object') {
+				return callbacks.get.call(this, properties);
 			} else {
-				fn.call( this, key, value );
+				return setter.call(this, properties, value);
 			}
+		};
+	},
+	overloadSetter: function (fn) {
+		return function (properties, value) {
+			properties = objectize(properties, value);
+			for (var i in properties) fn.call( this, i, properties[i] );
 			return this;
 		};
 	},
 	ensureObjectSetter: function (fn) {
 		return function (properties, value) {
-			if (typeof properties == 'string') {
-				var key = properties;
-				properties = {};
-				properties[key] = value;
-			}
-			return fn.call(this, properties)
+			return fn.call(this, objectize(properties, value))
 		}
 	},
 	typeOf: typeOf,
 	clone: clone
 });
-
 
 /*
 ---
@@ -400,16 +421,6 @@ provides: dom
 		},
 		toArray = atom.toArray,
 		isArray = Array.isArray,
-		length = 'length',
-		setter = function (args) {
-			if (args[length] == 1) {
-				return args[0];
-			} else {
-				var r = {};
-				r[args[0]] = args[1];
-				return r;
-			}
-		},
 		prevent = function (e) {
 			e.preventDefault();
 			return false;
@@ -427,29 +438,28 @@ provides: dom
 			return str.replace(/-\D/g, function(match){
 				return match[1].toUpperCase();
 			});
-		};
-	
-	new function () {
-		var ready = function () {
+		},
+		readyCallback = function () {
 			if (domReady) return;
 			
 			domReady = true;
 			
-			for (var i = 0, l = onDomReady[length]; i < l; onDomReady[i++]());
+			for (var i = 0; i < onDomReady.length;) {
+				onDomReady[i++]();
+			}
 			
 			onDomReady = [];
 		};
 		
-		document.addEventListener('DOMContentLoaded', ready, false);
-		window.addEventListener('load', ready, false);
-	};
+	document.addEventListener('DOMContentLoaded', readyCallback, false);
+	window.addEventListener('load', readyCallback, false);
 
 	var dom = function (sel, context) {
 		if (! (this instanceof dom)) {
 			return new dom(sel, context);
 		}
 
-		if (!arguments[length]) {
+		if (!arguments.length) {
 			this.elems = [document];
 			return this;
 		}
@@ -500,7 +510,8 @@ provides: dom
 		},
 		create: function (tagName, attr) {
 			var elem = new dom(document.createElement(tagName));
-			return attr ? elem.attr(attr) : elem;
+			if (attr) elem.attr(attr);
+			return elem;
 		},
 		isElement: function (node) {
 			return !!(node && node.nodeName);
@@ -537,7 +548,7 @@ provides: dom
 			if (selector.match(regexp.Tag)) {
 				selector = selector.toUpperCase();
 				property = 'tagName';
-			} else if (selector.match(regexp.Id )) {
+			} else if (selector.match(regexp.Id)) {
 				selector = selector.substr(1).toUpperCase();
 				property = 'id';
 			}
@@ -583,30 +594,31 @@ provides: dom
 			this.elems.forEach(fn.bind(this));
 			return this;
 		},
-		attr : function (attr) {
-			attr = setter(arguments);
-			if (typeof attr == 'string') {
-				return this.first.getAttribute(attr);
+		attr : atom.slickAccessor({
+			get: function (name) {
+				return this.first.getAttribute(name);
+			},
+			set: function (name, value) {
+				var e = this.elems, i = e.length;
+				while (i--) {
+					e[i].setAttribute(name, value)
+				}
 			}
-			return this.each(function (elem) {
-				for (var i in attr) elem.setAttribute(i, attr[i]);
-			});
-		},
-		css : function (css) {
-			css = setter(arguments);
-			if (typeof css == 'string') {
-				return window.getComputedStyle(this.first, "").getPropertyValue(css);
-			}
-			return this.each(function (elem) {
-				for (var i in css) {
-					var value = css[i];
-					if (typeof value == 'number' && !ignoreCssPostfix[i]) {
+		}),
+		css : atom.slickAccessor({
+			get: function (name) {
+				return window.getComputedStyle(this.first, "").getPropertyValue(name);
+			},
+			set: function (name, value) {
+				var e = this.elems, i = e.length;
+				while (i--) {
+					if (typeof value == 'number' && !ignoreCssPostfix[name]) {
 						value += 'px';
 					}
-					elem.style[camelCase(i)] = value;
+					e[i].style[camelCase(name)] = value;
 				}
-			});
-		},
+			}
+		}),
 		
 		bind : atom.overloadSetter(function (event, callback) {
 			if (callback === false) callback = prevent;
@@ -649,7 +661,7 @@ provides: dom
 			var result = [];
 			this.each(function (elem) {
 				var found = dom.find(elem, selector);
-				for (var i = 0, l = found[length]; i < l; i++) {
+				for (var i = 0, l = found.length; i < l; i++) {
 					if (result.indexOf(found[i]) === -1) result.push(found[i]);
 				}
 			});
@@ -728,7 +740,7 @@ provides: dom
 			});
 		},
 		log : function () {
-			atom.log.apply(atom, arguments[length] ? arguments : ['atom.dom', this.elems]);
+			console.log.apply(console, arguments.length ? arguments : ['atom.dom', this.elems]);
 			return this;
 		},
 		destroy : function () {
