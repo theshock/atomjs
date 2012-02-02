@@ -42,6 +42,7 @@ declare( 'atom.Animatable',
 	initialize: function (callbacks) {
 		if (!callbacks) throw new TypeError( 'callbacks cant be null' );
 
+		this.animations = [];
 		if (this.isValidCallbacks(callbacks)) {
 			this.callbacks = callbacks;
 		} else {
@@ -57,9 +58,49 @@ declare( 'atom.Animatable',
 			isFunction(callbacks.get);
 	},
 
+	/** @private */
+	animations: null,
+
 	animate: atom.ensureObjectSetter(function (properties) {
-		return new atom.Animatable.Animation(this, properties).start();
+		return this.next(new atom.Animatable.Animation(this, properties));
 	}),
+
+	get current () {
+		return this.animations[0];
+	},
+
+	/** @private */
+	next: function (animation) {
+		var queue = this.animations;
+		if (animation) {
+			queue.push(animation);
+			if (queue.length == 1) {
+				this.launch(animation);
+			}
+		} else if (queue.length) {
+			this.launch(this.current);
+		}
+		return animation;
+	},
+	/** @private */
+	launch: function (animation) {
+		var queue = this.animations, animatable = this;
+		animation.events.add('destroy', function remove () {
+			queue.splice(queue.indexOf(animation), 1);
+			animation.events.remove('destroy', remove);
+			animatable.next();
+		});
+		animation.start();
+	},
+
+	stop: function (all) {
+		var current = this.current;
+		if (current) {
+			if (all) this.animations.length = 0;
+			current.destroy('stop');
+		}
+		return this;
+	},
 
 	get: function (name) {
 		return this.callbacks.get.apply(this.element, arguments);
@@ -95,7 +136,7 @@ declare( 'atom.Animatable.Animation',
 		this.events   = new atom.Events(this);
 		this.settings = new atom.Settings({
 				fn  : 'linear',
-				time: 1000
+				time: 500
 			})
 			.set(settings)
 			.addEvents(this.events);
@@ -139,7 +180,7 @@ declare( 'atom.Animatable.Animation',
 		));
 		this.events.fire( 'tick', [ this ]);
 
-		if (lastTick) this.destroy();
+		if (lastTick) this.destroy('complete');
 	},
 
 	/** @private */
@@ -150,8 +191,10 @@ declare( 'atom.Animatable.Animation',
 		}
 	},
 
-	destroy: function () {
-		this.events.fire( 'finish', [ this ]);
+	destroy: function (type) {
+		if (!type) type = 'error';
+		this.events.fire( type, [ this ]);
+		this.events.fire( 'destroy', [ this ]);
 		atom.frame.remove(this.tick);
 		return this;
 	}

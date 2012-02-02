@@ -28,6 +28,9 @@
 		second: 345
 	};
 
+	atom.dom.create('p').html(Date.now()).appendTo('body');
+
+
 	var update = function () {
 		atom.dom( 'code' ).html( '[' +element.first.toFixed(3) + '] ' + element.second.round() );
 	};
@@ -42,28 +45,47 @@
 				second: 7890
 			},
 			onTick: update,
-			onFinish: function () {
+			onComplete: function () {
 				atom.dom( 'code' ).css( 'background', 'lime' );
+				atom.dom.create('p').html(Date.now()).appendTo('body');
 			}
 		});
 
 	var animate = function (id, i) {
-		var elem = atom.dom('#' + id);
+		var elem = atom.dom('#' + id).html(i);
 
-		new atom.Animatable({
+		var animatable = new atom.Animatable({
 			get: function (name) {
 				return parseInt(elem.css(name));
 			},
 			set: function (name, value) {
 				elem.css(name, value);
 			}
-		}).animate({
+		});
+		animatable.animate({
 			fn: 'sine',
 			time: 3000,
-			props: {
-				left: 300 + 50 * i
+			props: { left: 300 + 50 * i }
+		});
+		animatable.animate({
+			props: { top: 200 },
+			time: 1000,
+			onComplete: function () {
+				setTimeout(function () {
+					animatable.animate({
+						top : atom.number.random(0,  800),
+						left: atom.number.random(0, 1200)
+					});
+				}, 500);
 			}
 		});
+
+		atom.dom.create('button')
+			.html(i)
+			.appendTo('body')
+			.bind('click', function (e) {
+				animatable.stop(e.ctrlKey);
+			});
 	};
 	for (var i = 12; i--;) animate('action' + i, i);
 
