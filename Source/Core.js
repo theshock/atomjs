@@ -118,64 +118,56 @@ function eraseOne(array, element) {
 	}
 }
 
-atom.extend = innerExtend(false);
+atom.extend    = innerExtend(false);
+atom.implement = innerExtend(true);
+atom.toArray   = function (elem) { return slice.call(elem) };
+/** @deprecated - use console-cap instead: https://github.com/theshock/console-cap/ */
+atom.log = function () { throw new Error('deprecated') };
+atom.isArrayLike =  function(item) {
+	return item && (Array.isArray(item) || (
+		typeof item != 'string' &&
+		!isFunction(item) &&
+		typeof item.length == 'number'
+	));
+};
+atom.append = function (target, source) {
+	if (source) for (var key in source) if (hasOwn.call(source, key)) {
+		target[key] = source[key];
+	}
+	return target;
+};
+atom.ensureObjectSetter = function (fn) {
+	return function (properties, value) {
+		return fn.call(this, objectize(properties, value))
+	}
+};
+atom.overloadSetter = function (fn) {
+	return function (properties, value) {
+		properties = objectize(properties, value);
+		for (var i in properties) fn.call( this, i, properties[i] );
+		return this;
+	};
+};
+/**
+ * Returns function that calls callbacks.get
+ * if first parameter is primitive & second parameter is undefined
+ *     object.attr('name')          - get
+ *     object.attr('name', 'value') - set
+ *     object.attr({name: 'value'}) - set
+ * @param {Object} callbacks
+ * @param {Function} callbacks.get
+ * @param {Function} callbacks.set
+ */
+atom.slickAccessor = function (callbacks) {
+	var setter =  atom.overloadSetter(callbacks.set);
 
-atom.extend({
-	implement: innerExtend(true),
-	toArray: function (elem) {
-		return slice.call(elem);
-	},
-	/** @deprecated - use console-cap instead: https://github.com/theshock/console-cap/ */
-	log: function () { throw new Error('deprecated') },
-	isArrayLike: function(item) {
-		return item && (Array.isArray(item) || (
-			typeof item != 'string' &&
-			!isFunction(item) &&
-			typeof item.length == 'number'
-		));
-	},
-	append: function (target, source) {
-		for (var i = 1, l = arguments.length; i < l; i++){
-			source = arguments[i];
-			if (source) for (var key in source) if (hasOwn.call(source, key)) {
-				target[key] = source[key];
-			}
+	return function (properties, value) {
+		if (typeof value === 'undefined' && typeof properties !== 'object') {
+			return callbacks.get.call(this, properties);
+		} else {
+			return setter.call(this, properties, value);
 		}
-		return target;
-	},
-	/**
-	 * Returns function that calls callbacks.get
-	 * if first parameter is primitive & second parameter is undefined
-	 *     object.attr('name')          - get
-	 *     object.attr('name', 'value') - set
-	 *     object.attr({name: 'value'}) - set
-	 * @param {Object} callbacks
-	 * @param {Function} callbacks.get
-	 * @param {Function} callbacks.set
-	 */
-	slickAccessor: function (callbacks) {
-		var setter =  atom.overloadSetter(callbacks.set);
-
-		return function (properties, value) {
-			if (typeof value === 'undefined' && typeof properties !== 'object') {
-				return callbacks.get.call(this, properties);
-			} else {
-				return setter.call(this, properties, value);
-			}
-		};
-	},
-	overloadSetter: function (fn) {
-		return function (properties, value) {
-			properties = objectize(properties, value);
-			for (var i in properties) fn.call( this, i, properties[i] );
-			return this;
-		};
-	},
-	ensureObjectSetter: function (fn) {
-		return function (properties, value) {
-			return fn.call(this, objectize(properties, value))
-		}
-	},
-	typeOf: typeOf,
-	clone: clone
-});
+	};
+};
+atom.typeOf = typeOf;
+atom.clone  = clone;
