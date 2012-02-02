@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8" />
+		<title></title>
+		<script src="../atom-full-compiled.js"></script>
+	</head>
+	<body style="background: url('cells.png')">
+		<code></code>
+		<div id="action0" style="position:absolute;left:200px;top:005px;width:150px;height:40px;background:#b22222">xzc</div>
+		<div id="action1" style="position:absolute;left:200px;top:055px;width:150px;height:40px;background:#4169e1">dsf</div>
+		<div id="action2" style="position:absolute;left:200px;top:105px;width:150px;height:40px;background:#daa520">cxv</div>
+		<div id="action3" style="position:absolute;left:200px;top:155px;width:150px;height:40px;background:#228b22">sdf</div>
+		<div id="action4" style="position:absolute;left:200px;top:205px;width:150px;height:40px;background:#b22222">xcv</div>
+		<div id="action5" style="position:absolute;left:200px;top:205px;width:150px;height:40px;background:#b22222">xcv</div>
+		<div id="action6" style="position:absolute;left:200px;top:255px;width:150px;height:40px;background:#4169e1">sdf</div>
+		<div id="action7" style="position:absolute;left:200px;top:305px;width:150px;height:40px;background:#daa520">xcv</div>
+		<div id="action8" style="position:absolute;left:200px;top:355px;width:150px;height:40px;background:#228b22">sdf</div>
+		<div id="action9" style="position:absolute;left:200px;top:405px;width:150px;height:40px;background:#b22222">dfs</div>
+		<div id="actionA" style="position:absolute;left:200px;top:455px;width:150px;height:40px;background:#4169e1">xcv</div>
+		<div id="actionB" style="position:absolute;left:200px;top:505px;width:150px;height:40px;background:#daa520">cxv</div>
+		<div id="actionC" style="position:absolute;left:200px;top:555px;width:150px;height:40px;background:#228b22">sdf</div>
+	</body>
+	<script>
+(function () {
+	var element = {
+		first : 4,
+		second: 345
+	};
+
+	var update = function () {
+		atom.dom( 'code' ).html( '[' +element.first.toFixed(3) + '] ' + element.second.round() );
+	};
+
+	update();
+
+	new atom.Animatable(element)
+		.animate({
+			time: 4000,
+			props: {
+				first : 0,
+				second: 7890
+			},
+			onTick: update,
+			onFinish: function () {
+				atom.dom( 'code' ).css( 'background', 'lime' );
+			}
+		});
+
+	var animate = function (id, i) {
+		var elem = atom.dom('#' + id);
+
+		new atom.Animatable({
+			get: function (name) {
+				return parseInt(elem.css(name));
+			},
+			set: function (name, value) {
+				elem.css(name, value);
+			}
+		}).animate({
+			time: 4000,
+			props: {
+				left  : 400 + 100 * i
+			}
+		});
+	};
+	for (var i = 9; i--;) animate('action' + i, i);
+
+})();
+	</script>
+</html>

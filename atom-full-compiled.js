@@ -740,7 +740,7 @@ provides: dom
 			});
 		},
 		log : function () {
-			console.log.apply(console, arguments.length ? arguments : ['atom.dom', this.elems]);
+			console.log('atom.dom:', this.elems);
 			return this;
 		},
 		destroy : function () {
@@ -970,7 +970,7 @@ provides: frame
 	var
 		callbacks = [],
 		remove    = [],
-		frameTime = 1000 / 60,
+		frameTime = 16, // 62 fps
 		previous  = Date.now(),
 		// we'll switch to real `requestAnimationFrame` here
 		// when all browsers will be ready
@@ -1776,6 +1776,629 @@ return atom.declare = declare;
 /*
 ---
 
+name: "Transition"
+
+description: ""
+
+license:
+	- "[GNU Lesser General Public License](http://opensource.org/licenses/lgpl-license.php)"
+	- "[MIT License](http://opensource.org/licenses/mit-license.php)"
+
+requires:
+	- atom
+	- declare
+	
+inspiration:
+  - "[MooTools](http://mootools.net)"
+
+provides: Transition
+
+...
+*/
+
+atom.Transition = function (method) {
+	var easeIn = function (progress) {
+		return method(progress);
+	};
+
+	return atom.append( easeIn, {
+		easeIn: easeIn,
+		easeOut: function(progress){
+			return 1 - method(1 - progress);
+		},
+		easeInOut: function(progress){
+			if (progress > 0.5) {
+				return ( 2 - method(2 * (1 - progress)) ) /2
+			} else {
+				return method(2 * progress)/2;
+			}
+		}
+	});
+};
+
+atom.Transition.set = atom.overloadSetter(function (id, fn) {
+	atom.Transition[id] = atom.Transition(fn);
+});
+
+atom.Transition.get = function (fn) {
+	if (typeof fn != 'string') return fn;
+	var method = fn.split('-')[0], ease = 'easeInOut', In, Out;
+	if (method != fn) {
+		In  = fn.indexOf('-in' ) > 0;
+		Out = fn.indexOf('-out') > 0;
+		if (In ^ Out) {
+			if (In ) ease = 'easeIn';
+			if (Out) ease = 'easeOut';
+		}
+	}
+	method = method[0].toUpperCase() + method.substr(1);
+	if (!atom.Transition[method]) {
+		throw new Error('No Transition method: ' + method);
+	}
+	return atom.Transition[method][ease];
+};
+
+atom.Transition.set({
+
+	Linear: function(zero){
+		return zero;
+	},
+
+	Expo: function(p){
+		return Math.pow(2, 8 * (p - 1));
+	},
+
+	Circ: function(p){
+		return 1 - Math.sin(Math.acos(p));
+	},
+
+	Sine: function(p){
+		return 1 - Math.cos(p * Math.PI / 2);
+	},
+
+	Back: function(p){
+		var x = 1.618;
+		return Math.pow(p, 2) * ((x + 1) * p - x);
+	},
+
+	Bounce: function(p){
+		var value, a = 0, b = 1;
+		for (;;){
+			if (p >= (7 - 4 * a) / 11){
+				value = b * b - Math.pow((11 - 6 * a - 11 * p) / 4, 2);
+				break;
+			}
+			a += b, b /= 2
+		}
+		return value;
+	},
+
+	Elastic: function(p){
+		return Math.pow(2, 10 * --p) * Math.cos(20 * p * Math.PI/ 3);
+	}
+
+});
+
+['Quad', 'Cubic', 'Quart', 'Quint'].forEach(function(transition, i){
+	atom.Transition.set(transition, function(p){
+		return Math.pow(p, i + 2);
+	});
+});
+
+/*
+---
+
+name: "Events"
+
+description: ""
+
+license:
+	- "[GNU Lesser General Public License](http://opensource.org/licenses/lgpl-license.php)"
+	- "[MIT License](http://opensource.org/licenses/mit-license.php)"
+
+requires:
+	- atom
+	- declare
+
+inspiration:
+  - "[MooTools](http://mootools.net)"
+
+provides: Events
+
+...
+*/
+
+declare( 'atom.Events',
+/** @class atom.Events */
+{
+
+	/** @constructs */
+	initialize: function (context) {
+		this.context   = context || this;
+		this.locked    = [];
+		this.events    = {};
+		this.actions   = {};
+		this.readyList = {};
+	},
+
+	/**
+	 * @param {String} name
+	 * @return Boolean
+	 */
+	exists: function (name) {
+		var array = this.events[this.removeOn( name )];
+		return array && !!array.length;
+	},
+
+	/**
+	 * @param {String} name
+	 * @param {Function} callback
+	 * @return Boolean
+	 */
+	add: function (name, callback) {
+		this.run( 'addOne', name, callback );
+		return this;
+	},
+
+	/**
+	 * @param {String} name
+	 * @param {Function} callback
+	 * @return Boolean
+	 */
+	remove: function (name, callback) {
+		if (typeof name == 'string' && !callback) {
+			this.removeAll( name );
+		} else {
+			this.run( 'removeOne', name, callback );
+		}
+		return this;
+	},
+
+	/**
+	 * @param {String} name
+	 * @param {Array} args
+	 * @return atom.Events
+	 */
+	fire: function (name, args) {
+		args = args ? slice.call( args ) : [];
+		name = this.removeOn( name );
+
+		this.locked.push(name);
+		var i = 0, l, events = this.events[name];
+		if (events) for (l = events.length; i < l; i++) {
+			events[i].apply( this.context, args );
+		}
+		this.unlock( name );
+		return this;
+	},
+
+	/**
+	 * @param {String} name
+	 * @param {Array} args
+	 * @return atom.Events
+	 */
+	ready: function (name, args) {
+		name = this.removeOn( name );
+		this.locked.push(name);
+		if (name in this.readyList) {
+			throw new Error( 'Event «'+name+'» is ready' );
+		}
+		this.readyList[name] = args;
+		this.fire(name, args);
+		this.removeAll(name);
+		this.unlock( name );
+		return this;
+	},
+
+	// only private are below
+
+	/** @private */
+	context: null,
+	/** @private */
+	events: {},
+	/** @private */
+	readyList: {},
+	/** @private */
+	locked: [],
+	/** @private */
+	actions: {},
+
+	/** @private */
+	removeOn: function (name) {
+		return (name || '').replace(/^on([A-Z])/, function(full, first){
+			return first.toLowerCase();
+		});
+	},
+	/** @private */
+	removeAll: function (name) {
+		var events = this.events[name];
+		if (events) for (var i = events.length; i--;) {
+			this.removeOne( name, events[i] );
+		}
+	},
+	/** @private */
+	unlock: function (name) {
+		var action,
+			all    = this.actions[name],
+			index  = this.locked.indexOf( name );
+
+		this.locked.splice(index, 1);
+
+		if (all) for (index = 0; index < all.length; index++) {
+			action = all[index];
+
+			this[action.method]( name, action.callback );
+		}
+	},
+	/** @private */
+	run: function (method, name, callback) {
+		var i = 0, l = 0;
+
+		if (Array.isArray(name)) {
+			for (i = 0, l = name.length; i < l; i++) {
+				this[method](name[i], callback);
+			}
+		} else if (typeof name == 'object') {
+			for (i in name) {
+				this[method](i, name[i]);
+			}
+		} else if (typeof name == 'string') {
+			this[method](name, callback);
+		} else {
+			throw new TypeError( 'Wrong arguments in Events.' + method );
+		}
+	},
+	/** @private */
+	register: function (name, method, callback) {
+		var actions = this.actions;
+		if (!actions[name]) {
+			actions[name] = [];
+		}
+		actions[name].push({ method: method, callback: callback })
+	},
+	/** @private */
+	addOne: function (name, callback) {
+		var events, ready, context;
+
+		name = this.removeOn( name );
+
+		if (this.locked.indexOf(name) == -1) {
+			ready = this.readyList[name];
+			if (ready) {
+				context = this.context;
+				setTimeout(function () {
+					callback.apply(context, ready);
+				}, 0);
+				return this;
+			} else {
+				events = this.events;
+				if (!events[name]) {
+					events[name] = [callback];
+				} else {
+					events[name].push(callback);
+				}
+			}
+		} else {
+			this.register(name, 'addOne', callback);
+		}
+	},
+	/** @private */
+	removeOne: function (name, callback) {
+		name = this.removeOn( name );
+
+		if (this.locked.indexOf(name) == -1) {
+			var events = this.events[name], i = events.length;
+			while (i--) if (events[i] == callback) {
+				events.splice(i, 1);
+			}
+		} else {
+			this.register(name, 'removeOne', callback);
+		}
+	}
+});
+
+declare( 'atom.Events.Mixin', new function () {
+	var init = function () {
+		var events = this.__events;
+		if (!events) events = this.__events = new atom.Events(this);
+		if (this._events) {
+			for (var name in this._events) if (name != '$ready') {
+				this._events[name].forEach(function (fn) {
+					events.add(name, fn);
+				});
+			}
+		}
+		return events;
+	};
+
+	var method = function (method, useReturn) {
+		return function () {
+			var result, events = init.call(this);
+
+			result = events[method].apply( events, arguments );
+			return useReturn ? result : this;
+		}
+	};
+
+	/** @class atom.Events.Mixin */
+	return {
+		get events ( ) { return init.call(this); },
+		set events (e) { this.__events = e;       },
+		isEventAdded: method( 'exists', true ),
+		addEvent    : method( 'add'   , false ),
+		removeEvent : method( 'remove', false ),
+		fireEvent   : method( 'fire'  , false ),
+		readyEvent  : method( 'ready' , false )
+	};
+});
+
+/*
+---
+
+name: "Settings"
+
+description: ""
+
+license:
+	- "[GNU Lesser General Public License](http://opensource.org/licenses/lgpl-license.php)"
+	- "[MIT License](http://opensource.org/licenses/mit-license.php)"
+
+requires:
+	- declare
+
+provides: Settings
+
+...
+*/
+
+
+declare( 'atom.Settings',
+/** @class atom.Settings */
+{
+	/** @private */
+	recursive: false,
+
+	/** @private */
+	values: {},
+
+	/**
+	 * @constructs
+	 * @param {Object} [initialValues]
+	 * @param {Boolean} [recursive=false]
+	 */
+	initialize: function (initialValues, recursive) {
+		if (!this.isValidOptions(initialValues)) {
+			recursive = !!initialValues;
+			initialValues = null;
+		}
+
+		this.values    = initialValues || {};
+		this.recursive = !!recursive;
+	},
+
+	/**
+	 * @param {atom.Events} events
+	 * @return atom.Options
+	 */
+	addEvents: function (events) {
+		this.events = events;
+		return this.invokeEvents();
+	},
+
+	/**
+	 * @param {String} name
+	 */
+	get: function (name) {
+		return this.values[name];
+	},
+
+	/**
+	 * @param {Object} options
+	 * @return atom.Options
+	 */
+	set: function (options) {
+		var method = this.recursive ? 'extend' : 'append';
+		if (this.isValidOptions(options)) {
+			atom[method](this.values, options);
+		}
+		this.invokeEvents();
+		return this;
+	},
+
+	/**
+	 * @param {String} name
+	 * @return atom.Options
+	 */
+	unset: function (name) {
+		delete this.values[name];
+		return this;
+	},
+
+	/** @private */
+	isValidOptions: function (options) {
+		return options && typeof options == 'object';
+	},
+
+	/** @private */
+	invokeEvents: function () {
+		if (!this.events) return this;
+
+		var values = this.values, name, option;
+		for (name in values) {
+			option = values[name];
+			if (this.isInvokable(name, option)) {
+				this.events.add(name, option);
+				this.unset(name);
+			}
+		}
+		return this;
+	},
+
+	/** @private */
+	isInvokable: function (name, option) {
+		return name &&
+			option &&
+			atom.typeOf(option) == 'function' &&
+			(/^on[A-Z]/).test(name);
+	}
+});
+
+declare( 'atom.Settings.Mixin',
+/** @class atom.Settings.Mixin */
+{
+	/**
+	 * @private
+	 * @property atom.Settings
+	 */
+	settings: null,
+	options : {},
+
+	setOptions: function (options) {
+		if (!this.settings) {
+			this.settings = new atom.Settings(
+				atom.clone(this.options || {})
+			);
+			this.options = this.settings.values;
+		}
+
+		for (var i = 0; i < arguments.length; i++) {
+			this.settings.set(arguments[i]);
+		}
+
+		return this;
+	}
+});
+
+/*
+---
+
+name: "Types.Object"
+
+description: "Object generic methods"
+
+license:
+	- "[GNU Lesser General Public License](http://opensource.org/licenses/lgpl-license.php)"
+	- "[MIT License](http://opensource.org/licenses/mit-license.php)"
+
+requires:
+	- atom
+
+provides: Types.Object
+
+...
+*/
+
+atom.object = {
+	invert: function (object) {
+		var newObj = {};
+		for (var i in object) newObj[object[i]] = i;
+		return newObj;
+	},
+	collect: function (obj, props, Default) {
+		var newObj = {};
+		props.forEach(function (i){
+			newObj[i] = i in obj ? obj[i] : Default;
+		});
+		return newObj;
+	},
+	values: function (obj) {
+		var values = [];
+		for (var i in obj) values.push(obj[i]);
+		return values;
+	},
+	isDefined: function (obj) {
+		return typeof obj !== 'undefined';
+	},
+	isReal: function (obj) {
+		return obj || obj === 0;
+	},
+	map: function (obj, fn) {
+		var mapped = {};
+		for (var i in obj) if (obj.hasOwnProperty(i)) {
+			mapped[i] = fn( obj[i], i, obj );
+		}
+		return mapped;
+	},
+	max: function (obj) {
+		var max = null, key = null;
+		for (var i in obj) if (max == null || obj[i] > max) {
+			key = i;
+			max = obj[i];
+		}
+		return key;
+	},
+	min: function (obj) {
+		var min = null, key = null;
+		for (var i in obj) if (min == null || obj[i] < min) {
+			key = i;
+			min = obj[i];
+		}
+		return key;
+	},
+	deepEquals: function (first, second) {
+		if (!first || (typeof first) !== (typeof second)) return false;
+
+		for (var i in first) {
+			var f = first[i], s = second[i];
+			if (typeof f === 'object') {
+				if (!s || !Object.deepEquals(f, s)) return false;
+			} else if (f !== s) {
+				return false;
+			}
+		}
+
+		for (i in second) if (!(i in first)) return false;
+
+		return true;
+	},
+	isEmpty: function (object) {
+		return Object.keys(object).length == 0;
+	},
+	ifEmpty: function (object, key, defaultValue) {
+		if (!(key in object)) {
+			object[key] = defaultValue;
+		}
+		return object;
+	},
+	path: {
+		parts: function (path, delimiter) {
+			return Array.isArray(path) ? path : String(path).split( delimiter || '.' );
+		},
+		get: function (object, path, delimiter) {
+			if (!path) return object;
+
+			path = Object.path.parts( path, delimiter );
+
+			for (var i = 0; i < path.length; i++) {
+				if (object != null && path[i] in object) {
+					object = object[path[i]];
+				} else {
+					return;
+				}
+			}
+
+			return object;
+		},
+		set: function (object, path, value, delimiter) {
+			path = Object.path.parts( path, delimiter );
+
+			var key = path.pop();
+
+			object = Object.path.get( object, path.length > 0 && path, delimiter );
+
+			if (object == null) {
+				return false;
+			} else {
+				object[key] = value;
+				return true;
+			}
+		}
+	}
+};
+
+/*
+---
+
 name: "Animatable"
 
 description: "Provides Color class"
@@ -1787,6 +2410,10 @@ license:
 requires:
 	- atom
 	- declare
+	- Transition
+	- Events
+	- Settings
+	- Types.Object
 
 provides: Animatable
 
@@ -1797,38 +2424,134 @@ provides: Animatable
 declare( 'atom.Animatable',
 /** @class atom.Animatable */
 {
-	own: {
-
-	},
-
-	prototype: {
-		defaultCallbacks: {
+	defaultCallbacks: function (element) {
+		return {
 			get: function (property) {
-				return this[property];
+				return atom.object.path.get(element, property);
 			},
 			set: atom.overloadSetter(function (property, value) {
-				return this[property] = value;
+				return atom.object.path.set(element, property, value);
 			})
-		},
+		};
+	},
+	
+	element: null,
 
-		initialize: function (element, callbacks) {
-			this.element = element;
-			this.callbacks = callbacks || this.defaultCallbacks;
-		},
+	initialize: function (callbacks) {
+		if (!callbacks) throw new TypeError( 'callbacks cant be null' );
 
-		animate: atom.ensureObjectSetter(function (properties) {
+		if (this.isValidCallbacks(callbacks)) {
+			this.callbacks = callbacks;
+		} else {
+			this.callbacks = this.defaultCallbacks(callbacks);
+		}
+	},
 
-		})
+	/** @private */
+	isValidCallbacks: function (callbacks) {
+		return typeof callbacks == 'object' &&
+			Object.keys(callbacks).length == 2 &&
+			isFunction(callbacks.set) &&
+			isFunction(callbacks.get);
+	},
+
+	animate: atom.ensureObjectSetter(function (properties) {
+		return new atom.Animatable.Animation(this, properties).start();
+	}),
+
+	get: function (name) {
+		return this.callbacks.get.apply(this.element, arguments);
+	},
+
+	set: function (name, value) {
+		return this.callbacks.set.apply(this.element, arguments);
 	}
 });
 
-declare( 'atom.Animation',
-/** @class atom.Animation */
+declare( 'atom.Animatable.Animation',
+/** @class atom.Animatable.Animation */
 {
+	/** @property {atom.Animatable} */
+	animatable: null,
 
-	initialize: function (element, callbacks) {
-		this.element = element;
-		this.callbacks = callbacks || this.defaultCallbacks;
+	/**
+	 * initial values of properties
+	 * @property {Object}
+	 */
+	initial: null,
+
+	/**
+	 * target values of properties
+	 * @property {Object}
+	 */
+	target: null,
+
+	initialize: function (animatable, settings) {
+		this.bindMethods('tick');
+
+		if (!settings.props) settings = {props: settings};
+		this.events   = new atom.Events(this);
+		this.settings = new atom.Settings({
+				fn  : 'sine',
+				time: 1000
+			})
+			.set(settings)
+			.addEvents(this.events);
+		this.animatable = animatable;
+		this.transition = atom.Transition.get(this.settings.get('fn'));
+		this.allTime = this.settings.get('time');
+		this.target  = this.settings.get('props');
+	},
+
+	start: function () {
+		this.initial  = this.fetchInitialValues();
+		this.delta    = this.countValuesDelta();
+		this.timeLeft = this.allTime;
+		atom.frame.add(this.tick);
+		return this;
+	},
+
+	/** @private */
+	countValuesDelta: function () {
+		var initial = this.initial;
+		return atom.object.map(this.target, function (value, key) {
+			return value - initial[key];
+		});
+	},
+
+	/** @private */
+	fetchInitialValues: function () {
+		var animatable = this.animatable;
+		return atom.object.map(this.target, function (value, key) {
+			return animatable.get(key);
+		});
+	},
+
+	/** @private */
+	tick: function (time) {
+		var lastTick = time >= this.timeLeft;
+		this.timeLeft = lastTick ? 0 : this.timeLeft - time;
+
+		this.changeValues(this.transition(
+			lastTick ? 1 : (this.allTime - this.timeLeft) / this.allTime
+		));
+		this.events.fire( 'tick', [ this ]);
+
+		if (lastTick) this.destroy();
+	},
+
+	/** @private */
+	changeValues: function (progress) {
+		var delta = this.delta;
+		for (var i in delta) {
+			this.animatable.set( i, this.initial[i] + delta[i] * progress );
+		}
+	},
+
+	destroy: function () {
+		this.events.fire( 'finish', [ this ]);
+		atom.frame.remove(this.tick);
+		return this;
 	}
 });
 
@@ -2727,517 +3450,6 @@ declare( 'atom.Color.Shift',
 
 	prototype: { noLimits: true }
 });
-
-/*
----
-
-name: "Events"
-
-description: ""
-
-license:
-	- "[GNU Lesser General Public License](http://opensource.org/licenses/lgpl-license.php)"
-	- "[MIT License](http://opensource.org/licenses/mit-license.php)"
-
-requires:
-	- atom
-	- declare
-
-inspiration:
-  - "[MooTools](http://mootools.net)"
-
-provides: Events
-
-...
-*/
-
-declare( 'atom.Events',
-/** @class atom.Events */
-{
-
-	/** @constructs */
-	initialize: function (context) {
-		this.context   = context || this;
-		this.locked    = [];
-		this.events    = {};
-		this.actions   = {};
-		this.readyList = {};
-	},
-
-	/**
-	 * @param {String} name
-	 * @return Boolean
-	 */
-	exists: function (name) {
-		var array = this.events[this.removeOn( name )];
-		return array && !!array.length;
-	},
-
-	/**
-	 * @param {String} name
-	 * @param {Function} callback
-	 * @return Boolean
-	 */
-	add: function (name, callback) {
-		this.run( 'addOne', name, callback );
-		return this;
-	},
-
-	/**
-	 * @param {String} name
-	 * @param {Function} callback
-	 * @return Boolean
-	 */
-	remove: function (name, callback) {
-		if (typeof name == 'string' && !callback) {
-			this.removeAll( name );
-		} else {
-			this.run( 'removeOne', name, callback );
-		}
-		return this;
-	},
-
-	/**
-	 * @param {String} name
-	 * @param {Array} args
-	 * @return atom.Events
-	 */
-	fire: function (name, args) {
-		args = args ? slice.call( args ) : [];
-		name = this.removeOn( name );
-
-		this.locked.push(name);
-		var i = 0, l, events = this.events[name];
-		if (events) for (l = events.length; i < l; i++) {
-			events[i].apply( this.context, args );
-		}
-		this.unlock( name );
-		return this;
-	},
-
-	/**
-	 * @param {String} name
-	 * @param {Array} args
-	 * @return atom.Events
-	 */
-	ready: function (name, args) {
-		name = this.removeOn( name );
-		this.locked.push(name);
-		if (name in this.readyList) {
-			throw new Error( 'Event «'+name+'» is ready' );
-		}
-		this.readyList[name] = args;
-		this.fire(name, args);
-		this.removeAll(name);
-		this.unlock( name );
-		return this;
-	},
-
-	// only private are below
-
-	/** @private */
-	context: null,
-	/** @private */
-	events: {},
-	/** @private */
-	readyList: {},
-	/** @private */
-	locked: [],
-	/** @private */
-	actions: {},
-
-	/** @private */
-	removeOn: function (name) {
-		return (name || '').replace(/^on([A-Z])/, function(full, first){
-			return first.toLowerCase();
-		});
-	},
-	/** @private */
-	removeAll: function (name) {
-		var events = this.events[name];
-		if (events) for (var i = events.length; i--;) {
-			this.removeOne( name, events[i] );
-		}
-	},
-	/** @private */
-	unlock: function (name) {
-		var action,
-			all    = this.actions[name],
-			index  = this.locked.indexOf( name );
-
-		this.locked.splice(index, 1);
-
-		if (all) for (index = 0; index < all.length; index++) {
-			action = all[index];
-
-			this[action.method]( name, action.callback );
-		}
-	},
-	/** @private */
-	run: function (method, name, callback) {
-		var i = 0, l = 0;
-
-		if (Array.isArray(name)) {
-			for (i = 0, l = name.length; i < l; i++) {
-				this[method](name[i], callback);
-			}
-		} else if (typeof name == 'object') {
-			for (i in name) {
-				this[method](i, name[i]);
-			}
-		} else if (typeof name == 'string') {
-			this[method](name, callback);
-		} else {
-			throw new TypeError( 'Wrong arguments in Events.' + method );
-		}
-	},
-	/** @private */
-	register: function (name, method, callback) {
-		var actions = this.actions;
-		if (!actions[name]) {
-			actions[name] = [];
-		}
-		actions[name].push({ method: method, callback: callback })
-	},
-	/** @private */
-	addOne: function (name, callback) {
-		var events, ready, context;
-
-		name = this.removeOn( name );
-
-		if (this.locked.indexOf(name) == -1) {
-			ready = this.readyList[name];
-			if (ready) {
-				context = this.context;
-				setTimeout(function () {
-					callback.apply(context, ready);
-				}, 0);
-				return this;
-			} else {
-				events = this.events;
-				if (!events[name]) {
-					events[name] = [callback];
-				} else {
-					events[name].push(callback);
-				}
-			}
-		} else {
-			this.register(name, 'addOne', callback);
-		}
-	},
-	/** @private */
-	removeOne: function (name, callback) {
-		name = this.removeOn( name );
-
-		if (this.locked.indexOf(name) == -1) {
-			var events = this.events[name], i = events.length;
-			while (i--) if (events[i] == callback) {
-				events.splice(i, 1);
-			}
-		} else {
-			this.register(name, 'removeOne', callback);
-		}
-	}
-});
-
-declare( 'atom.Events.Mixin', new function () {
-	var init = function () {
-		var events = this.__events;
-		if (!events) events = this.__events = new atom.Events(this);
-		if (this._events) {
-			for (var name in this._events) if (name != '$ready') {
-				this._events[name].forEach(function (fn) {
-					events.add(name, fn);
-				});
-			}
-		}
-		return events;
-	};
-
-	var method = function (method, useReturn) {
-		return function () {
-			var result, events = init.call(this);
-
-			result = events[method].apply( events, arguments );
-			return useReturn ? result : this;
-		}
-	};
-
-	/** @class atom.Events.Mixin */
-	return {
-		get events ( ) { return init.call(this); },
-		set events (e) { this.__events = e;       },
-		isEventAdded: method( 'exists', true ),
-		addEvent    : method( 'add'   , false ),
-		removeEvent : method( 'remove', false ),
-		fireEvent   : method( 'fire'  , false ),
-		readyEvent  : method( 'ready' , false )
-	};
-});
-
-/*
----
-
-name: "Settings"
-
-description: ""
-
-license:
-	- "[GNU Lesser General Public License](http://opensource.org/licenses/lgpl-license.php)"
-	- "[MIT License](http://opensource.org/licenses/mit-license.php)"
-
-requires:
-	- declare
-
-provides: Settings
-
-...
-*/
-
-
-declare( 'atom.Settings',
-/** @class atom.Settings */
-{
-	/** @private */
-	recursive: false,
-
-	/** @private */
-	values: {},
-
-	/**
-	 * @constructs
-	 * @param {Object} [initialValues]
-	 * @param {Boolean} [recursive=false]
-	 */
-	initialize: function (initialValues, recursive) {
-		if (!this.isValidOptions(initialValues)) {
-			recursive = !!initialValues;
-			initialValues = null;
-		}
-
-		this.values    = initialValues || {};
-		this.recursive = !!recursive;
-	},
-
-	/**
-	 * @param {atom.Events} events
-	 * @return atom.Options
-	 */
-	addEvents: function (events) {
-		this.events = events;
-		return this.invokeEvents();
-	},
-
-	/**
-	 * @param {String} name
-	 */
-	get: function (name) {
-		return this.values[name];
-	},
-
-	/**
-	 * @param {Object} options
-	 * @return atom.Options
-	 */
-	set: function (options) {
-		var method = this.recursive ? 'extend' : 'append';
-		if (this.isValidOptions(options)) {
-			atom[method](this.values, options);
-		}
-		this.invokeEvents();
-		return this;
-	},
-
-	/**
-	 * @param {String} name
-	 * @return atom.Options
-	 */
-	unset: function (name) {
-		delete this.values[name];
-		return this;
-	},
-
-	/** @private */
-	isValidOptions: function (options) {
-		return options && typeof options == 'object';
-	},
-
-	/** @private */
-	invokeEvents: function () {
-		if (!this.events) return this;
-
-		var values = this.values, name, option;
-		for (name in values) {
-			option = values[name];
-			if (this.isInvokable(name, option)) {
-				this.events.add(name, option);
-				this.unset(name);
-			}
-		}
-		return this;
-	},
-
-	/** @private */
-	isInvokable: function (name, option) {
-		return name &&
-			option &&
-			atom.typeOf(option) == 'function' &&
-			(/^on[A-Z]/).test(name);
-	}
-});
-
-declare( 'atom.Settings.Mixin',
-/** @class atom.Settings.Mixin */
-{
-	/**
-	 * @private
-	 * @property atom.Settings
-	 */
-	settings: null,
-	options : {},
-
-	setOptions: function (options) {
-		if (!this.settings) {
-			this.settings = new atom.Settings(
-				atom.clone(this.options || {})
-			);
-			this.options = this.settings.values;
-		}
-
-		for (var i = 0; i < arguments.length; i++) {
-			this.settings.set(arguments[i]);
-		}
-
-		return this;
-	}
-});
-
-/*
----
-
-name: "Types.Object"
-
-description: "Object generic methods"
-
-license:
-	- "[GNU Lesser General Public License](http://opensource.org/licenses/lgpl-license.php)"
-	- "[MIT License](http://opensource.org/licenses/mit-license.php)"
-
-requires:
-	- atom
-
-provides: Types.Object
-
-...
-*/
-
-atom.object = {
-	invert: function (object) {
-		var newObj = {};
-		for (var i in object) newObj[object[i]] = i;
-		return newObj;
-	},
-	collect: function (obj, props, Default) {
-		var newObj = {};
-		props.forEach(function (i){
-			newObj[i] = i in obj ? obj[i] : Default;
-		});
-		return newObj;
-	},
-	values: function (obj) {
-		var values = [];
-		for (var i in obj) values.push(obj[i]);
-		return values;
-	},
-	isDefined: function (obj) {
-		return typeof obj !== 'undefined';
-	},
-	isReal: function (obj) {
-		return obj || obj === 0;
-	},
-	map: function (obj, fn) {
-		var mapped = {};
-		for (var i in obj) if (obj.hasOwnProperty(i)) {
-			mapped[i] = fn( obj[i], i, obj );
-		}
-		return mapped;
-	},
-	max: function (obj) {
-		var max = null, key = null;
-		for (var i in obj) if (max == null || obj[i] > max) {
-			key = i;
-			max = obj[i];
-		}
-		return key;
-	},
-	min: function (obj) {
-		var min = null, key = null;
-		for (var i in obj) if (min == null || obj[i] < min) {
-			key = i;
-			min = obj[i];
-		}
-		return key;
-	},
-	deepEquals: function (first, second) {
-		if (!first || (typeof first) !== (typeof second)) return false;
-
-		for (var i in first) {
-			var f = first[i], s = second[i];
-			if (typeof f === 'object') {
-				if (!s || !Object.deepEquals(f, s)) return false;
-			} else if (f !== s) {
-				return false;
-			}
-		}
-
-		for (i in second) if (!(i in first)) return false;
-
-		return true;
-	},
-	isEmpty: function (object) {
-		return Object.keys(object).length == 0;
-	},
-	ifEmpty: function (object, key, defaultValue) {
-		if (!(key in object)) {
-			object[key] = defaultValue;
-		}
-		return object;
-	},
-	path: {
-		parts: function (path, delimiter) {
-			return Array.isArray(path) ? path : String(path).split( delimiter || '.' );
-		},
-		get: function (object, path, delimiter) {
-			if (!path) return object;
-
-			path = Object.path.parts( path, delimiter );
-
-			for (var i = 0; i < path.length; i++) {
-				if (object != null && path[i] in object) {
-					object = object[path[i]];
-				} else {
-					return;
-				}
-			}
-
-			return object;
-		},
-		set: function (object, path, value, delimiter) {
-			path = Object.path.parts( path, delimiter );
-
-			var key = path.pop();
-
-			object = Object.path.get( object, path.length > 0 && path, delimiter );
-
-			if (object == null) {
-				return false;
-			} else {
-				object[key] = value;
-				return true;
-			}
-		}
-	}
-};
 
 /*
 ---

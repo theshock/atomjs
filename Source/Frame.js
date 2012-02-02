@@ -21,7 +21,7 @@ provides: frame
 	var
 		callbacks = [],
 		remove    = [],
-		frameTime = 1000 / 60,
+		frameTime = 16, // 62 fps
 		previous  = Date.now(),
 		// we'll switch to real `requestAnimationFrame` here
 		// when all browsers will be ready
