@@ -18,56 +18,65 @@ provides: frame
 */
 (function () {
 
-	var
+	var previous,
+		started   = false,
 		callbacks = [],
 		remove    = [],
 		frameTime = 16, // 62 fps
-		previous  = Date.now(),
 		// we'll switch to real `requestAnimationFrame` here
 		// when all browsers will be ready
 		requestAnimationFrame = function (callback) {
 			window.setTimeout(callback, frameTime);
 		};
 
-	requestAnimationFrame(function frame() {
-		requestAnimationFrame(frame);
+	function startAnimation () {
+		if (!started) {
+			previous  = Date.now();
+			requestAnimationFrame(frame);
+			started = true;
+		}
+	}
 
-		var index, fn, i, l,
+	function invokeFrame () {
+		var fn, i, l,
 			now = Date.now(),
 			// 1 sec is max time for frame to avoid some bugs with too large time
 			delta = Math.min(now - previous, 1000);
 
 		for (i = 0, l = remove.length; i < l; i++) {
-			index = callbacks.indexOf(remove[i]);
-			if (index != -1) {
-				callbacks.splice( index, 1 );
-			}
+			eraseOne(callbacks, remove[i]);
 		}
 		remove.length = 0;
 
 		for (i = 0, l = callbacks.length; i < l; i++) {
 			fn = callbacks[i];
-			// one of prev calls can remove our fn
+			// one of previous calls can remove our fn
 			if (remove.indexOf(fn) == -1) {
-				fn(delta);
+				fn.call(null, delta);
 			}
 		}
 
 		previous = now;
-	});
+	}
+
+	function frame() {
+		requestAnimationFrame(frame);
+
+		if (callbacks.length == 0) {
+			remove.length = 0;
+			previous = Date.now();
+		} else invokeFrame();
+	}
 
 	atom.extend({
 		frame: {
 			add: function (fn) {
-				if (callbacks.indexOf(fn) == -1) {
-					callbacks.push(fn);
-				}
-				return atom.frame;
+				startAnimation();
+				includeUnique(callbacks, fn);
 			},
 			// we dont want to fragmentate callbacks, so remove only before frame started
 			remove: function (fn) {
-				remove.push(fn);
-				return atom.frame;
+				if (started) includeUnique(remove, fn);
 			}
 		}
 	});

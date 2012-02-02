@@ -96,14 +96,27 @@ clone.types = {
 	}
 };
 
-var objectize = function (properties, value) {
+function objectize (properties, value) {
 	if (typeof properties != 'object') {
 		var key = properties;
 		properties = {};
 		properties[key] = value;
 	}
 	return properties;
-};
+}
+
+function includeUnique(array, element) {
+	if (array.indexOf(element) == -1) {
+		array.push(element);
+	}
+}
+
+function eraseOne(array, element) {
+	element = array.indexOf(element);
+	if (element != -1) {
+		array.splice( element, 1 );
+	}
+}
 
 atom.extend = innerExtend(false);
 
