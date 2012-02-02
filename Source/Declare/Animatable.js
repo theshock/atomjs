@@ -40,6 +40,8 @@ declare( 'atom.Animatable',
 	element: null,
 
 	initialize: function (callbacks) {
+		this.bindAll('animate');
+
 		if (!callbacks) throw new TypeError( 'callbacks cant be null' );
 
 		this.animations = [];
