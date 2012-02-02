@@ -94,7 +94,7 @@ declare( 'atom.Animatable.Animation',
 		if (!settings.props) settings = {props: settings};
 		this.events   = new atom.Events(this);
 		this.settings = new atom.Settings({
-				fn  : 'sine',
+				fn  : 'linear',
 				time: 1000
 			})
 			.set(settings)
