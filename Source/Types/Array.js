@@ -205,10 +205,14 @@ atom.array = {
 	 * @param {*} item
 	 * @returns {Array} - target array
 	 */
-	include: function(target, item){
-		if (target.indexOf(item) == -1) target.push(item);
-		return target;
-	},
+	include: includeUnique,
+	/**
+	 * Erase item from array
+	 * @param {Array} target
+	 * @param {*} item
+	 * @returns {Array} - target array
+	 */
+	erase: eraseAll,
 	/**
 	 * `push` source array values to the end of target array
 	 * @param {Array} target
@@ -218,18 +222,6 @@ atom.array = {
 	append: function (target, source) {
 		for (var i = 1, l = arguments.length; i < l; i++) if (arguments[i]) {
 			target.push.apply(target, arguments[i]);
-		}
-		return target;
-	},
-	/**
-	 * Erase item from array
-	 * @param {Array} target
-	 * @param {*} item
-	 * @returns {Array} - target array
-	 */
-	erase: function(target, item){
-		for (var i = target.length; i--;) {
-			if (target[i] === item) target.splice(i, 1);
 		}
 		return target;
 	},

@@ -105,10 +105,15 @@ function objectize (properties, value) {
 	return properties;
 }
 
+function contains (array, element) {
+	return array.indexOf(element) >= 0;
+}
+
 function includeUnique(array, element) {
-	if (array.indexOf(element) == -1) {
+	if (!contains(array, element)) {
 		array.push(element);
 	}
+	return array;
 }
 
 function eraseOne(array, element) {
@@ -116,6 +121,16 @@ function eraseOne(array, element) {
 	if (element != -1) {
 		array.splice( element, 1 );
 	}
+	return array;
+}
+
+function eraseAll(array, element) {
+	for (var i = array.length; i--;) {
+		if (array[i] == element) {
+			array.splice( i, 1 );
+		}
+	}
+	return array;
 }
 
 atom.extend    = innerExtend(false);

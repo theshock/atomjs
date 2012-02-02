@@ -66,9 +66,9 @@ test('atom.dom().addClass', function() {
 	deepEqual(slice.call(wrapper.getElementsByClassName('cls2'), 0), slice.call($elem2.elems, 0), 'addClass("cls2") must make elements selectable with getElementsByClassName("cls2")');
 	deepEqual(slice.call(wrapper.getElementsByClassName('cls1'), 0), slice.call($elem.elems, 0), 'addClass("cls2") must not remove "cls1" from elements');
 
-	var $elem3 = atom.dom($elem.get(0));
+	var $elem3 = atom.dom($elem.first);
 	$elem3.addClass(['cls1', 'cls2']);
-	var classes = $elem3.get(0).className.split(' ');
+	var classes = $elem3.first.className.split(' ');
 	strictEqual(classes.length, 2, 'repeated adding classes must have no effect');
 
 	// cleanup
@@ -173,7 +173,7 @@ test('atom.dom().unbind', function () {
 	var bind = 0;
 	
 	$elem.bind("click", function listener () {
-		bind++
+		bind++;
 		$elem.unbind("click", listener);
 	});
 	

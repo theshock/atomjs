@@ -62,9 +62,9 @@ provides: dom
 	document.addEventListener('DOMContentLoaded', readyCallback, false);
 	window.addEventListener('load', readyCallback, false);
 
-	var dom = function (sel, context) {
-		if (! (this instanceof dom)) {
-			return new dom(sel, context);
+	var Dom = function (sel, context) {
+		if (! (this instanceof Dom)) {
+			return new Dom(sel, context);
 		}
 
 		if (!arguments.length) {
@@ -78,23 +78,22 @@ provides: dom
 		}
 
 		if (context !== undefined) {
-			return new dom(context || document).find(sel);
+			return new Dom(context || document).find(sel);
 		}
 		context = context || document;
 
-		if (typeof sel == 'function' && !(sel instanceof dom)) {
+		if (typeof sel == 'function' && !(sel instanceof Dom)) {
 			// onDomReady
-			var fn = sel.bind(this, atom, dom);
+			var fn = sel.bind(this, atom, Dom);
 			domReady ? setTimeout(fn, 1) : onDomReady.push(fn);
 			return this;
 		}
 
 		var elems = this.elems =
-			  sel instanceof HTMLCollection ? toArray(sel)
-			: typeof sel == 'string' ? dom.query(context, sel)
-			: sel instanceof dom     ? toArray(sel.elems)
-			: isArray(sel)           ? toArray(sel)
-			:                          dom.find(context, sel);
+			  sel instanceof Dom     ? toArray(sel.elems)
+			:  atom.isArrayLike(sel) ? toArray(sel)
+			: typeof sel == 'string' ? Dom.query(context, sel)
+			:                          Dom.find(context, sel);
 
 		if (elems.length == 1 && elems[0] == null) {
 			elems.length = 0;
@@ -102,7 +101,7 @@ provides: dom
 
 		return this;
 	};
-	atom.extend(dom, {
+	atom.append(Dom, {
 		query : function (context, sel) {
 			return sel.match(regexp.Id)    ?        [context.getElementById        (sel.substr(1))] :
 			       sel.match(regexp.Class) ? toArray(context.getElementsByClassName(sel.substr(1))) :
@@ -113,11 +112,11 @@ provides: dom
 			if (!sel) return context == null ? [] : [context];
 
 			var result = sel.nodeName ? [sel]
-				: typeof sel == 'string' ? dom.query(context, sel) : [context];
+				: typeof sel == 'string' ? Dom.query(context, sel) : [context];
 			return (result.length == 1 && result[0] == null) ? [] : result;
 		},
 		create: function (tagName, attr) {
-			var elem = new dom(document.createElement(tagName));
+			var elem = new Dom(document.createElement(tagName));
 			if (attr) elem.attr(attr);
 			return elem;
 		},
@@ -125,7 +124,7 @@ provides: dom
 			return !!(node && node.nodeName);
 		}
 	});
-	atom.implement(dom, {
+	Dom.prototype = {
 		get length() {
 			return this.elems ? this.elems.length : 0;
 		},
@@ -161,7 +160,7 @@ provides: dom
 				property = 'id';
 			}
 
-			return new dom(this.elems.filter(function (elem) {
+			return new Dom(this.elems.filter(function (elem) {
 				if (property) {
 					return elem[property].toUpperCase() == selector;
 				} else {
@@ -250,105 +249,91 @@ provides: dom
 		}),
 		delegate : function (selector, event, fn) {
 			return this.bind(event, function (e) {
-				if (new dom(e.target).is(selector)) {
+				if (new Dom(e.target).is(selector)) {
 					fn.apply(this, arguments);
 				}
 			});
 		},
 		wrap : function (wrapper) {
-			wrapper = new dom(wrapper).first;
+			wrapper = new Dom(wrapper).first;
 			return this.replaceWith(wrapper).appendTo(wrapper);
 		},
 		replaceWith: function (element) {
-			element = dom(element).first;
 			var obj = this.first;
+			element = Dom(element).first;
 			obj.parentNode.replaceChild(element, obj);
 			return this;
 		},
 		find : function (selector) {
 			var result = [];
 			this.each(function (elem) {
-				var found = dom.find(elem, selector);
-				for (var i = 0, l = found.length; i < l; i++) {
-					if (result.indexOf(found[i]) === -1) result.push(found[i]);
-				}
+				var i = 0,
+					found = Dom.find(elem, selector),
+					l = found.length;
+				while (i < l) includeUnique(result, found[i++]);
 			});
-			return new dom(result);
+			return new Dom(result);
 		},
 		appendTo : function (to) {
 			var fr = document.createDocumentFragment();
 			this.each(function (elem) {
 				fr.appendChild(elem);
 			});
-			dom(to).first.appendChild(fr);
+			Dom(to).first.appendChild(fr);
 			return this;
 		},
-		addClass: function (classNames) {
+		/** @private */
+		manipulateClass: function (classNames, fn) {
 			if (!classNames) return this;
-
 			if (!isArray(classNames)) classNames = [classNames];
 
 			return this.each(function (elem) {
-				var property = elem.className, current = ' ' + property + ' ';
+				var i, all = elem.className.split(/\s+/);
 
-				for (var i = classNames.length; i--;) {
-					var c = ' ' + classNames[i];
-					if (current.indexOf(c + ' ') < 0) property += c;
+				for (i = classNames.length; i--;) {
+					fn.call(this, all, classNames[i]);
 				}
 
-				elem.className = property.trim();
+				elem.className = all.join(' ').trim();
 			});
 		},
+		addClass: function (classNames) {
+			return this.manipulateClass(classNames, includeUnique);
+		},
 		removeClass: function (classNames) {
-            if (!classNames) return this;
-
-			if (!isArray(classNames)) classNames = [classNames];
-
-			return this.each(function (elem) {
-				var current = ' ' + elem.className + ' ';
-				for (var i = classNames.length; i--;) {
-					current = current.replace(' ' + classNames[i] + ' ', ' ');
+			return this.manipulateClass(classNames, eraseAll);
+		},
+		toggleClass: function(classNames) {
+			return this.manipulateClass(classNames, function (all, c) {
+				var i = all.indexOf(c);
+				if (i === -1) {
+					all.push(c);
+				} else {
+					all.splice(i, 1);
 				}
-				elem.className = current.trim();
 			});
 		},
 		hasClass: function(classNames) {
-			if(!classNames) return false;
-
-			if(!isArray(classNames)) classNames = [classNames];
-
+			if (!classNames) return this;
+			if (!isArray(classNames)) classNames = [classNames];
+			
 			var result = false;
 			this.each(function (elem) {
-				var property = elem.className, current = ' ' + property + ' ';
+				if (result) return;
+				
+				var i = classNames.length,
+					all = elem.className.split(/\s+/);
 
-				var elemResult = true;
-				for (var i = classNames.length; i--;) {
-					elemResult = elemResult && (current.indexOf(' ' + classNames[i] + ' ') >= 0);
+				while (i--) if (!contains(all, classNames[i])) {
+					return;
 				}
 
-				result = result || elemResult;
+				result = true;
 			});
 			return result;
 		},
-		toggleClass: function(classNames) {
-			if(!classNames) return this;
-
-			if(!isArray(classNames)) classNames = [classNames];
-
-			return this.each(function (elem) {
-				var property = elem.className, current = ' ' + property + ' ';
-
-				for (var i = classNames.length; i--;) {
-					var c = ' ' + classNames[i];
-					if (current.indexOf(c + ' ') < 0) current = c + current;
-					else current = current.replace(c + ' ', ' ');
-				}
-
-				elem.className = current.trim();
-			});
-		},
 		log : function () {
-			console.log('atom.dom:', this.elems);
+			console.log('atom.dom: ', this.elems);
 			return this;
 		},
 		destroy : function () {
@@ -356,8 +341,8 @@ provides: dom
 				elem.parentNode.removeChild(elem);
 			});
 		},
-		constructor: dom
-	});
+		constructor: Dom
+	};
 
-	atom.extend({ dom: dom });
+	atom.dom = Dom;
 }(window, window.document));

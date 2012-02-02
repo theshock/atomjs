@@ -21,10 +21,18 @@ provides: Transition
 ...
 */
 
-atom.Transition = function (method) {
+atom.Transition = function (method, noEase) {
 	var easeIn = function (progress) {
 		return method(progress);
 	};
+
+	if (noEase) {
+		return atom.append( easeIn, {
+			easeIn   : easeIn,
+			easeOut  : easeIn,
+			easeInOut: easeIn
+		});
+	}
 
 	return atom.append( easeIn, {
 		easeIn: easeIn,
@@ -63,12 +71,9 @@ atom.Transition.get = function (fn) {
 	return atom.Transition[method][ease];
 };
 
+atom.Transition.Linear = atom.Transition(function(p) { return p }, true);
+
 atom.Transition.set({
-
-	Linear: function(zero){
-		return zero;
-	},
-
 	Expo: function(p){
 		return Math.pow(2, 8 * (p - 1));
 	},

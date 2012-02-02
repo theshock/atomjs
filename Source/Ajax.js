@@ -92,5 +92,5 @@ provides: ajax
 		};
 	};
 
-	extend({ ajax : ajax });
+	atom.ajax = ajax;
 })();

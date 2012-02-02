@@ -68,22 +68,20 @@ provides: accessors
 			return object;
 		};
 
-	var accessors = {
+	atom.accessors = {
 		lookup: lookup,
 		define: define,
 		has: function (object, key) {
-			return accessors.lookup(object, key, true);
+			return atom.accessors.lookup(object, key, true);
 		},
 		inherit: function (from, to, key) {
-			var a = accessors.lookup(from, key);
+			var a = atom.accessors.lookup(from, key);
 
 			if ( a ) {
-				accessors.define(to, key, a);
+				atom.accessors.define(to, key, a);
 				return true;
 			}
 			return false;
 		}
 	};
-
-	atom.extend({ accessors: accessors });
 })(Object);

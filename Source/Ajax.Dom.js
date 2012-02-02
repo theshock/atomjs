@@ -19,20 +19,18 @@ provides: ajax.dom
 ...
 */
 
-atom.implement(atom.dom, {
-	ajax : function (config) {
-		config = atom.extend({
-			onLoad: function (res) {
-				this.get().innerHTML = res;
-			},
-			onError: function(){}
-		}, config);
+atom.dom.prototype.ajax = function (config) {
+	config = atom.append({}, config);
 
+	var $dom = this;
 
-		atom.ajax(atom.extend(config, {
-			onError: config.onError.bind(this),
-			onLoad : config.onLoad .bind(this)			
-		}));
-		return this;
+	if (config.onLoad ) {
+		config.onLoad  = config.onLoad.bind($dom);
+	} else {
+		config.onLoad = function (r) { $dom.first.innerHTML = r };
 	}
-});
+	if (config.onError) config.onError = config.onError.bind($dom);
+	
+	atom.ajax(config);
+	return $dom;
+};

@@ -238,10 +238,15 @@ function objectize (properties, value) {
 	return properties;
 }
 
+function contains (array, element) {
+	return array.indexOf(element) >= 0;
+}
+
 function includeUnique(array, element) {
-	if (array.indexOf(element) == -1) {
+	if (!contains(array, element)) {
 		array.push(element);
 	}
+	return array;
 }
 
 function eraseOne(array, element) {
@@ -249,69 +254,71 @@ function eraseOne(array, element) {
 	if (element != -1) {
 		array.splice( element, 1 );
 	}
+	return array;
 }
 
-atom.extend = innerExtend(false);
-
-atom.extend({
-	implement: innerExtend(true),
-	toArray: function (elem) {
-		return slice.call(elem);
-	},
-	/** @deprecated - use console-cap instead: https://github.com/theshock/console-cap/ */
-	log: function () { throw new Error('deprecated') },
-	isArrayLike: function(item) {
-		return item && (Array.isArray(item) || (
-			typeof item != 'string' &&
-			!isFunction(item) &&
-			typeof item.length == 'number'
-		));
-	},
-	append: function (target, source) {
-		for (var i = 1, l = arguments.length; i < l; i++){
-			source = arguments[i];
-			if (source) for (var key in source) if (hasOwn.call(source, key)) {
-				target[key] = source[key];
-			}
+function eraseAll(array, element) {
+	for (var i = array.length; i--;) {
+		if (array[i] == element) {
+			array.splice( i, 1 );
 		}
-		return target;
-	},
-	/**
-	 * Returns function that calls callbacks.get
-	 * if first parameter is primitive & second parameter is undefined
-	 *     object.attr('name')          - get
-	 *     object.attr('name', 'value') - set
-	 *     object.attr({name: 'value'}) - set
-	 * @param {Object} callbacks
-	 * @param {Function} callbacks.get
-	 * @param {Function} callbacks.set
-	 */
-	slickAccessor: function (callbacks) {
-		var setter =  atom.overloadSetter(callbacks.set);
+	}
+	return array;
+}
 
-		return function (properties, value) {
-			if (typeof value === 'undefined' && typeof properties !== 'object') {
-				return callbacks.get.call(this, properties);
-			} else {
-				return setter.call(this, properties, value);
-			}
-		};
-	},
-	overloadSetter: function (fn) {
-		return function (properties, value) {
-			properties = objectize(properties, value);
-			for (var i in properties) fn.call( this, i, properties[i] );
-			return this;
-		};
-	},
-	ensureObjectSetter: function (fn) {
-		return function (properties, value) {
-			return fn.call(this, objectize(properties, value))
+atom.extend    = innerExtend(false);
+atom.implement = innerExtend(true);
+atom.toArray   = function (elem) { return slice.call(elem) };
+/** @deprecated - use console-cap instead: https://github.com/theshock/console-cap/ */
+atom.log = function () { throw new Error('deprecated') };
+atom.isArrayLike =  function(item) {
+	return item && (Array.isArray(item) || (
+		typeof item != 'string' &&
+		!isFunction(item) &&
+		typeof item.length == 'number'
+	));
+};
+atom.append = function (target, source) {
+	if (source) for (var key in source) if (hasOwn.call(source, key)) {
+		target[key] = source[key];
+	}
+	return target;
+};
+atom.ensureObjectSetter = function (fn) {
+	return function (properties, value) {
+		return fn.call(this, objectize(properties, value))
+	}
+};
+atom.overloadSetter = function (fn) {
+	return function (properties, value) {
+		properties = objectize(properties, value);
+		for (var i in properties) fn.call( this, i, properties[i] );
+		return this;
+	};
+};
+/**
+ * Returns function that calls callbacks.get
+ * if first parameter is primitive & second parameter is undefined
+ *     object.attr('name')          - get
+ *     object.attr('name', 'value') - set
+ *     object.attr({name: 'value'}) - set
+ * @param {Object} callbacks
+ * @param {Function} callbacks.get
+ * @param {Function} callbacks.set
+ */
+atom.slickAccessor = function (callbacks) {
+	var setter =  atom.overloadSetter(callbacks.set);
+
+	return function (properties, value) {
+		if (typeof value === 'undefined' && typeof properties !== 'object') {
+			return callbacks.get.call(this, properties);
+		} else {
+			return setter.call(this, properties, value);
 		}
-	},
-	typeOf: typeOf,
-	clone: clone
-});
+	};
+};
+atom.typeOf = typeOf;
+atom.clone  = clone;
 
 /*
 ---
@@ -383,24 +390,22 @@ provides: accessors
 			return object;
 		};
 
-	var accessors = {
+	atom.accessors = {
 		lookup: lookup,
 		define: define,
 		has: function (object, key) {
-			return accessors.lookup(object, key, true);
+			return atom.accessors.lookup(object, key, true);
 		},
 		inherit: function (from, to, key) {
-			var a = accessors.lookup(from, key);
+			var a = atom.accessors.lookup(from, key);
 
 			if ( a ) {
-				accessors.define(to, key, a);
+				atom.accessors.define(to, key, a);
 				return true;
 			}
 			return false;
 		}
 	};
-
-	atom.extend({ accessors: accessors });
 })(Object);
 
 /*
@@ -467,9 +472,9 @@ provides: dom
 	document.addEventListener('DOMContentLoaded', readyCallback, false);
 	window.addEventListener('load', readyCallback, false);
 
-	var dom = function (sel, context) {
-		if (! (this instanceof dom)) {
-			return new dom(sel, context);
+	var Dom = function (sel, context) {
+		if (! (this instanceof Dom)) {
+			return new Dom(sel, context);
 		}
 
 		if (!arguments.length) {
@@ -483,23 +488,22 @@ provides: dom
 		}
 
 		if (context !== undefined) {
-			return new dom(context || document).find(sel);
+			return new Dom(context || document).find(sel);
 		}
 		context = context || document;
 
-		if (typeof sel == 'function' && !(sel instanceof dom)) {
+		if (typeof sel == 'function' && !(sel instanceof Dom)) {
 			// onDomReady
-			var fn = sel.bind(this, atom, dom);
+			var fn = sel.bind(this, atom, Dom);
 			domReady ? setTimeout(fn, 1) : onDomReady.push(fn);
 			return this;
 		}
 
 		var elems = this.elems =
-			  sel instanceof HTMLCollection ? toArray(sel)
-			: typeof sel == 'string' ? dom.query(context, sel)
-			: sel instanceof dom     ? toArray(sel.elems)
-			: isArray(sel)           ? toArray(sel)
-			:                          dom.find(context, sel);
+			  sel instanceof Dom     ? toArray(sel.elems)
+			:  atom.isArrayLike(sel) ? toArray(sel)
+			: typeof sel == 'string' ? Dom.query(context, sel)
+			:                          Dom.find(context, sel);
 
 		if (elems.length == 1 && elems[0] == null) {
 			elems.length = 0;
@@ -507,7 +511,7 @@ provides: dom
 
 		return this;
 	};
-	atom.extend(dom, {
+	atom.append(Dom, {
 		query : function (context, sel) {
 			return sel.match(regexp.Id)    ?        [context.getElementById        (sel.substr(1))] :
 			       sel.match(regexp.Class) ? toArray(context.getElementsByClassName(sel.substr(1))) :
@@ -518,11 +522,11 @@ provides: dom
 			if (!sel) return context == null ? [] : [context];
 
 			var result = sel.nodeName ? [sel]
-				: typeof sel == 'string' ? dom.query(context, sel) : [context];
+				: typeof sel == 'string' ? Dom.query(context, sel) : [context];
 			return (result.length == 1 && result[0] == null) ? [] : result;
 		},
 		create: function (tagName, attr) {
-			var elem = new dom(document.createElement(tagName));
+			var elem = new Dom(document.createElement(tagName));
 			if (attr) elem.attr(attr);
 			return elem;
 		},
@@ -530,7 +534,7 @@ provides: dom
 			return !!(node && node.nodeName);
 		}
 	});
-	atom.implement(dom, {
+	Dom.prototype = {
 		get length() {
 			return this.elems ? this.elems.length : 0;
 		},
@@ -566,7 +570,7 @@ provides: dom
 				property = 'id';
 			}
 
-			return new dom(this.elems.filter(function (elem) {
+			return new Dom(this.elems.filter(function (elem) {
 				if (property) {
 					return elem[property].toUpperCase() == selector;
 				} else {
@@ -655,105 +659,91 @@ provides: dom
 		}),
 		delegate : function (selector, event, fn) {
 			return this.bind(event, function (e) {
-				if (new dom(e.target).is(selector)) {
+				if (new Dom(e.target).is(selector)) {
 					fn.apply(this, arguments);
 				}
 			});
 		},
 		wrap : function (wrapper) {
-			wrapper = new dom(wrapper).first;
+			wrapper = new Dom(wrapper).first;
 			return this.replaceWith(wrapper).appendTo(wrapper);
 		},
 		replaceWith: function (element) {
-			element = dom(element).first;
 			var obj = this.first;
+			element = Dom(element).first;
 			obj.parentNode.replaceChild(element, obj);
 			return this;
 		},
 		find : function (selector) {
 			var result = [];
 			this.each(function (elem) {
-				var found = dom.find(elem, selector);
-				for (var i = 0, l = found.length; i < l; i++) {
-					if (result.indexOf(found[i]) === -1) result.push(found[i]);
-				}
+				var i = 0,
+					found = Dom.find(elem, selector),
+					l = found.length;
+				while (i < l) includeUnique(result, found[i++]);
 			});
-			return new dom(result);
+			return new Dom(result);
 		},
 		appendTo : function (to) {
 			var fr = document.createDocumentFragment();
 			this.each(function (elem) {
 				fr.appendChild(elem);
 			});
-			dom(to).first.appendChild(fr);
+			Dom(to).first.appendChild(fr);
 			return this;
 		},
-		addClass: function (classNames) {
+		/** @private */
+		manipulateClass: function (classNames, fn) {
 			if (!classNames) return this;
-
 			if (!isArray(classNames)) classNames = [classNames];
 
 			return this.each(function (elem) {
-				var property = elem.className, current = ' ' + property + ' ';
+				var i, all = elem.className.split(/\s+/);
 
-				for (var i = classNames.length; i--;) {
-					var c = ' ' + classNames[i];
-					if (current.indexOf(c + ' ') < 0) property += c;
+				for (i = classNames.length; i--;) {
+					fn.call(this, all, classNames[i]);
 				}
 
-				elem.className = property.trim();
+				elem.className = all.join(' ').trim();
 			});
 		},
+		addClass: function (classNames) {
+			return this.manipulateClass(classNames, includeUnique);
+		},
 		removeClass: function (classNames) {
-            if (!classNames) return this;
-
-			if (!isArray(classNames)) classNames = [classNames];
-
-			return this.each(function (elem) {
-				var current = ' ' + elem.className + ' ';
-				for (var i = classNames.length; i--;) {
-					current = current.replace(' ' + classNames[i] + ' ', ' ');
+			return this.manipulateClass(classNames, eraseAll);
+		},
+		toggleClass: function(classNames) {
+			return this.manipulateClass(classNames, function (all, c) {
+				var i = all.indexOf(c);
+				if (i === -1) {
+					all.push(c);
+				} else {
+					all.splice(i, 1);
 				}
-				elem.className = current.trim();
 			});
 		},
 		hasClass: function(classNames) {
-			if(!classNames) return false;
-
-			if(!isArray(classNames)) classNames = [classNames];
-
+			if (!classNames) return this;
+			if (!isArray(classNames)) classNames = [classNames];
+			
 			var result = false;
 			this.each(function (elem) {
-				var property = elem.className, current = ' ' + property + ' ';
+				if (result) return;
+				
+				var i = classNames.length,
+					all = elem.className.split(/\s+/);
 
-				var elemResult = true;
-				for (var i = classNames.length; i--;) {
-					elemResult = elemResult && (current.indexOf(' ' + classNames[i] + ' ') >= 0);
+				while (i--) if (!contains(all, classNames[i])) {
+					return;
 				}
 
-				result = result || elemResult;
+				result = true;
 			});
 			return result;
 		},
-		toggleClass: function(classNames) {
-			if(!classNames) return this;
-
-			if(!isArray(classNames)) classNames = [classNames];
-
-			return this.each(function (elem) {
-				var property = elem.className, current = ' ' + property + ' ';
-
-				for (var i = classNames.length; i--;) {
-					var c = ' ' + classNames[i];
-					if (current.indexOf(c + ' ') < 0) current = c + current;
-					else current = current.replace(c + ' ', ' ');
-				}
-
-				elem.className = current.trim();
-			});
-		},
 		log : function () {
-			console.log('atom.dom:', this.elems);
+			console.log('atom.dom: ', this.elems);
 			return this;
 		},
 		destroy : function () {
@@ -761,10 +751,10 @@ provides: dom
 				elem.parentNode.removeChild(elem);
 			});
 		},
-		constructor: dom
-	});
+		constructor: Dom
+	};
 
-	atom.extend({ dom: dom });
+	atom.dom = Dom;
 }(window, window.document));
 
 
@@ -862,7 +852,7 @@ provides: ajax
 		};
 	};
 
-	extend({ ajax : ajax });
+	atom.ajax = ajax;
 })();
 
 
@@ -887,23 +877,21 @@ provides: ajax.dom
 ...
 */
 
-atom.implement(atom.dom, {
-	ajax : function (config) {
-		config = atom.extend({
-			onLoad: function (res) {
-				this.get().innerHTML = res;
-			},
-			onError: function(){}
-		}, config);
+atom.dom.prototype.ajax = function (config) {
+	config = atom.append({}, config);
 
+	var $dom = this;
 
-		atom.ajax(atom.extend(config, {
-			onError: config.onError.bind(this),
-			onLoad : config.onLoad .bind(this)			
-		}));
-		return this;
+	if (config.onLoad ) {
+		config.onLoad  = config.onLoad.bind($dom);
+	} else {
+		config.onLoad = function (r) { $dom.first.innerHTML = r };
 	}
-});
+	if (config.onError) config.onError = config.onError.bind($dom);
+	
+	atom.ajax(config);
+	return $dom;
+};
 
 
 /*
@@ -1818,10 +1806,18 @@ provides: Transition
 ...
 */
 
-atom.Transition = function (method) {
+atom.Transition = function (method, noEase) {
 	var easeIn = function (progress) {
 		return method(progress);
 	};
+
+	if (noEase) {
+		return atom.append( easeIn, {
+			easeIn   : easeIn,
+			easeOut  : easeIn,
+			easeInOut: easeIn
+		});
+	}
 
 	return atom.append( easeIn, {
 		easeIn: easeIn,
@@ -1860,12 +1856,9 @@ atom.Transition.get = function (fn) {
 	return atom.Transition[method][ease];
 };
 
+atom.Transition.Linear = atom.Transition(function(p) { return p }, true);
+
 atom.Transition.set({
-
-	Linear: function(zero){
-		return zero;
-	},
-
 	Expo: function(p){
 		return Math.pow(2, 8 * (p - 1));
 	},
@@ -2892,10 +2885,14 @@ atom.array = {
 	 * @param {*} item
 	 * @returns {Array} - target array
 	 */
-	include: function(target, item){
-		if (target.indexOf(item) == -1) target.push(item);
-		return target;
-	},
+	include: includeUnique,
+	/**
+	 * Erase item from array
+	 * @param {Array} target
+	 * @param {*} item
+	 * @returns {Array} - target array
+	 */
+	erase: eraseAll,
 	/**
 	 * `push` source array values to the end of target array
 	 * @param {Array} target
@@ -2905,18 +2902,6 @@ atom.array = {
 	append: function (target, source) {
 		for (var i = 1, l = arguments.length; i < l; i++) if (arguments[i]) {
 			target.push.apply(target, arguments[i]);
-		}
-		return target;
-	},
-	/**
-	 * Erase item from array
-	 * @param {Array} target
-	 * @param {*} item
-	 * @returns {Array} - target array
-	 */
-	erase: function(target, item){
-		for (var i = target.length; i--;) {
-			if (target[i] === item) target.splice(i, 1);
 		}
 		return target;
 	},
@@ -3517,6 +3502,188 @@ declare( 'atom.Color.Shift',
 	parent: atom.Color,
 
 	prototype: { noLimits: true }
+});
+
+/*
+---
+
+name: "Trace"
+
+description: ""
+
+license:
+	- "[GNU Lesser General Public License](http://opensource.org/licenses/lgpl-license.php)"
+	- "[MIT License](http://opensource.org/licenses/mit-license.php)"
+
+requires:
+	- declare
+	- dom
+
+provides: Trace
+
+...
+*/
+
+declare( 'atom.Trace', {
+	own: {
+		dumpRec : function (obj, level, plain) {
+			level  = parseInt(level) || 0;
+
+			var escape = function (v) {
+				return plain ? v : atom.string.safeHtml(v);
+			};
+
+			if (level > 5) return '*TOO_DEEP*';
+
+			if (obj && typeof obj == 'object' && isFunction(obj.dump)) return obj.dump();
+
+			var subDump = function (elem, index) {
+					return tabs + '\t' + index + ': ' + this.dumpRec(elem, level+1, plain) + '\n';
+				}.bind(this),
+				type = atom.typeOf(obj),
+				tabs = '\t'.repeat(level);
+
+			switch (type) {
+				case 'array':
+					return '[\n' + obj.map(subDump).join('') + tabs + ']';
+					break;
+				case 'object':
+					var html = '';
+					for (var index in obj) html += subDump(obj[index], index);
+					return '{\n' + html + tabs + '}';
+				case 'element':
+					var prop = (obj.width && obj.height) ? '('+obj.width+'×'+obj.height+')' : '';
+					return '[DOM ' + obj.tagName.toLowerCase() + prop + ']';
+				case 'textnode':
+				case 'whitespace':
+					return '[DOM ' + type + ']';
+				case 'null':
+					return 'null';
+				case 'boolean':
+					return obj ? 'true' : 'false';
+				case 'string':
+					return escape('"' + obj + '"');
+				default:
+					return escape('' + obj);
+			}
+		},
+		dumpPlain: function (object) {
+			return (this.dumpRec(object, 0, true));
+		},
+		dump : function (object) {
+			return (this.dumpRec(object, 0));
+		}
+	},
+
+	prototype: {
+		initialize : function (object) {
+			this.value = object;
+			this.stopped = false;
+			return this;
+		},
+		set value (value) {
+			if (!this.stopped && !this.blocked) {
+				var html = atom.string.replaceAll( this.self.dump(value), {
+					'\t': '&nbsp;'.repeat(3),
+					'\n': '<br />'
+				});
+				this.createNode().html(html);
+			}
+		},
+		destroy : function (force) {
+			var trace = this;
+			if (force) this.stop();
+			trace.node.css('background', '#300');
+			trace.timeout = setTimeout(function () {
+				if (trace.node) {
+					trace.node.destroy();
+					trace.node = null;
+				}
+			}, 500);
+			return trace;
+		},
+		/** @private */
+		stop  : function () {
+			this.stopped = true;
+			return this;
+		},
+		/** @private */
+		getContainer : function () {
+			var cont = atom.dom('#traceContainer');
+			return cont.length ? cont :
+				atom.dom.create('div', { 'id' : 'traceContainer'})
+					.css({
+						'zIndex'   : '87223',
+						'position' : 'fixed',
+						'top'      : '3px',
+						'right'    : '6px',
+						'maxWidth' : '70%',
+						'maxHeight': '100%',
+						'overflowY': 'auto',
+						'background': 'rgba(0,192,0,0.2)'
+					})
+					.appendTo('body');
+		},
+		/** @deprecated */
+		trace : function (value) {
+			this.value = value;
+			return this;
+		},
+		/** @private */
+		events : function (remove) {
+			var trace = this;
+			// add events unbind
+			!remove || trace.node.bind({
+				mouseover : function () {
+					trace.node.css('background', '#222');
+				},
+				mouseout  : function () {
+					trace.node.css('background', '#000');
+				},
+				mousedown : function () {
+					trace.blocked = true;
+				},
+				mouseup : function () {
+					trace.blocked = false;
+				}
+			});
+			return trace.node;
+		},
+		/** @private */
+		createNode : function () {
+			var trace = this, node = trace.node;
+
+			if (node) {
+				if (trace.timeout) {
+					clearTimeout(trace.timeout);
+					trace.events(node);
+					node.css('background', '#000');
+				}
+				return node;
+			}
+
+			trace.node = atom.dom
+				.create('div')
+				.css({
+					background : '#000',
+					border     : '1px dashed #0c0',
+					color      : '#0c0',
+					cursor     : 'pointer',
+					fontFamily : 'monospace',
+					margin     : '1px',
+					minWidth   : '200px',
+					overflow   : 'auto',
+					padding    : '3px 12px',
+					whiteSpace : 'pre'
+				})
+				.appendTo(trace.getContainer())
+				.bind({
+					click    : function () { trace.destroy(0) },
+					dblclick : function () { trace.destroy(1) }
+				});
+			return trace.events();
+		}
+	}
 });
 
 /*
