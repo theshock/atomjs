@@ -1164,6 +1164,8 @@ inspiration:
 
 provides: Class
 
+deprected: "Use declare instead"
+
 ...
 */
 
