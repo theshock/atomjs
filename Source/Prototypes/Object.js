@@ -17,4 +17,4 @@ provides: Prototypes.Object
 ...
 */
 
-atom.extend(Object, atom.object);
+coreAppend(Object, atom.object);

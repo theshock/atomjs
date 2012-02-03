@@ -10,7 +10,7 @@ license:
 	- "[MIT License](http://opensource.org/licenses/mit-license.php)"
 
 requires:
-	- atom
+	- Core
 	- Types.Number
 
 provides: Types.Array
@@ -64,7 +64,7 @@ atom.array = {
 	 */
 	from: function (item) {
 		if (item == null) return [];
-		return (!atom.isArrayLike(item)) ? [item] :
+		return (!coreIsArrayLike(item)) ? [item] :
 			Array.isArray(item) ? item : slice.call(item);
 	},
 	/**
@@ -74,7 +74,7 @@ atom.array = {
 	pickFrom: function (args) {
 		var fromZeroArgument = args
 			&& args.length == 1
-			&& atom.isArrayLike( args[0] );
+			&& coreIsArrayLike( args[0] );
 
 		return atom.array.from( fromZeroArgument ? args[0] : args );
 	},
@@ -123,7 +123,7 @@ atom.array = {
 	 * @returns {Array}
 	 */
 	create: function (length, callback, context) {
-		if (!isFunction(callback)) {
+		if (!coreIsFunction(callback)) {
 			throw new TypeError('callback should be function');
 		}
 		var array = new Array(Number(length));
@@ -212,7 +212,7 @@ atom.array = {
 	 * @param {*} item
 	 * @returns {Array} - target array
 	 */
-	erase: eraseAll,
+	erase: coreEraseAll,
 	/**
 	 * `push` source array values to the end of target array
 	 * @param {Array} target
@@ -297,7 +297,7 @@ atom.array = {
 	 */
 	sortBy : function (array, method, reverse) {
 		var get = function (elem) {
-			return (isFunction(elem[method]) ? elem[method]() : elem[method]) || 0;
+			return (coreIsFunction(elem[method]) ? elem[method]() : elem[method]) || 0;
 		};
 		var multi = reverse ? -1 : 1;
 		return array.sort(function ($0, $1) {
@@ -388,7 +388,7 @@ atom.array = {
 			i = 0,
 			obj = {},
 			length = array.length,
-			isFn = isFunction(keys),
+			isFn = coreIsFunction(keys),
 			keysSource = isFn ? array : keys;
 
 		if (!isFn) length = Math.min(length, keys.length);
@@ -452,7 +452,7 @@ atom.array = {
 	 * @returns {*}
 	 */
 	reduce: function(array, callback, value){
-		if (isFunction(array.reduce)) return array.reduce(callback, value);
+		if (coreIsFunction(array.reduce)) return array.reduce(callback, value);
 
 		for (var i = 0, l = array.length; i < l; i++) if (i in array) {
 			value = value === undefined ? array[i] : callback.call(null, value, array[i], i, array);
@@ -467,7 +467,7 @@ atom.array = {
 	 * @returns {*}
 	 */
 	reduceRight: function(array, callback, value){
-		if (isFunction(array.reduceRight)) return array.reduceRight(callback, value);
+		if (coreIsFunction(array.reduceRight)) return array.reduceRight(callback, value);
 
 		for (var i = array.length; i--;) if (i in array) {
 			value = value === undefined ? array[i] : callback.call(null, value, array[i], i, array);

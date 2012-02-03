@@ -10,7 +10,7 @@ license:
 	- "[MIT License](http://opensource.org/licenses/mit-license.php)"
 
 requires:
-	- atom
+	- Core
 	- Class
 
 inspiration:
@@ -30,7 +30,7 @@ atom.Class.Options = atom.Class({
 		} else if (this.options == this.self.prototype.options) {
 			// it shouldn't be link to static options
 			if (this.fastSetOptions) {
-				this.options = atom.append({}, this.options);
+				this.options = coreAppend({}, this.options);
 			} else {
 				this.options = atom.clone(this.options);
 			}
@@ -40,7 +40,7 @@ atom.Class.Options = atom.Class({
 		for (var a = arguments, i = 0, l = a.length; i < l; i++) {
 			if (typeof a[i] == 'object') {
 				if (this.fastSetOptions) {
-					atom.append(options, a[i]);
+					coreAppend(options, a[i]);
 				} else {
 					atom.extend(options, a[i]);
 				}

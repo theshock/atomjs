@@ -10,7 +10,7 @@ license:
 	- "[MIT License](http://opensource.org/licenses/mit-license.php)"
 
 requires:
-	- atom
+	- Core
 	- Class
 
 inspiration:
@@ -58,7 +58,7 @@ nextTick.reset = function () {
 };
 nextTick.reset();
 
-atom.extend(Class, {
+coreAppend(Class, {
 	Events: Class({
 		addEvent: function(name, fn) {
 			initEvents(this);

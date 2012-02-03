@@ -10,7 +10,7 @@ license:
 	- "[MIT License](http://opensource.org/licenses/mit-license.php)"
 
 requires:
-	- atom
+	- Core
 	- accessors
 
 provides: declare
@@ -165,7 +165,7 @@ methods = {
 
 declare.config = {
 	methods: methods,
-	mutator: atom.overloadSetter(function (name, fn) {
+	mutator: atom.core.overloadSetter(function (name, fn) {
 		mutators.push({ name: name, fn: fn });
 		return this;
 	})

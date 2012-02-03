@@ -10,7 +10,8 @@ license:
 	- "[MIT License](http://opensource.org/licenses/mit-license.php)"
 
 requires:
-	- atom
+	- Core
+	- CoreExtended
 
 provides: ajax
 
@@ -18,7 +19,7 @@ provides: ajax
 */
 
 (function () {
-	var extend = atom.extend, emptyFn = function () {};
+	var extend = atom.core.extend, emptyFn = function () {};
 
 	var ajax = function (userConfig) {
 		var data, config, method, req, url;

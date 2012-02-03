@@ -10,7 +10,7 @@ license:
 	- "[MIT License](http://opensource.org/licenses/mit-license.php)"
 
 requires:
-	- atom
+	- Core
 	- declare
 	
 inspiration:
@@ -27,14 +27,14 @@ atom.Transition = function (method, noEase) {
 	};
 
 	if (noEase) {
-		return atom.append( easeIn, {
+		return coreAppend( easeIn, {
 			easeIn   : easeIn,
 			easeOut  : easeIn,
 			easeInOut: easeIn
 		});
 	}
 
-	return atom.append( easeIn, {
+	return coreAppend( easeIn, {
 		easeIn: easeIn,
 		easeOut: function(progress){
 			return 1 - method(1 - progress);
@@ -49,7 +49,7 @@ atom.Transition = function (method, noEase) {
 	});
 };
 
-atom.Transition.set = atom.overloadSetter(function (id, fn) {
+atom.Transition.set = atom.core.overloadSetter(function (id, fn) {
 	atom.Transition[id] = atom.Transition(fn);
 });
 

@@ -146,7 +146,7 @@ inspiration:
   - "[JQuery](http://jquery.com)"
   - "[MooTools](http://mootools.net)"
 
-provides: atom
+provides: Core
 
 requires:
 	- js185
@@ -154,82 +154,11 @@ requires:
 ...
 */
 
-var innerExtend = function (proto) {
-	return function (elem, from) {
-		if (from == null) {
-			from = elem;
-			elem = atom;
-		}
-
-		var ext = proto ? elem[prototype] : elem,
-		    accessors = atom.accessors && atom.accessors.inherit;
-
-		for (var i in from) if (i != 'constructor') {
-			if ( accessors && accessors(from, ext, i) ) continue;
-
-			ext[i] = clone(from[i]);
-		}
-		return elem;
-	};
-};
-
-var typeOf = function (item) {
-	if (item == null) return 'null';
-
-	var string = toString.call(item);
-	for (var i in typeOf.types) if (i == string) return typeOf.types[i];
-
-	if (item.nodeName){
-		if (item.nodeType == 1) return 'element';
-		if (item.nodeType == 3) return /\S/.test(item.nodeValue) ? 'textnode' : 'whitespace';
-	}
-
-	var type = typeof item;
-
-	if (item && type == 'object') {
-		if (atom.Class && item instanceof atom.Class) return 'class';
-		if (atom.isArrayLike(item)) return 'arguments';
-	}
-
-	return type;
-};
-typeOf.types = {};
-['Boolean', 'Number', 'String', 'Function', 'Array', 'Date', 'RegExp', 'Class'].forEach(function(name) {
-	typeOf.types['[object ' + name + ']'] = name.toLowerCase();
-});
-
-var isFunction = function (item) {
+function coreIsFunction (item) {
 	return item && toString.call(item) == '[object Function]';
-};
+}
 
-
-var clone = function (object) {
-	var type = typeOf(object);
-	return type in clone.types ? clone.types[type](object) : object;
-};
-clone.types = {
-	'array': function (array) {
-		var i = array.length, c = new Array(i);
-		while (i--) c[i] = clone(array[i]);
-		return c;
-	},
-	'class':function (object) {
-		return typeof object.clone == 'function' ?
-			object.clone() : object;
-	},
-	'object': function (object) {
-		if (typeof object.clone == 'function') return object.clone();
-
-		var c = {}, accessors = atom.accessors && atom.accessors.inherit;
-		for (var key in object) {
-			if (accessors && accessors(object, c, key)) continue;
-			c[key] = clone(object[key]);
-		}
-		return c;
-	}
-};
-
-function objectize (properties, value) {
+function coreObjectize (properties, value) {
 	if (typeof properties != 'object') {
 		var key = properties;
 		properties = {};
@@ -238,18 +167,18 @@ function objectize (properties, value) {
 	return properties;
 }
 
-function contains (array, element) {
+function coreContains (array, element) {
 	return array.indexOf(element) >= 0;
 }
 
 function includeUnique(array, element) {
-	if (!contains(array, element)) {
+	if (!coreContains(array, element)) {
 		array.push(element);
 	}
 	return array;
 }
 
-function eraseOne(array, element) {
+function coreEraseOne(array, element) {
 	element = array.indexOf(element);
 	if (element != -1) {
 		array.splice( element, 1 );
@@ -257,7 +186,7 @@ function eraseOne(array, element) {
 	return array;
 }
 
-function eraseAll(array, element) {
+function coreEraseAll(array, element) {
 	for (var i = array.length; i--;) {
 		if (array[i] == element) {
 			array.splice( i, 1 );
@@ -265,60 +194,82 @@ function eraseAll(array, element) {
 	}
 	return array;
 }
-
-atom.extend    = innerExtend(false);
-atom.implement = innerExtend(true);
-atom.toArray   = function (elem) { return slice.call(elem) };
-/** @deprecated - use console-cap instead: https://github.com/theshock/console-cap/ */
-atom.log = function () { throw new Error('deprecated') };
-atom.isArrayLike =  function(item) {
+function coreToArray (elem) { return slice.call(elem) }
+function coreIsArrayLike (item) {
 	return item && (Array.isArray(item) || (
 		typeof item != 'string' &&
-		!isFunction(item) &&
+		!coreIsFunction(item) &&
 		typeof item.length == 'number'
 	));
-};
-atom.append = function (target, source) {
+}
+function coreAppend(target, source) {
 	if (source) for (var key in source) if (hasOwn.call(source, key)) {
 		target[key] = source[key];
 	}
 	return target;
-};
-atom.ensureObjectSetter = function (fn) {
-	return function (properties, value) {
-		return fn.call(this, objectize(properties, value))
-	}
-};
-atom.overloadSetter = function (fn) {
-	return function (properties, value) {
-		properties = objectize(properties, value);
-		for (var i in properties) fn.call( this, i, properties[i] );
-		return this;
-	};
-};
-/**
- * Returns function that calls callbacks.get
- * if first parameter is primitive & second parameter is undefined
- *     object.attr('name')          - get
- *     object.attr('name', 'value') - set
- *     object.attr({name: 'value'}) - set
- * @param {Object} callbacks
- * @param {Function} callbacks.get
- * @param {Function} callbacks.set
- */
-atom.slickAccessor = function (callbacks) {
-	var setter =  atom.overloadSetter(callbacks.set);
+}
 
-	return function (properties, value) {
-		if (typeof value === 'undefined' && typeof properties !== 'object') {
-			return callbacks.get.call(this, properties);
-		} else {
-			return setter.call(this, properties, value);
+new function () {
+
+	function ensureObjectSetter (fn) {
+		return function (properties, value) {
+			return fn.call(this, coreObjectize(properties, value))
 		}
+	}
+	function overloadSetter (fn) {
+		return function (properties, value) {
+			properties = coreObjectize(properties, value);
+			for (var i in properties) fn.call( this, i, properties[i] );
+			return this;
+		};
+	}
+	/**
+	 * Returns function that calls callbacks.get
+	 * if first parameter is primitive & second parameter is undefined
+	 *     object.attr('name')          - get
+	 *     object.attr('name', 'value') - set
+	 *     object.attr({name: 'value'}) - set
+	 * @param {Object} callbacks
+	 * @param {Function} callbacks.get
+	 * @param {Function} callbacks.set
+	 */
+	function slickAccessor (callbacks) {
+		var setter =  atom.core.overloadSetter(callbacks.set);
+
+		return function (properties, value) {
+			if (typeof value === 'undefined' && typeof properties !== 'object') {
+				return callbacks.get.call(this, properties);
+			} else {
+				return setter.call(this, properties, value);
+			}
+		};
+	}
+
+	atom.core = {
+		isFunction: coreIsFunction,
+		objectize : coreObjectize,
+		contains  : coreContains,
+		eraseOne  : coreEraseOne,
+		eraseAll  : coreEraseAll,
+		toArray   : coreToArray,
+		append    : coreAppend,
+		isArrayLike  : coreIsArrayLike,
+		includeUnique: includeUnique,
+		slickAccessor     : slickAccessor,
+		overloadSetter    : overloadSetter,
+		ensureObjectSetter: ensureObjectSetter
 	};
+
+	/** @deprecated - use atom.core.toArray instead */
+	//atom.toArray   = coreToArray;
+	/** @deprecated - use console-cap instead: https://github.com/theshock/console-cap/ */
+	//atom.log = function () { throw new Error('deprecated') };
+	/** @deprecated - use atom.core.isArrayLike instead */
+	//atom.isArrayLike = coreIsArrayLike;
+	/** @deprecated - use atom.core.append instead */
+	//atom.append = coreAppend;
+
 };
-atom.typeOf = typeOf;
-atom.clone  = clone;
 
 /*
 ---
@@ -332,7 +283,7 @@ license:
 	- "[MIT License](http://opensource.org/licenses/mit-license.php)"
 
 requires:
-	- atom
+	- Core
 
 provides: accessors
 
@@ -357,7 +308,7 @@ provides: accessors
 			if (!descriptor) {
 				// try to find accessors according to chain of prototypes
 				var proto = Object.getPrototypeOf(from);
-				if (proto) return accessors.lookup(proto, key, bool);
+				if (proto) return atom.accessors.lookup(proto, key, bool);
 			} else if ( descriptor.set || descriptor.get ) {
 				if (bool) return true;
 
@@ -420,7 +371,7 @@ license:
 	- "[MIT License](http://opensource.org/licenses/mit-license.php)"
 
 requires:
-	- atom
+	- Core
 	- accessors
 
 inspiration:
@@ -437,7 +388,6 @@ provides: dom
 			Class: /^\.[-_a-z0-9]+$/i,
 			Id   : /^#[-_a-z0-9]+$/i
 		},
-		toArray = atom.toArray,
 		isArray = Array.isArray,
 		prevent = function (e) {
 			e.preventDefault();
@@ -467,6 +417,13 @@ provides: dom
 			}
 			
 			onDomReady = [];
+		},
+		findParentByLevel = function (elem, level) {
+			if (level == null || level < 0) level = 1;
+
+			if (!elem || level <= 0) return atom.dom(elem);
+
+			return findParentByLevel(elem.parentNode, level-1);
 		};
 		
 	document.addEventListener('DOMContentLoaded', readyCallback, false);
@@ -500,8 +457,8 @@ provides: dom
 		}
 
 		var elems = this.elems =
-			  sel instanceof Dom     ? toArray(sel.elems)
-			:  atom.isArrayLike(sel) ? toArray(sel)
+			  sel instanceof Dom     ? coreToArray(sel.elems)
+			: coreIsArrayLike(sel)   ? coreToArray(sel)
 			: typeof sel == 'string' ? Dom.query(context, sel)
 			:                          Dom.find(context, sel);
 
@@ -511,12 +468,12 @@ provides: dom
 
 		return this;
 	};
-	atom.append(Dom, {
+	coreAppend(Dom, {
 		query : function (context, sel) {
-			return sel.match(regexp.Id)    ?        [context.getElementById        (sel.substr(1))] :
-			       sel.match(regexp.Class) ? toArray(context.getElementsByClassName(sel.substr(1))) :
-			       sel.match(regexp.Tag)   ? toArray(context.getElementsByTagName  (sel)) :
-			                                 toArray(context.querySelectorAll      (sel));
+			return sel.match(regexp.Id)    ?            [context.getElementById        (sel.substr(1))] :
+			       sel.match(regexp.Class) ? coreToArray(context.getElementsByClassName(sel.substr(1))) :
+			       sel.match(regexp.Tag)   ? coreToArray(context.getElementsByTagName  (sel)) :
+			                                 coreToArray(context.querySelectorAll      (sel));
 		},
 		find: function (context, sel) {
 			if (!sel) return context == null ? [] : [context];
@@ -548,16 +505,7 @@ provides: dom
 			return this.elems[Number(index) || 0];
 		},
 		parent : function(step) {
-			if(step == null) step = 1;
-
-			var stepCount = function(elem, step) {
-				if(step > 0) {
-					step--;
-					return stepCount(atom.dom(elem.first.parentNode), step);
-				}
-				return elem;
-			};
-			return stepCount(this, step);
+			return findParentByLevel(this.first, step);
 		},
 		filter: function (selector) {
 			var property = null;
@@ -574,7 +522,7 @@ provides: dom
 				if (property) {
 					return elem[property].toUpperCase() == selector;
 				} else {
-					return elem.parentNode && toArray(
+					return elem.parentNode && coreToArray(
 						elem.parentNode.querySelectorAll(selector)
 					).indexOf(elem) >= 0;
 				}
@@ -611,7 +559,7 @@ provides: dom
 			this.elems.forEach(fn.bind(this));
 			return this;
 		},
-		attr : atom.slickAccessor({
+		attr : atom.core.slickAccessor({
 			get: function (name) {
 				return this.first.getAttribute(name);
 			},
@@ -622,7 +570,7 @@ provides: dom
 				}
 			}
 		}),
-		css : atom.slickAccessor({
+		css : atom.core.slickAccessor({
 			get: function (name) {
 				return window.getComputedStyle(this.first, "").getPropertyValue(name);
 			},
@@ -637,7 +585,7 @@ provides: dom
 			}
 		}),
 		
-		bind : atom.overloadSetter(function (event, callback) {
+		bind : atom.core.overloadSetter(function (event, callback) {
 			if (callback === false) callback = prevent;
 
 			this.each(function (elem) {
@@ -647,7 +595,7 @@ provides: dom
 			
 			return this;
 		}),
-		unbind : atom.overloadSetter(function (event, callback) {
+		unbind : atom.core.overloadSetter(function (event, callback) {
 			if (callback === false) callback = prevent;
 				
 			this.each(function (elem) {
@@ -711,7 +659,7 @@ provides: dom
 			return this.manipulateClass(classNames, includeUnique);
 		},
 		removeClass: function (classNames) {
-			return this.manipulateClass(classNames, eraseAll);
+			return this.manipulateClass(classNames, coreEraseAll);
 		},
 		toggleClass: function(classNames) {
 			return this.manipulateClass(classNames, function (all, c) {
@@ -734,7 +682,7 @@ provides: dom
 				var i = classNames.length,
 					all = elem.className.split(/\s+/);
 
-				while (i--) if (!contains(all, classNames[i])) {
+				while (i--) if (!coreContains(all, classNames[i])) {
 					return;
 				}
 
@@ -761,6 +709,116 @@ provides: dom
 /*
 ---
 
+name: "CoreExtended"
+
+description: "Extended core of AtomJS  - extend, implements, clone, typeOf"
+
+license:
+	- "[GNU Lesser General Public License](http://opensource.org/licenses/lgpl-license.php)"
+	- "[MIT License](http://opensource.org/licenses/mit-license.php)"
+
+inspiration:
+  - "[JQuery](http://jquery.com)"
+  - "[MooTools](http://mootools.net)"
+
+provides: CoreExtended
+
+requires:
+	- js185
+	- Core
+
+...
+*/
+
+new function () {
+
+function innerExtend (proto) {
+	return function (elem, from) {
+		if (from == null) {
+			from = elem;
+			elem = atom;
+		}
+
+		var ext = proto ? elem[prototype] : elem,
+		    accessors = atom.accessors && atom.accessors.inherit;
+
+		for (var i in from) if (i != 'constructor') {
+			if ( accessors && accessors(from, ext, i) ) continue;
+
+			ext[i] = clone(from[i]);
+		}
+		return elem;
+	};
+}
+
+function typeOf (item) {
+	if (item == null) return 'null';
+
+	var string = toString.call(item);
+	for (var i in typeOf.types) if (i == string) return typeOf.types[i];
+
+	if (item.nodeName){
+		if (item.nodeType == 1) return 'element';
+		if (item.nodeType == 3) return /\S/.test(item.nodeValue) ? 'textnode' : 'whitespace';
+	}
+
+	var type = typeof item;
+
+	if (item && type == 'object') {
+		if (atom.Class && item instanceof atom.Class) return 'class';
+		if (coreIsArrayLike(item)) return 'arguments';
+	}
+
+	return type;
+}
+
+typeOf.types = {};
+['Boolean', 'Number', 'String', 'Function', 'Array', 'Date', 'RegExp', 'Class'].forEach(function(name) {
+	typeOf.types['[object ' + name + ']'] = name.toLowerCase();
+});
+
+
+function clone (object) {
+	var type = typeOf(object);
+	return type in clone.types ? clone.types[type](object) : object;
+}
+clone.types = {
+	'array': function (array) {
+		var i = array.length, c = new Array(i);
+		while (i--) c[i] = clone(array[i]);
+		return c;
+	},
+	'class':function (object) {
+		return typeof object.clone == 'function' ?
+			object.clone() : object;
+	},
+	'object': function (object) {
+		if (typeof object.clone == 'function') return object.clone();
+
+		var c = {}, accessors = atom.accessors && atom.accessors.inherit;
+		for (var key in object) {
+			if (accessors && accessors(object, c, key)) continue;
+			c[key] = clone(object[key]);
+		}
+		return c;
+	}
+};
+
+atom.core.extend    = innerExtend(false);
+atom.core.implement = innerExtend(true);
+atom.core.typeOf    = typeOf;
+atom.core.clone     = clone;
+
+atom.extend    = atom.core.extend;
+atom.implement = atom.core.implement;
+atom.typeOf    = atom.core.typeOf;
+atom.clone     = atom.core.clone;
+
+};
+
+/*
+---
+
 name: "Ajax"
 
 description: "todo"
@@ -770,7 +828,8 @@ license:
 	- "[MIT License](http://opensource.org/licenses/mit-license.php)"
 
 requires:
-	- atom
+	- Core
+	- CoreExtended
 
 provides: ajax
 
@@ -778,7 +837,7 @@ provides: ajax
 */
 
 (function () {
-	var extend = atom.extend, emptyFn = function () {};
+	var extend = atom.core.extend, emptyFn = function () {};
 
 	var ajax = function (userConfig) {
 		var data, config, method, req, url;
@@ -868,7 +927,7 @@ license:
 	- "[MIT License](http://opensource.org/licenses/mit-license.php)"
 
 requires:
-	- atom
+	- Core
 	- dom
 	- ajax
 
@@ -878,7 +937,7 @@ provides: ajax.dom
 */
 
 atom.dom.prototype.ajax = function (config) {
-	config = atom.append({}, config);
+	config = coreAppend({}, config);
 
 	var $dom = this;
 
@@ -906,47 +965,45 @@ license:
 	- "[MIT License](http://opensource.org/licenses/mit-license.php)"
 
 requires:
-	- atom
+	- Core
 
 provides: cookie
 
 ...
 */
 
-atom.extend({
-	cookie: {
-		get: function (name) {
-			var matches = document.cookie.match(new RegExp(
-			  "(?:^|; )" + name.replace(/([\.$?*|{}\(\)\[\]\\\/\+^])/g, '\\$1') + "=([^;]*)"
-			));
-			return matches ? decodeURIComponent(matches[1]) : null;
-		},
-		set: function (name, value, options) {
-			options = options || {};
-			var exp = options.expires;
-			if (exp) {
-				if (typeof exp == 'number') {
-					exp = new Date(exp * 1000 + Date.now());
-				}
-				if (exp.toUTCString) {
-					exp = exp.toUTCString();
-				}
-				options.expires = exp;
+atom.cookie = {
+	get: function (name) {
+		var matches = document.cookie.match(new RegExp(
+		  "(?:^|; )" + name.replace(/([\.$?*|{}\(\)\[\]\\\/\+^])/g, '\\$1') + "=([^;]*)"
+		));
+		return matches ? decodeURIComponent(matches[1]) : null;
+	},
+	set: function (name, value, options) {
+		options = options || {};
+		var exp = options.expires;
+		if (exp) {
+			if (typeof exp == 'number') {
+				exp = new Date(exp * 1000 + Date.now());
 			}
-
-			var cookie = [name + "=" + encodeURIComponent(value)];
-			for (var o in options) cookie.push(
-				options[o] === true ? o : o + "=" + options[o]
-			);
-			document.cookie = cookie.join('; ');
-
-			return atom.cookie;
-		},
-		del: function (name) {
-			return atom.cookie.set(name, '', { expires: -1 });
+			if (exp.toUTCString) {
+				exp = exp.toUTCString();
+			}
+			options.expires = exp;
 		}
+
+		var cookie = [name + "=" + encodeURIComponent(value)];
+		for (var o in options) cookie.push(
+			options[o] === true ? o : o + "=" + options[o]
+		);
+		document.cookie = cookie.join('; ');
+
+		return atom.cookie;
+	},
+	del: function (name) {
+		return atom.cookie.set(name, '', { expires: -1 });
 	}
-});
+};
 
 /*
 ---
@@ -960,7 +1017,7 @@ license:
 	- "[MIT License](http://opensource.org/licenses/mit-license.php)"
 
 requires:
-	- atom
+	- Core
 
 provides: frame
 
@@ -994,7 +1051,7 @@ provides: frame
 			delta = Math.min(now - previous, 1000);
 
 		for (i = 0, l = remove.length; i < l; i++) {
-			eraseOne(callbacks, remove[i]);
+			coreEraseOne(callbacks, remove[i]);
 		}
 		remove.length = 0;
 
@@ -1018,18 +1075,16 @@ provides: frame
 		} else invokeFrame();
 	}
 
-	atom.extend({
-		frame: {
-			add: function (fn) {
-				startAnimation();
-				includeUnique(callbacks, fn);
-			},
-			// we dont want to fragmentate callbacks, so remove only before frame started
-			remove: function (fn) {
-				if (started) includeUnique(remove, fn);
-			}
+	atom.frame = {
+		add: function (fn) {
+			startAnimation();
+			includeUnique(callbacks, fn);
+		},
+		// we dont want to fragmentate callbacks, so remove only before frame started
+		remove: function (fn) {
+			if (started) includeUnique(remove, fn);
 		}
-	});
+	};
 
 }());
 
@@ -1045,7 +1100,7 @@ license: "MIT License"
 author: "Steven Levithan <stevenlevithan.com>"
 
 requires:
-	- atom
+	- Core
 
 provides: uri
 
@@ -1077,7 +1132,7 @@ uri.options = {
 	parser: /^(?:(?![^:@]+:[^:@\/]*@)([^:\/?#.]+):)?(?:\/\/)?((?:(([^:@]*)(?::([^:@]*))?)?@)?([^:\/?#]*)(?::(\d*))?)(((\/(?:[^?#](?![^?#\/]*\.[^?#\/.]+(?:[?#]|$)))*\/?)?([^?#\/]*))(?:\?([^#]*))?(?:#(.*))?)/
 };
 
-atom.extend({ uri: uri });
+atom.uri = uri;
 
 };
 
@@ -1093,7 +1148,8 @@ license:
 	- "[MIT License](http://opensource.org/licenses/mit-license.php)"
 
 requires:
-	- atom
+	- Core
+	- CoreExtended
 	- accessors
 	- Array
 
@@ -1108,8 +1164,8 @@ provides: Class
 
 (function(atom){
 
-var typeOf = atom.typeOf,
-	extend = atom.extend,
+var typeOf = atom.core.typeOf,
+	extend = atom.core.extend,
 	accessors = atom.accessors.inherit,
 	prototype = 'prototype',
 	lambda    = function (value) { return function () { return value; }},
@@ -1284,8 +1340,7 @@ Class.extend({
 });
 
 Class.abstractMethod.$abstract = true;
-
-extend({ Class: Class });
+atom.Class = Class;
 
 })(atom);
 
@@ -1301,7 +1356,7 @@ license:
 	- "[MIT License](http://opensource.org/licenses/mit-license.php)"
 
 requires:
-	- atom
+	- Core
 	- Class
 
 inspiration:
@@ -1317,7 +1372,7 @@ atom.Class.bindAll = function (object, methods) {
 		if (
 			methods != '$caller' &&
 			!atom.accessors.has(object, methods) &&
-			isFunction(object[methods])
+			coreIsFunction(object[methods])
 		) {
 			object[methods] = object[methods].bind( object );
 		}
@@ -1341,7 +1396,7 @@ license:
 	- "[MIT License](http://opensource.org/licenses/mit-license.php)"
 
 requires:
-	- atom
+	- Core
 	- Class
 
 inspiration:
@@ -1389,7 +1444,7 @@ nextTick.reset = function () {
 };
 nextTick.reset();
 
-atom.extend(Class, {
+coreAppend(Class, {
 	Events: Class({
 		addEvent: function(name, fn) {
 			initEvents(this);
@@ -1498,7 +1553,7 @@ authors:
 	- "Shock <shocksilien@gmail.com>"
 
 requires:
-	- atom
+	- Core
 	- accessors
 	- Class
 
@@ -1538,7 +1593,7 @@ license:
 	- "[MIT License](http://opensource.org/licenses/mit-license.php)"
 
 requires:
-	- atom
+	- Core
 	- Class
 
 inspiration:
@@ -1558,7 +1613,7 @@ atom.Class.Options = atom.Class({
 		} else if (this.options == this.self.prototype.options) {
 			// it shouldn't be link to static options
 			if (this.fastSetOptions) {
-				this.options = atom.append({}, this.options);
+				this.options = coreAppend({}, this.options);
 			} else {
 				this.options = atom.clone(this.options);
 			}
@@ -1568,7 +1623,7 @@ atom.Class.Options = atom.Class({
 		for (var a = arguments, i = 0, l = a.length; i < l; i++) {
 			if (typeof a[i] == 'object') {
 				if (this.fastSetOptions) {
-					atom.append(options, a[i]);
+					coreAppend(options, a[i]);
 				} else {
 					atom.extend(options, a[i]);
 				}
@@ -1597,7 +1652,7 @@ license:
 	- "[MIT License](http://opensource.org/licenses/mit-license.php)"
 
 requires:
-	- atom
+	- Core
 	- accessors
 
 provides: declare
@@ -1752,7 +1807,7 @@ methods = {
 
 declare.config = {
 	methods: methods,
-	mutator: atom.overloadSetter(function (name, fn) {
+	mutator: atom.core.overloadSetter(function (name, fn) {
 		mutators.push({ name: name, fn: fn });
 		return this;
 	})
@@ -1795,7 +1850,7 @@ license:
 	- "[MIT License](http://opensource.org/licenses/mit-license.php)"
 
 requires:
-	- atom
+	- Core
 	- declare
 	
 inspiration:
@@ -1812,14 +1867,14 @@ atom.Transition = function (method, noEase) {
 	};
 
 	if (noEase) {
-		return atom.append( easeIn, {
+		return coreAppend( easeIn, {
 			easeIn   : easeIn,
 			easeOut  : easeIn,
 			easeInOut: easeIn
 		});
 	}
 
-	return atom.append( easeIn, {
+	return coreAppend( easeIn, {
 		easeIn: easeIn,
 		easeOut: function(progress){
 			return 1 - method(1 - progress);
@@ -1834,7 +1889,7 @@ atom.Transition = function (method, noEase) {
 	});
 };
 
-atom.Transition.set = atom.overloadSetter(function (id, fn) {
+atom.Transition.set = atom.core.overloadSetter(function (id, fn) {
 	atom.Transition[id] = atom.Transition(fn);
 });
 
@@ -1912,7 +1967,7 @@ license:
 	- "[MIT License](http://opensource.org/licenses/mit-license.php)"
 
 requires:
-	- atom
+	- Core
 	- declare
 
 inspiration:
@@ -2214,7 +2269,7 @@ declare( 'atom.Settings',
 	set: function (options) {
 		var method = this.recursive ? 'extend' : 'append';
 		if (this.isValidOptions(options)) {
-			atom[method](this.values, options);
+			atom.core[method](this.values, options);
 		}
 		this.invokeEvents();
 		return this;
@@ -2296,7 +2351,7 @@ license:
 	- "[MIT License](http://opensource.org/licenses/mit-license.php)"
 
 requires:
-	- atom
+	- Core
 
 provides: Types.Object
 
@@ -2423,7 +2478,7 @@ license:
 	- "[MIT License](http://opensource.org/licenses/mit-license.php)"
 
 requires:
-	- atom
+	- Core
 	- declare
 	- frame
 	- Transition
@@ -2445,7 +2500,7 @@ declare( 'atom.Animatable',
 			get: function (property) {
 				return atom.object.path.get(element, property);
 			},
-			set: atom.overloadSetter(function (property, value) {
+			set: atom.core.overloadSetter(function (property, value) {
 				return atom.object.path.set(element, property, value);
 			})
 		};
@@ -2470,14 +2525,14 @@ declare( 'atom.Animatable',
 	isValidCallbacks: function (callbacks) {
 		return typeof callbacks == 'object' &&
 			Object.keys(callbacks).length == 2 &&
-			isFunction(callbacks.set) &&
-			isFunction(callbacks.get);
+			coreIsFunction(callbacks.set) &&
+			coreIsFunction(callbacks.get);
 	},
 
 	/** @private */
 	animations: null,
 
-	animate: atom.ensureObjectSetter(function (properties) {
+	animate: atom.core.ensureObjectSetter(function (properties) {
 		return this.next(new atom.Animatable.Animation(this, properties));
 	}),
 
@@ -2628,7 +2683,7 @@ license:
 	- "[MIT License](http://opensource.org/licenses/mit-license.php)"
 
 requires:
-	- atom
+	- Core
 
 provides: Types.Number
 
@@ -2690,7 +2745,7 @@ license:
 	- "[MIT License](http://opensource.org/licenses/mit-license.php)"
 
 requires:
-	- atom
+	- Core
 	- Types.Number
 
 provides: Types.Array
@@ -2744,7 +2799,7 @@ atom.array = {
 	 */
 	from: function (item) {
 		if (item == null) return [];
-		return (!atom.isArrayLike(item)) ? [item] :
+		return (!coreIsArrayLike(item)) ? [item] :
 			Array.isArray(item) ? item : slice.call(item);
 	},
 	/**
@@ -2754,7 +2809,7 @@ atom.array = {
 	pickFrom: function (args) {
 		var fromZeroArgument = args
 			&& args.length == 1
-			&& atom.isArrayLike( args[0] );
+			&& coreIsArrayLike( args[0] );
 
 		return atom.array.from( fromZeroArgument ? args[0] : args );
 	},
@@ -2803,7 +2858,7 @@ atom.array = {
 	 * @returns {Array}
 	 */
 	create: function (length, callback, context) {
-		if (!isFunction(callback)) {
+		if (!coreIsFunction(callback)) {
 			throw new TypeError('callback should be function');
 		}
 		var array = new Array(Number(length));
@@ -2892,7 +2947,7 @@ atom.array = {
 	 * @param {*} item
 	 * @returns {Array} - target array
 	 */
-	erase: eraseAll,
+	erase: coreEraseAll,
 	/**
 	 * `push` source array values to the end of target array
 	 * @param {Array} target
@@ -2977,7 +3032,7 @@ atom.array = {
 	 */
 	sortBy : function (array, method, reverse) {
 		var get = function (elem) {
-			return (isFunction(elem[method]) ? elem[method]() : elem[method]) || 0;
+			return (coreIsFunction(elem[method]) ? elem[method]() : elem[method]) || 0;
 		};
 		var multi = reverse ? -1 : 1;
 		return array.sort(function ($0, $1) {
@@ -3068,7 +3123,7 @@ atom.array = {
 			i = 0,
 			obj = {},
 			length = array.length,
-			isFn = isFunction(keys),
+			isFn = coreIsFunction(keys),
 			keysSource = isFn ? array : keys;
 
 		if (!isFn) length = Math.min(length, keys.length);
@@ -3132,7 +3187,7 @@ atom.array = {
 	 * @returns {*}
 	 */
 	reduce: function(array, callback, value){
-		if (isFunction(array.reduce)) return array.reduce(callback, value);
+		if (coreIsFunction(array.reduce)) return array.reduce(callback, value);
 
 		for (var i = 0, l = array.length; i < l; i++) if (i in array) {
 			value = value === undefined ? array[i] : callback.call(null, value, array[i], i, array);
@@ -3147,7 +3202,7 @@ atom.array = {
 	 * @returns {*}
 	 */
 	reduceRight: function(array, callback, value){
-		if (isFunction(array.reduceRight)) return array.reduceRight(callback, value);
+		if (coreIsFunction(array.reduceRight)) return array.reduceRight(callback, value);
 
 		for (var i = array.length; i--;) if (i in array) {
 			value = value === undefined ? array[i] : callback.call(null, value, array[i], i, array);
@@ -3168,7 +3223,7 @@ license:
 	- "[MIT License](http://opensource.org/licenses/mit-license.php)"
 
 requires:
-	- atom
+	- Core
 	- declare
 	- Types.Number
 	- Types.Array
@@ -3535,7 +3590,7 @@ declare( 'atom.Trace', {
 
 			if (level > 5) return '*TOO_DEEP*';
 
-			if (obj && typeof obj == 'object' && isFunction(obj.dump)) return obj.dump();
+			if (obj && typeof obj == 'object' && coreIsFunction(obj.dump)) return obj.dump();
 
 			var subDump = function (elem, index) {
 					return tabs + '\t' + index + ': ' + this.dumpRec(elem, level+1, plain) + '\n';
@@ -3698,7 +3753,7 @@ license:
 	- "[MIT License](http://opensource.org/licenses/mit-license.php)"
 
 requires:
-	- atom
+	- Core
 	- Types.Array
 	- Types.Object
 
@@ -3724,7 +3779,7 @@ var prototypize = {
 		return prototypize;
 	},
 	own: function (object, source, methodsString) {
-		atom.extend(object, atom.object.collect( source, methodsString.split(' ') ));
+		coreAppend(object, atom.object.collect( source, methodsString.split(' ') ));
 		return prototypize;
 	}
 };
@@ -3796,7 +3851,7 @@ license:
 	- "[MIT License](http://opensource.org/licenses/mit-license.php)"
 
 requires:
-	- atom
+	- Core
 	- Types.Array
 
 provides: Types.Function
@@ -3840,7 +3895,7 @@ license:
 	- "[MIT License](http://opensource.org/licenses/mit-license.php)"
 
 requires:
-	- atom
+	- Core
 	- Types.Function
 	- Prototypes.Abstract
 
@@ -3938,7 +3993,7 @@ provides: Prototypes.Object
 ...
 */
 
-atom.extend(Object, atom.object);
+coreAppend(Object, atom.object);
 
 /*
 ---
@@ -3952,7 +4007,7 @@ license:
 	- "[MIT License](http://opensource.org/licenses/mit-license.php)"
 
 requires:
-	- atom
+	- Core
 
 provides: Types.String
 

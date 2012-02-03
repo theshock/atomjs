@@ -29,7 +29,7 @@ declare( 'atom.Trace', {
 
 			if (level > 5) return '*TOO_DEEP*';
 
-			if (obj && typeof obj == 'object' && isFunction(obj.dump)) return obj.dump();
+			if (obj && typeof obj == 'object' && coreIsFunction(obj.dump)) return obj.dump();
 
 			var subDump = function (elem, index) {
 					return tabs + '\t' + index + ': ' + this.dumpRec(elem, level+1, plain) + '\n';

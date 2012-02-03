@@ -13,7 +13,7 @@ authors:
 	- "Shock <shocksilien@gmail.com>"
 
 requires:
-	- atom
+	- Core
 	- accessors
 	- Class
 

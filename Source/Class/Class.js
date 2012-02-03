@@ -10,7 +10,8 @@ license:
 	- "[MIT License](http://opensource.org/licenses/mit-license.php)"
 
 requires:
-	- atom
+	- Core
+	- CoreExtended
 	- accessors
 	- Array
 
@@ -25,8 +26,8 @@ provides: Class
 
 (function(atom){
 
-var typeOf = atom.typeOf,
-	extend = atom.extend,
+var typeOf = atom.core.typeOf,
+	extend = atom.core.extend,
 	accessors = atom.accessors.inherit,
 	prototype = 'prototype',
 	lambda    = function (value) { return function () { return value; }},
@@ -201,7 +202,6 @@ Class.extend({
 });
 
 Class.abstractMethod.$abstract = true;
-
-extend({ Class: Class });
+atom.Class = Class;
 
 })(atom);

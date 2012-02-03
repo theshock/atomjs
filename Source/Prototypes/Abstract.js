@@ -10,7 +10,7 @@ license:
 	- "[MIT License](http://opensource.org/licenses/mit-license.php)"
 
 requires:
-	- atom
+	- Core
 	- Types.Array
 	- Types.Object
 
@@ -36,7 +36,7 @@ var prototypize = {
 		return prototypize;
 	},
 	own: function (object, source, methodsString) {
-		atom.extend(object, atom.object.collect( source, methodsString.split(' ') ));
+		coreAppend(object, atom.object.collect( source, methodsString.split(' ') ));
 		return prototypize;
 	}
 };

@@ -10,7 +10,7 @@ license:
 	- "[MIT License](http://opensource.org/licenses/mit-license.php)"
 
 requires:
-	- atom
+	- Core
 
 provides: frame
 
@@ -44,7 +44,7 @@ provides: frame
 			delta = Math.min(now - previous, 1000);
 
 		for (i = 0, l = remove.length; i < l; i++) {
-			eraseOne(callbacks, remove[i]);
+			coreEraseOne(callbacks, remove[i]);
 		}
 		remove.length = 0;
 
@@ -68,17 +68,15 @@ provides: frame
 		} else invokeFrame();
 	}
 
-	atom.extend({
-		frame: {
-			add: function (fn) {
-				startAnimation();
-				includeUnique(callbacks, fn);
-			},
-			// we dont want to fragmentate callbacks, so remove only before frame started
-			remove: function (fn) {
-				if (started) includeUnique(remove, fn);
-			}
+	atom.frame = {
+		add: function (fn) {
+			startAnimation();
+			includeUnique(callbacks, fn);
+		},
+		// we dont want to fragmentate callbacks, so remove only before frame started
+		remove: function (fn) {
+			if (started) includeUnique(remove, fn);
 		}
-	});
+	};
 
 }());

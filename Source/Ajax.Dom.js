@@ -10,7 +10,7 @@ license:
 	- "[MIT License](http://opensource.org/licenses/mit-license.php)"
 
 requires:
-	- atom
+	- Core
 	- dom
 	- ajax
 
@@ -20,7 +20,7 @@ provides: ajax.dom
 */
 
 atom.dom.prototype.ajax = function (config) {
-	config = atom.append({}, config);
+	config = coreAppend({}, config);
 
 	var $dom = this;
 

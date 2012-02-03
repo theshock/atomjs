@@ -65,7 +65,7 @@ declare( 'atom.Settings',
 	set: function (options) {
 		var method = this.recursive ? 'extend' : 'append';
 		if (this.isValidOptions(options)) {
-			atom[method](this.values, options);
+			atom.core[method](this.values, options);
 		}
 		this.invokeEvents();
 		return this;

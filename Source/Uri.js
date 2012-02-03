@@ -10,7 +10,7 @@ license: "MIT License"
 author: "Steven Levithan <stevenlevithan.com>"
 
 requires:
-	- atom
+	- Core
 
 provides: uri
 
@@ -42,6 +42,6 @@ uri.options = {
 	parser: /^(?:(?![^:@]+:[^:@\/]*@)([^:\/?#.]+):)?(?:\/\/)?((?:(([^:@]*)(?::([^:@]*))?)?@)?([^:\/?#]*)(?::(\d*))?)(((\/(?:[^?#](?![^?#\/]*\.[^?#\/.]+(?:[?#]|$)))*\/?)?([^?#\/]*))(?:\?([^#]*))?(?:#(.*))?)/
 };
 
-atom.extend({ uri: uri });
+atom.uri = uri;
 
 };

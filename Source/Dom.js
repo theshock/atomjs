@@ -10,7 +10,7 @@ license:
 	- "[MIT License](http://opensource.org/licenses/mit-license.php)"
 
 requires:
-	- atom
+	- Core
 	- accessors
 
 inspiration:
@@ -27,7 +27,6 @@ provides: dom
 			Class: /^\.[-_a-z0-9]+$/i,
 			Id   : /^#[-_a-z0-9]+$/i
 		},
-		toArray = atom.toArray,
 		isArray = Array.isArray,
 		prevent = function (e) {
 			e.preventDefault();
@@ -57,6 +56,13 @@ provides: dom
 			}
 			
 			onDomReady = [];
+		},
+		findParentByLevel = function (elem, level) {
+			if (level == null || level < 0) level = 1;
+
+			if (!elem || level <= 0) return atom.dom(elem);
+
+			return findParentByLevel(elem.parentNode, level-1);
 		};
 		
 	document.addEventListener('DOMContentLoaded', readyCallback, false);
@@ -90,8 +96,8 @@ provides: dom
 		}
 
 		var elems = this.elems =
-			  sel instanceof Dom     ? toArray(sel.elems)
-			:  atom.isArrayLike(sel) ? toArray(sel)
+			  sel instanceof Dom     ? coreToArray(sel.elems)
+			: coreIsArrayLike(sel)   ? coreToArray(sel)
 			: typeof sel == 'string' ? Dom.query(context, sel)
 			:                          Dom.find(context, sel);
 
@@ -101,12 +107,12 @@ provides: dom
 
 		return this;
 	};
-	atom.append(Dom, {
+	coreAppend(Dom, {
 		query : function (context, sel) {
-			return sel.match(regexp.Id)    ?        [context.getElementById        (sel.substr(1))] :
-			       sel.match(regexp.Class) ? toArray(context.getElementsByClassName(sel.substr(1))) :
-			       sel.match(regexp.Tag)   ? toArray(context.getElementsByTagName  (sel)) :
-			                                 toArray(context.querySelectorAll      (sel));
+			return sel.match(regexp.Id)    ?            [context.getElementById        (sel.substr(1))] :
+			       sel.match(regexp.Class) ? coreToArray(context.getElementsByClassName(sel.substr(1))) :
+			       sel.match(regexp.Tag)   ? coreToArray(context.getElementsByTagName  (sel)) :
+			                                 coreToArray(context.querySelectorAll      (sel));
 		},
 		find: function (context, sel) {
 			if (!sel) return context == null ? [] : [context];
@@ -138,16 +144,7 @@ provides: dom
 			return this.elems[Number(index) || 0];
 		},
 		parent : function(step) {
-			if(step == null) step = 1;
-
-			var stepCount = function(elem, step) {
-				if(step > 0) {
-					step--;
-					return stepCount(atom.dom(elem.first.parentNode), step);
-				}
-				return elem;
-			};
-			return stepCount(this, step);
+			return findParentByLevel(this.first, step);
 		},
 		filter: function (selector) {
 			var property = null;
@@ -164,7 +161,7 @@ provides: dom
 				if (property) {
 					return elem[property].toUpperCase() == selector;
 				} else {
-					return elem.parentNode && toArray(
+					return elem.parentNode && coreToArray(
 						elem.parentNode.querySelectorAll(selector)
 					).indexOf(elem) >= 0;
 				}
@@ -201,7 +198,7 @@ provides: dom
 			this.elems.forEach(fn.bind(this));
 			return this;
 		},
-		attr : atom.slickAccessor({
+		attr : atom.core.slickAccessor({
 			get: function (name) {
 				return this.first.getAttribute(name);
 			},
@@ -212,7 +209,7 @@ provides: dom
 				}
 			}
 		}),
-		css : atom.slickAccessor({
+		css : atom.core.slickAccessor({
 			get: function (name) {
 				return window.getComputedStyle(this.first, "").getPropertyValue(name);
 			},
@@ -227,7 +224,7 @@ provides: dom
 			}
 		}),
 		
-		bind : atom.overloadSetter(function (event, callback) {
+		bind : atom.core.overloadSetter(function (event, callback) {
 			if (callback === false) callback = prevent;
 
 			this.each(function (elem) {
@@ -237,7 +234,7 @@ provides: dom
 			
 			return this;
 		}),
-		unbind : atom.overloadSetter(function (event, callback) {
+		unbind : atom.core.overloadSetter(function (event, callback) {
 			if (callback === false) callback = prevent;
 				
 			this.each(function (elem) {
@@ -301,7 +298,7 @@ provides: dom
 			return this.manipulateClass(classNames, includeUnique);
 		},
 		removeClass: function (classNames) {
-			return this.manipulateClass(classNames, eraseAll);
+			return this.manipulateClass(classNames, coreEraseAll);
 		},
 		toggleClass: function(classNames) {
 			return this.manipulateClass(classNames, function (all, c) {
@@ -324,7 +321,7 @@ provides: dom
 				var i = classNames.length,
 					all = elem.className.split(/\s+/);
 
-				while (i--) if (!contains(all, classNames[i])) {
+				while (i--) if (!coreContains(all, classNames[i])) {
 					return;
 				}
 

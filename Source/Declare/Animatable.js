@@ -10,7 +10,7 @@ license:
 	- "[MIT License](http://opensource.org/licenses/mit-license.php)"
 
 requires:
-	- atom
+	- Core
 	- declare
 	- frame
 	- Transition
@@ -32,7 +32,7 @@ declare( 'atom.Animatable',
 			get: function (property) {
 				return atom.object.path.get(element, property);
 			},
-			set: atom.overloadSetter(function (property, value) {
+			set: atom.core.overloadSetter(function (property, value) {
 				return atom.object.path.set(element, property, value);
 			})
 		};
@@ -57,14 +57,14 @@ declare( 'atom.Animatable',
 	isValidCallbacks: function (callbacks) {
 		return typeof callbacks == 'object' &&
 			Object.keys(callbacks).length == 2 &&
-			isFunction(callbacks.set) &&
-			isFunction(callbacks.get);
+			coreIsFunction(callbacks.set) &&
+			coreIsFunction(callbacks.get);
 	},
 
 	/** @private */
 	animations: null,
 
-	animate: atom.ensureObjectSetter(function (properties) {
+	animate: atom.core.ensureObjectSetter(function (properties) {
 		return this.next(new atom.Animatable.Animation(this, properties));
 	}),
 
