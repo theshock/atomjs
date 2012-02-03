@@ -40,7 +40,7 @@ declare( 'atom.Events',
 	 */
 	exists: function (name) {
 		var array = this.events[this.removeOn( name )];
-		return array && !!array.length;
+		return !!(array && array.length);
 	},
 
 	/**

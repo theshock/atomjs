@@ -104,7 +104,7 @@ declare( 'atom.Settings',
 	isInvokable: function (name, option) {
 		return name &&
 			option &&
-			coreIsFunction('function') &&
+			coreIsFunction(option) &&
 			(/^on[A-Z]/).test(name);
 	}
 });

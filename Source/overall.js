@@ -21,7 +21,6 @@ inspiration:
 'use strict';
 
 var
-	prototype = 'prototype',
 	toString  = Object.prototype.toString,
 	hasOwn    = Object.prototype.hasOwnProperty,
 	slice     = Array .prototype.slice;

@@ -22,7 +22,6 @@ inspiration:
 'use strict';
 
 var
-	prototype = 'prototype',
 	toString  = Object.prototype.toString,
 	hasOwn    = Object.prototype.hasOwnProperty,
 	slice     = Array .prototype.slice;
@@ -2004,7 +2003,7 @@ declare( 'atom.Events',
 	 */
 	exists: function (name) {
 		var array = this.events[this.removeOn( name )];
-		return array && !!array.length;
+		return !!(array && array.length);
 	},
 
 	/**
@@ -2280,7 +2279,7 @@ declare( 'atom.Settings',
 	isInvokable: function (name, option) {
 		return name &&
 			option &&
-			coreIsFunction('function') &&
+			coreIsFunction(option) &&
 			(/^on[A-Z]/).test(name);
 	}
 });
