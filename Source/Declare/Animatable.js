@@ -225,7 +225,7 @@ declare( 'atom.Animatable.Animation',
 	}
 });
 
-if (atom.dom) (function (propertyName) {
+if (atom.dom) (function (animatable) {
 	var accessors = {
 		get: function (name) {
 			var value = this.css(name);
@@ -237,16 +237,21 @@ if (atom.dom) (function (propertyName) {
 	};
 
 	atom.dom.prototype.animate = atom.core.ensureObjectSetter(function (params) {
-		if (!this[propertyName]) {
-			this[propertyName] = new atom.Animatable(accessors, this);
-		}
-		return this[propertyName].animate(params);
+		this.each(function (elem) {
+			if (!elem[animatable]) {
+				elem[animatable] = new atom.Animatable(accessors, atom.dom(elem));
+			}
+			elem[animatable].animate(params);
+		});
+		return this
 	});
 
 	atom.dom.prototype.stopAnimation = function (force) {
-		if (this[propertyName]) {
-			this[propertyName].stop(force);
-		}
+		this.each(function (elem) {
+			if (elem[animatable]) {
+				elem[animatable].stop(force);
+			}
+		});
 		return this;
 	};
-})('animate.animatable');
+})('atom.animatable');
