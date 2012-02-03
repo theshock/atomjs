@@ -1,75 +1,90 @@
 Atom Core
 =========
 
-## atom.extend(object = atom, from)
+## atom.core.isFunction(fn)
 
-Extend `object` with `from` properties.
+Checks if `fn` is function
 
-#### Example: config
-	config = atom.extend({
-		// default values for config
-		a : 15,
-		b : 20
-	}, config);
+	if (atom.core.isFunction(object.method)) {
+		object.method();
+	}
 
-#### Example: extending atom
-	atom.extend({
-		value: 123
-	});
-	alert(atom.value); // 123
+## atom.core.objectize(key, value)
 
+If `key` is not object - returns object, where `key` is single key & `value` is value of this key.
+Else - returns `key`
 
-## atom.implement(object = atom, from)
+	atom.core.objectize( 'test', 'foo' ); // { test: 'foo' )
+	atom.core.objectize({ test: 'foo' }); // { test: 'foo' )
 
-Extend `object.prototype` with `from` properties.
+Can be used, when you what to be sure, you works with object:
 
-#### Example: class extends
-	atom.implement(child, parent);
-
-#### Example: expanding atom
-	atom.implement({
-		test: function () {
-			alert(123);
+	method: function (callback, nameOrHash, value) {
+		var hash = atom.core.objectize(nameOrHash, value);
+		for (var i in hash) {
+			// do
 		}
-	});
-	var a = atom();
-	a.test(); // 123
+	}
 
-## atom.toArray(arrayLikeObject)
+## atom.core.contains(array, value)
 
-Cast `arrayLikeObject` to `Array`
-	var args = atom.toArray(arguments);
+Checks is array contains value. Is similar to `array.indexOf(value) != -1`
 
-## atom.log(arg1, [arg2, ...])
+	if (atom.core.contains(['first', 'second'], value)) {
+		// do smth
+	}
 
-Safe alias for `console.log`
+## atom.core.includeUnique(array, value)
 
-## atom.clone(object)
-Returns clone of object
-	var cloneArray = atom.clone(oldArray);
+Push `value` to `array` if it doesn't contains it;
 
-## atom.typeOf(object)
-Returns type of object:
+	atom.core.includeUnique( [1,2,3], 1 ); // [1,2,3  ]
+	atom.core.includeUnique( [1,2,3], 4 ); // [1,2,3,4]
 
-	atom.typeOf( document.body ) == 'element'
-	atom.typeOf(  function(){} ) == 'function'
-	atom.typeOf(    new Date() ) == 'date'
-	atom.typeOf(          null ) == 'null'
-	atom.typeOf(     arguments ) == 'arguments'
-	atom.typeOf(        /abc/i ) == 'regexp'
-	atom.typeOf(            [] ) == 'array'
-	atom.typeOf(            {} ) == 'object'
-	atom.typeOf(            15 ) == 'number'
-	atom.typeOf(          true ) == 'boolean'
+## atom.core.eraseOne(array, value)
 
-	var MyClass = atom.Class({});
-	atom.typeOf( new MyClass() ) == 'class'
+Erase first `value` from `array`
+
+	atom.core.eraseOne( [1,2,3,2,1], 2 ); // [1,3,2,1]
+
+## atom.core.eraseAll(array, value)
+
+Erase all `value` from `array`
+
+	atom.core.eraseAll( [1,2,3,2,1], 2 ); // [1,3,1]
+
+## atom.core.toArray(arrayLikeObject)
+
+Cast `arrayLikeObject` (array, DomCollection, arguments) to `Array`
+
+	var args = atom.core.toArray(arguments);
+
+## atom.core.isArrayLike(object)
+
+Checks if `object` is arrayLike
+
+	if (atom.core.isArrayLike(object)) {
+		for (var i = 0; i < object.length; i++) {
+			// do
+		}
+	}
+
+## atom.core.append(target, source)
+
+Append all properties from sourceto target
+
+	var target = { a: 1 };
+	var source = { b: 2 };
+	atom.core.append( target, source );
+	console.log(target); // { a: 1, b: 2 }
+
+
+
 
 JavaScript 1.8.5 Compatiblity
 =============================
 
-Browsers, which do not have JavaScript 1.8.5 compatibility, will get those
-methods implemented:
+Browsers, which do not have JavaScript 1.8.5 compatibility, will get those methods implemented:
 
 * [Function.prototype.bind](https://developer.mozilla.org/en/JavaScript/Reference/Global_Objects/Function/bind)
 * [Object.keys](https://developer.mozilla.org/en/JavaScript/Reference/Global_Objects/Object/keys)

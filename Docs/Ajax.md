@@ -1,7 +1,9 @@
+atom.ajax
+=========
 
 	atom.ajax(config);
 
-Config parameters:
+#### Config parameters:
 
 * `interval`: 0. Repeat every `interval` seconds if it's greater than 0
 * `type`: `'plain'`. One of `'plain'` or `'json'` (response automatically parsed as JSON)
@@ -9,9 +11,10 @@ Config parameters:
 * `data`: `{}`.
 * `cache`: `false`. Disabling blowser cache: `cache:false`
 * `url`: `location.href`. Request url
-* `callbacks`. One of `'onLoad'`, `'onError'`
+* `onLoad`: callback
+* `onError`: callback
 
-Example:
+#### Example:
 
 	atom.ajax({
 		type   : 'json',
