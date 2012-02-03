@@ -26,13 +26,16 @@ prototypize
 	.own(Array, atom.array, 'range from pickFrom fill fillMatrix collect create toHash')
 	.proto(Array, proto, 'randomIndex property contains include append erase combine pick invoke shuffle sortBy min max mul add sum product average unique associate clean empty clone hexToRgb rgbToHex' );
 
-atom.implement(Array, {
-	get last(){
+atom.accessors.define(Array.prototype, {
+	last  : { get: function () {
 		return atom.array.last(this);
-	},
-	get random(){
+	}},
+	random: { get: function () {
 		return atom.array.random(this, false);
-	},
+	}}
+});
+
+coreAppend(Array.prototype, {
 	popRandom: function () {
 		return atom.array.random(this, true);
 	},

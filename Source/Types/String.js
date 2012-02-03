@@ -69,10 +69,9 @@ atom.string = {
 	 * @returns {String}
 	 */
 	replaceAll: function (string, find, replace) {
-		var type = atom.typeOf(find);
-		if (type == 'regexp') {
+		if (toString.call(find) == '[object RegExp]') {
 			return string.replace(find, function (symb) { return replace[symb]; });
-		} else if (type == 'object') {
+		} else if (typeof find == 'object') {
 			for (var i in find) string = string.replaceAll(i, find[i]);
 			return string;
 		}

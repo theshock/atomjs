@@ -343,7 +343,14 @@ provides: accessors
 
 	atom.accessors = {
 		lookup: lookup,
-		define: define,
+		define: function (object, prop, descriptor) {
+			if (typeof prop == 'object') {
+				for (var i in prop) define(object, i, prop[i]);
+			} else {
+				define(object, prop, descriptor);
+			}
+			return object;
+		},
 		has: function (object, key) {
 			return atom.accessors.lookup(object, key, true);
 		},
@@ -2167,41 +2174,6 @@ declare( 'atom.Events',
 	}
 });
 
-declare( 'atom.Events.Mixin', new function () {
-	var init = function () {
-		var events = this.__events;
-		if (!events) events = this.__events = new atom.Events(this);
-		if (this._events) {
-			for (var name in this._events) if (name != '$ready') {
-				this._events[name].forEach(function (fn) {
-					events.add(name, fn);
-				});
-			}
-		}
-		return events;
-	};
-
-	var method = function (method, useReturn) {
-		return function () {
-			var result, events = init.call(this);
-
-			result = events[method].apply( events, arguments );
-			return useReturn ? result : this;
-		}
-	};
-
-	/** @class atom.Events.Mixin */
-	return {
-		get events ( ) { return init.call(this); },
-		set events (e) { this.__events = e;       },
-		isEventAdded: method( 'exists', true ),
-		addEvent    : method( 'add'   , false ),
-		removeEvent : method( 'remove', false ),
-		fireEvent   : method( 'fire'  , false ),
-		readyEvent  : method( 'ready' , false )
-	};
-});
-
 /*
 ---
 
@@ -2308,34 +2280,8 @@ declare( 'atom.Settings',
 	isInvokable: function (name, option) {
 		return name &&
 			option &&
-			atom.typeOf(option) == 'function' &&
+			coreIsFunction('function') &&
 			(/^on[A-Z]/).test(name);
-	}
-});
-
-declare( 'atom.Settings.Mixin',
-/** @class atom.Settings.Mixin */
-{
-	/**
-	 * @private
-	 * @property atom.Settings
-	 */
-	settings: null,
-	options : {},
-
-	setOptions: function (options) {
-		if (!this.settings) {
-			this.settings = new atom.Settings(
-				atom.clone(this.options || {})
-			);
-			this.options = this.settings.values;
-		}
-
-		for (var i = 0; i < arguments.length; i++) {
-			this.settings.set(arguments[i]);
-		}
-
-		return this;
 	}
 });
 
@@ -2669,6 +2615,87 @@ declare( 'atom.Animatable.Animation',
 		atom.frame.remove(this.tick);
 		return this;
 	}
+});
+
+/*
+---
+
+name: "ClassCompat"
+
+description: "Contains the Class Function for easily creating, extending, and implementing reusable Classes."
+
+license:
+	- "[GNU Lesser General Public License](http://opensource.org/licenses/lgpl-license.php)"
+	- "[MIT License](http://opensource.org/licenses/mit-license.php)"
+
+requires:
+	- Core
+	- CoreExtended
+	- declare
+
+provides: ClassCompat
+...
+*/
+
+declare( 'atom.Settings.Mixin',
+/** @class atom.Settings.Mixin */
+{
+	/**
+	 * @private
+	 * @property atom.Settings
+	 */
+	settings: null,
+	options : {},
+
+	setOptions: function (options) {
+		if (!this.settings) {
+			this.settings = new atom.Settings(
+				atom.clone(this.options || {})
+			);
+			this.options = this.settings.values;
+		}
+
+		for (var i = 0; i < arguments.length; i++) {
+			this.settings.set(arguments[i]);
+		}
+
+		return this;
+	}
+});
+
+declare( 'atom.Events.Mixin', new function () {
+	var init = function () {
+		var events = this.__events;
+		if (!events) events = this.__events = new atom.Events(this);
+		if (this._events) {
+			for (var name in this._events) if (name != '$ready') {
+				this._events[name].forEach(function (fn) {
+					events.add(name, fn);
+				});
+			}
+		}
+		return events;
+	};
+
+	var method = function (method, useReturn) {
+		return function () {
+			var result, events = init.call(this);
+
+			result = events[method].apply( events, arguments );
+			return useReturn ? result : this;
+		}
+	};
+
+	/** @class atom.Events.Mixin */
+	return {
+		get events ( ) { return init.call(this); },
+		set events (e) { this.__events = e;       },
+		isEventAdded: method( 'exists', true ),
+		addEvent    : method( 'add'   , false ),
+		removeEvent : method( 'remove', false ),
+		fireEvent   : method( 'fire'  , false ),
+		readyEvent  : method( 'ready' , false )
+	};
 });
 
 /*
@@ -3573,6 +3600,7 @@ license:
 requires:
 	- declare
 	- dom
+	- CoreExtended
 
 provides: Trace
 
@@ -3773,7 +3801,7 @@ var prototypize = {
 		};
 	},
 	proto: function (object, proto, methodsString) {
-		atom.implement(object, atom.array.associate(
+		coreAppend(object.prototype, atom.array.associate(
 			methodsString.split(' '), proto
 		));
 		return prototypize;
@@ -3812,13 +3840,16 @@ prototypize
 	.own(Array, atom.array, 'range from pickFrom fill fillMatrix collect create toHash')
 	.proto(Array, proto, 'randomIndex property contains include append erase combine pick invoke shuffle sortBy min max mul add sum product average unique associate clean empty clone hexToRgb rgbToHex' );
 
-atom.implement(Array, {
-	get last(){
+atom.accessors.define(Array.prototype, {
+	last  : { get: function () {
 		return atom.array.last(this);
-	},
-	get random(){
+	}},
+	random: { get: function () {
 		return atom.array.random(this, false);
-	},
+	}}
+});
+
+coreAppend(Array.prototype, {
 	popRandom: function () {
 		return atom.array.random(this, true);
 	},
@@ -3919,7 +3950,7 @@ new function () {
 		};
 	}
 	
-	atom.implement(Function, {
+	coreAppend(Function.prototype, {
 		after: prototypize.fn(atom.fn)('after'),
 		delay     : timer(false),
 		periodical: timer(true )
@@ -3952,7 +3983,7 @@ prototypize
 	.own(Number, atom.number, 'random')
 	.proto(Number, prototypize.fn(atom.number), 'between equals limit round stop' );
 
-atom.implement(Number, {
+coreAppend(Number.prototype, {
 	toFloat: function(){
 		return parseFloat(this);
 	},
@@ -4066,10 +4097,9 @@ atom.string = {
 	 * @returns {String}
 	 */
 	replaceAll: function (string, find, replace) {
-		var type = atom.typeOf(find);
-		if (type == 'regexp') {
+		if (toString.call(find) == '[object RegExp]') {
 			return string.replace(find, function (symb) { return replace[symb]; });
-		} else if (type == 'object') {
+		} else if (typeof find == 'object') {
 			for (var i in find) string = string.replaceAll(i, find[i]);
 			return string;
 		}

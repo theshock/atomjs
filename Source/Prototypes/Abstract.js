@@ -30,7 +30,7 @@ var prototypize = {
 		};
 	},
 	proto: function (object, proto, methodsString) {
-		atom.implement(object, atom.array.associate(
+		coreAppend(object.prototype, atom.array.associate(
 			methodsString.split(' '), proto
 		));
 		return prototypize;

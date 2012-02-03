@@ -104,33 +104,7 @@ declare( 'atom.Settings',
 	isInvokable: function (name, option) {
 		return name &&
 			option &&
-			atom.typeOf(option) == 'function' &&
+			coreIsFunction('function') &&
 			(/^on[A-Z]/).test(name);
-	}
-});
-
-declare( 'atom.Settings.Mixin',
-/** @class atom.Settings.Mixin */
-{
-	/**
-	 * @private
-	 * @property atom.Settings
-	 */
-	settings: null,
-	options : {},
-
-	setOptions: function (options) {
-		if (!this.settings) {
-			this.settings = new atom.Settings(
-				atom.clone(this.options || {})
-			);
-			this.options = this.settings.values;
-		}
-
-		for (var i = 0; i < arguments.length; i++) {
-			this.settings.set(arguments[i]);
-		}
-
-		return this;
 	}
 });

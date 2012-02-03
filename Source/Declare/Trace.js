@@ -12,6 +12,7 @@ license:
 requires:
 	- declare
 	- dom
+	- CoreExtended
 
 provides: Trace
 

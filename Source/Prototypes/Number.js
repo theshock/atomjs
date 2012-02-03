@@ -22,7 +22,7 @@ prototypize
 	.own(Number, atom.number, 'random')
 	.proto(Number, prototypize.fn(atom.number), 'between equals limit round stop' );
 
-atom.implement(Number, {
+coreAppend(Number.prototype, {
 	toFloat: function(){
 		return parseFloat(this);
 	},

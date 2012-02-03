@@ -34,7 +34,7 @@ new function () {
 		};
 	}
 	
-	atom.implement(Function, {
+	coreAppend(Function.prototype, {
 		after: prototypize.fn(atom.fn)('after'),
 		delay     : timer(false),
 		periodical: timer(true )

@@ -209,38 +209,3 @@ declare( 'atom.Events',
 		}
 	}
 });
-
-declare( 'atom.Events.Mixin', new function () {
-	var init = function () {
-		var events = this.__events;
-		if (!events) events = this.__events = new atom.Events(this);
-		if (this._events) {
-			for (var name in this._events) if (name != '$ready') {
-				this._events[name].forEach(function (fn) {
-					events.add(name, fn);
-				});
-			}
-		}
-		return events;
-	};
-
-	var method = function (method, useReturn) {
-		return function () {
-			var result, events = init.call(this);
-
-			result = events[method].apply( events, arguments );
-			return useReturn ? result : this;
-		}
-	};
-
-	/** @class atom.Events.Mixin */
-	return {
-		get events ( ) { return init.call(this); },
-		set events (e) { this.__events = e;       },
-		isEventAdded: method( 'exists', true ),
-		addEvent    : method( 'add'   , false ),
-		removeEvent : method( 'remove', false ),
-		fireEvent   : method( 'fire'  , false ),
-		readyEvent  : method( 'ready' , false )
-	};
-});
