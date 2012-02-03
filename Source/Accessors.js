@@ -70,7 +70,12 @@ provides: accessors
 
 	atom.accessors = {
 		lookup: lookup,
-		define: define,
+		define: function (object, prop, descriptor) {
+			if (typeof prop == 'object') {
+				for (var i in prop) define(object, i, prop);
+			} else define(object, prop, descriptor);
+			return object;
+		},
 		has: function (object, key) {
 			return atom.accessors.lookup(object, key, true);
 		},
