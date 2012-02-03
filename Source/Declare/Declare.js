@@ -86,6 +86,8 @@ declare.prototype.bindMethods = function (methods) {
 	return this;
 };
 
+declare.NAME = 'atom.declare';
+
 declare.invoke = function () {
 	return this.factory( arguments );
 };
@@ -156,6 +158,7 @@ methods = {
 		if (prototyping) return this;
 
 		if (this instanceof Constructor) {
+			if (Constructor.NAME) this.Constructor = Constructor.NAME;
 			return this.initialize.apply(this, args);
 		} else {
 			return Constructor.invoke.apply(Constructor, args);
@@ -176,6 +179,7 @@ declare.config.mutator({
 		parent = parent || declare;
 		methods.addTo( Constructor, parent );
 		Constructor.prototype = methods.proto( parent );
+		Constructor.parent    = parent;
 	},
 	mixin: function (Constructor, mixins) {
 		if (mixins) methods.mixin( Constructor, mixins );

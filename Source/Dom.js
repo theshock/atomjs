@@ -42,8 +42,13 @@ provides: dom
 		domReady = false,
 		onDomReady = [],
 		camelCase = function (str) {
-			return str.replace(/-\D/g, function(match){
+			return String(str).replace(/-\D/g, function(match){
 				return match[1].toUpperCase();
+			});
+		},
+		hyphenate = function (str) {
+			return String(str).replace(/[A-Z]/g, function(match){
+				return '-' + match[0].toLowerCase();
 			});
 		},
 		readyCallback = function () {
@@ -211,7 +216,7 @@ provides: dom
 		}),
 		css : atom.core.slickAccessor({
 			get: function (name) {
-				return window.getComputedStyle(this.first, "").getPropertyValue(name);
+				return window.getComputedStyle(this.first, "").getPropertyValue(hyphenate(name));
 			},
 			set: function (name, value) {
 				var e = this.elems, i = e.length;

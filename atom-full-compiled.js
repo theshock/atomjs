@@ -409,8 +409,13 @@ provides: dom
 		domReady = false,
 		onDomReady = [],
 		camelCase = function (str) {
-			return str.replace(/-\D/g, function(match){
+			return String(str).replace(/-\D/g, function(match){
 				return match[1].toUpperCase();
+			});
+		},
+		hyphenate = function (str) {
+			return String(str).replace(/[A-Z]/g, function(match){
+				return '-' + match[0].toLowerCase();
 			});
 		},
 		readyCallback = function () {
@@ -578,7 +583,7 @@ provides: dom
 		}),
 		css : atom.core.slickAccessor({
 			get: function (name) {
-				return window.getComputedStyle(this.first, "").getPropertyValue(name);
+				return window.getComputedStyle(this.first, "").getPropertyValue(hyphenate(name));
 			},
 			set: function (name, value) {
 				var e = this.elems, i = e.length;
@@ -1736,6 +1741,8 @@ declare.prototype.bindMethods = function (methods) {
 	return this;
 };
 
+declare.NAME = 'atom.declare';
+
 declare.invoke = function () {
 	return this.factory( arguments );
 };
@@ -1806,6 +1813,7 @@ methods = {
 		if (prototyping) return this;
 
 		if (this instanceof Constructor) {
+			if (Constructor.NAME) this.Constructor = Constructor.NAME;
 			return this.initialize.apply(this, args);
 		} else {
 			return Constructor.invoke.apply(Constructor, args);
@@ -1826,6 +1834,7 @@ declare.config.mutator({
 		parent = parent || declare;
 		methods.addTo( Constructor, parent );
 		Constructor.prototype = methods.proto( parent );
+		Constructor.parent    = parent;
 	},
 	mixin: function (Constructor, mixins) {
 		if (mixins) methods.mixin( Constructor, mixins );
@@ -2455,8 +2464,9 @@ declare( 'atom.Animatable',
 	
 	element: null,
 
-	initialize: function (callbacks) {
+	initialize: function (callbacks, context) {
 		this.bindMethods('animate');
+		this.context = context || null;
 
 		if (!callbacks) throw new TypeError( 'callbacks cant be null' );
 
@@ -2521,11 +2531,11 @@ declare( 'atom.Animatable',
 	},
 
 	get: function (name) {
-		return this.callbacks.get.apply(this.element, arguments);
+		return this.callbacks.get.apply(this.context, arguments);
 	},
 
 	set: function (name, value) {
-		return this.callbacks.set.apply(this.element, arguments);
+		return this.callbacks.set.apply(this.context, arguments);
 	}
 });
 
@@ -2576,7 +2586,12 @@ declare( 'atom.Animatable.Animation',
 	countValuesDelta: function () {
 		var initial = this.initial;
 		return atom.object.map(this.target, function (value, key) {
-			return value - initial[key];
+			var start = initial[key];
+			if (atom.Color && start instanceof atom.Color) {
+				return start.diff( new atom.Color(value) );
+			} else {
+				return value - start;
+			}
 		});
 	},
 
@@ -2584,7 +2599,18 @@ declare( 'atom.Animatable.Animation',
 	fetchInitialValues: function () {
 		var animatable = this.animatable;
 		return atom.object.map(this.target, function (value, key) {
-			return animatable.get(key);
+			var v = animatable.get(key);
+			if (atom.Color && atom.Color.isColorString(value)) {
+				if (!v) {
+					v = new atom.Color(value);
+					v.alpha = 0;
+				}
+				return new atom.Color(v);
+			} else if (isNaN(v)) {
+				throw new Error('value is not animatable: ' + v);
+			} else {
+				return v;
+			}
 		});
 	},
 
@@ -2603,9 +2629,14 @@ declare( 'atom.Animatable.Animation',
 
 	/** @private */
 	changeValues: function (progress) {
-		var delta = this.delta;
+		var delta = this.delta, initial;
 		for (var i in delta) {
-			this.animatable.set( i, this.initial[i] + delta[i] * progress );
+			initial = this.initial[i];
+			this.animatable.set( i,
+				atom.Color && initial instanceof atom.Color ?
+					initial.clone().move(delta[i].clone().mul(progress)).toString() :
+					initial + delta[i] * progress
+			);
 		}
 	},
 
@@ -2617,6 +2648,32 @@ declare( 'atom.Animatable.Animation',
 		return this;
 	}
 });
+
+if (atom.dom) (function (propertyName) {
+	var accessors = {
+		get: function (name) {
+			var value = this.css(name);
+			return atom.Color && atom.Color.isColorString(value) ? value : parseFloat(value);
+		},
+		set: function (name, value) {
+			this.css(name, value);
+		}
+	};
+
+	atom.dom.prototype.animate = atom.core.ensureObjectSetter(function (params) {
+		if (!this[propertyName]) {
+			this[propertyName] = new atom.Animatable(accessors, this);
+		}
+		return this[propertyName].animate(params);
+	});
+
+	atom.dom.prototype.stopAnimation = function (force) {
+		if (this[propertyName]) {
+			this[propertyName].stop(force);
+		}
+		return this;
+	};
+})('animate.animatable');
 
 /*
 ---
@@ -3540,6 +3597,23 @@ declare( 'atom.Color',
 		shift: function (color) {
 			return this.clone().move(color);
 		},
+		map: function (fn) {
+			var color = this;
+			['red', 'green', 'blue', 'alpha'].forEach(function (component) {
+				color[component] = fn.call( color, color[component], component, color );
+			});
+			return color;
+		},
+		add: function (factor) {
+			return this.map(function (value) {
+				return value + factor;
+			});
+		},
+		mul: function (factor) {
+			return this.map(function (value) {
+				return value * factor;
+			});
+		},
 		/**
 		 * @param {atom.Color} color
 		 * @returns {boolean}
@@ -3590,7 +3664,7 @@ declare( 'atom.Color.Shift',
 /*
 ---
 
-name: "Trace"
+name: "trace"
 
 description: ""
 
@@ -3603,12 +3677,12 @@ requires:
 	- dom
 	- CoreExtended
 
-provides: Trace
+provides: trace
 
 ...
 */
 
-declare( 'atom.Trace', {
+atom.trace = declare( 'atom.trace', {
 	own: {
 		dumpRec : function (obj, level, plain) {
 			level  = parseInt(level) || 0;
@@ -3659,15 +3733,15 @@ declare( 'atom.Trace', {
 		}
 	},
 
+	/** @class atom.trace */
 	prototype: {
 		initialize : function (object) {
 			this.value = object;
 			this.stopped = false;
-			return this;
 		},
 		set value (value) {
 			if (!this.stopped && !this.blocked) {
-				var html = atom.string.replaceAll( this.self.dump(value), {
+				var html = atom.string.replaceAll( this.constructor.dump(value), {
 					'\t': '&nbsp;'.repeat(3),
 					'\n': '<br />'
 				});
