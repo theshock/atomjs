@@ -1,7 +1,7 @@
 /*
 ---
 
-name: "Trace"
+name: "trace"
 
 description: ""
 
@@ -14,12 +14,12 @@ requires:
 	- dom
 	- CoreExtended
 
-provides: Trace
+provides: trace
 
 ...
 */
 
-declare( 'atom.Trace', {
+atom.trace = declare( 'atom.trace', {
 	own: {
 		dumpRec : function (obj, level, plain) {
 			level  = parseInt(level) || 0;
@@ -70,15 +70,15 @@ declare( 'atom.Trace', {
 		}
 	},
 
+	/** @class atom.trace */
 	prototype: {
 		initialize : function (object) {
 			this.value = object;
 			this.stopped = false;
-			return this;
 		},
 		set value (value) {
 			if (!this.stopped && !this.blocked) {
-				var html = atom.string.replaceAll( this.self.dump(value), {
+				var html = atom.string.replaceAll( this.constructor.dump(value), {
 					'\t': '&nbsp;'.repeat(3),
 					'\n': '<br />'
 				});
