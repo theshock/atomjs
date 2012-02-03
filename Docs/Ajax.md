@@ -1,4 +1,4 @@
-atom.ajax
+Atom AJAX
 =========
 
 	atom.ajax(config);

@@ -1,5 +1,5 @@
-Atom.Plugins.DOM
-================
+Atom DOM
+========
 
 #### Constructor:
 

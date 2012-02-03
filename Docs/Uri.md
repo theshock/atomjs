@@ -1,5 +1,5 @@
-Atom.Plugins.Uri
-======================
+Atom Uri
+========
 
 ## atom.accessors.uri(str = location.href)
 

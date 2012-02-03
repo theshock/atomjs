@@ -1,4 +1,4 @@
-Atom.Plugins.Cookie
+Atom Cookie
 ===================
 
 

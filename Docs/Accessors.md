@@ -1,5 +1,5 @@
-Atom.Plugins.Accessors
-======================
+Atom Accessors
+==============
 
 ## atom.accessors.has(object, prop)
 
