@@ -17,9 +17,7 @@ provides: Settings
 ...
 */
 
-
-declare( 'atom.Settings',
-/** @class atom.Settings */
+var Settings = declare( 'atom.Settings',
 {
 	/** @private */
 	recursive: false,

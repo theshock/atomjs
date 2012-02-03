@@ -23,11 +23,10 @@ inspiration:
 var
 	toString  = Object.prototype.toString,
 	hasOwn    = Object.prototype.hasOwnProperty,
-	slice     = Array .prototype.slice;
-
-var atom = this.atom = function () {
-	if (atom.initialize) return atom.initialize.apply(this, arguments);
-};
+	slice     = Array .prototype.slice,
+	atom = this.atom = function () {
+		if (atom.initialize) return atom.initialize.apply(this, arguments);
+	};
 
 atom.global = this;
 

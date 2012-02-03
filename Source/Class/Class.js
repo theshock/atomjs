@@ -100,6 +100,10 @@ var wrap = function(self, key, method){
 };
 
 var getInstance = function(Class){
+	if (atom.declare && Class instanceof atom.declare) {
+		return atom.declare.config.methods.proto(Class);
+	}
+
 	prototyping = true;
 	var proto = new Class;
 	prototyping = false;

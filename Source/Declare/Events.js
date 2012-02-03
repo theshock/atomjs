@@ -21,7 +21,7 @@ provides: Events
 ...
 */
 
-declare( 'atom.Events',
+var Events = declare( 'atom.Events',
 /** @class atom.Events */
 {
 

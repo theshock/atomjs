@@ -86,6 +86,10 @@ declare.prototype.bindMethods = function (methods) {
 	return this;
 };
 
+declare.prototype.toString = function () {
+	return '[object ' + (this.constructor.NAME || 'Declare') + ']';
+};
+
 declare.NAME = 'atom.declare';
 
 declare.invoke = function () {
