@@ -2893,6 +2893,7 @@ atom.array = {
 			Array.isArray(item) ? item : slice.call(item);
 	},
 	/**
+	 * @private
 	 * @param {Array} args
 	 * @returns {Array}
 	 */
@@ -2926,8 +2927,8 @@ atom.array = {
 		}
 		return array;
 	},
-	// #todo: why in array, not in object?
 	/**
+	 * It returns array, atom.object.collect returns hash
 	 * @param {Object} source
 	 * @param {Array} props
 	 * @param {*} [defaultValue=undefined]
@@ -2975,12 +2976,13 @@ atom.array = {
 	last: function (array) {
 		return array.length ? array[array.length - 1] : null;
 	},
-	// #todo: atom.number.random
 	/**
 	 * @param {Array} array
 	 * @returns number
 	 */
 	randomIndex: function (array) {
+		if (array.length == 0) return null;
+
 		return atom.number.random(0, array.length - 1);
 	},
 	/**

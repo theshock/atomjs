@@ -2,10 +2,10 @@
 new function () {
 
 /******************************************
- * [Atom Plugins] Types
+ * [Atom Plugins] Prototypes
  ******************************************/
 
-module('[Atom Plugins] Types');
+module('[Atom Plugins] Prototypes');
 
 test('Function', function() {
 

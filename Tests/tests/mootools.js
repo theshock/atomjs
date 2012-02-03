@@ -1,7 +1,7 @@
 
 module('[MooTools]');
 
-test('Types.Array', function () {
+test('Prototypes.Array', function () {
 	ok([1,2,3,0,0,0].contains(0), 'contains: element found');
 	ok(![0,1,2].contains('not found'), 'contains: element not found');
 	deepEqual([1,2,3,4].include(1).include(5), [1,2,3,4,5], 'include');
