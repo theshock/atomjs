@@ -299,6 +299,23 @@ declare( 'atom.Color',
 		shift: function (color) {
 			return this.clone().move(color);
 		},
+		map: function (fn) {
+			var color = this;
+			['red', 'green', 'blue', 'alpha'].forEach(function (component) {
+				color[component] = fn.call( color, color[component], component, color );
+			});
+			return color;
+		},
+		add: function (factor) {
+			return this.map(function (value) {
+				return value + factor;
+			});
+		},
+		mul: function (factor) {
+			return this.map(function (value) {
+				return value * factor;
+			});
+		},
 		/**
 		 * @param {atom.Color} color
 		 * @returns {boolean}
