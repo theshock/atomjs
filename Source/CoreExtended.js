@@ -31,7 +31,7 @@ function innerExtend (proto) {
 			elem = atom;
 		}
 
-		var ext = proto ? elem[prototype] : elem,
+		var ext = proto ? elem.prototype : elem,
 		    accessors = atom.accessors && atom.accessors.inherit;
 
 		for (var i in from) if (i != 'constructor') {

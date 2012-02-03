@@ -128,12 +128,12 @@ new function () {
 	};
 
 	/** @deprecated - use atom.core.toArray instead */
-	//atom.toArray   = coreToArray;
+	atom.toArray   = coreToArray;
 	/** @deprecated - use console-cap instead: https://github.com/theshock/console-cap/ */
-	//atom.log = function () { throw new Error('deprecated') };
+	atom.log = function () { throw new Error('deprecated') };
 	/** @deprecated - use atom.core.isArrayLike instead */
-	//atom.isArrayLike = coreIsArrayLike;
+	atom.isArrayLike = coreIsArrayLike;
 	/** @deprecated - use atom.core.append instead */
-	//atom.append = coreAppend;
+	atom.append = coreAppend;
 
 };

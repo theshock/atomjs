@@ -274,7 +274,7 @@ Returns array with only unique values
 
 	atom.array.unique([1,2,3,3,4,4,5]); // [1,2,3,4,5]
 
-### atom.array.associate(array, keys)
+### associate
 	Array atom.array.associate(Array array, Function|Array keys)
 
 Associate array values with keys

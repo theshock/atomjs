@@ -179,7 +179,7 @@ declare.config.mutator({
 		parent = parent || declare;
 		methods.addTo( Constructor, parent );
 		Constructor.prototype = methods.proto( parent );
-		Constructor.parent    = parent;
+		Constructor.Parent    = parent;
 	},
 	mixin: function (Constructor, mixins) {
 		if (mixins) methods.mixin( Constructor, mixins );

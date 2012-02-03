@@ -260,13 +260,13 @@ new function () {
 	};
 
 	/** @deprecated - use atom.core.toArray instead */
-	//atom.toArray   = coreToArray;
+	atom.toArray   = coreToArray;
 	/** @deprecated - use console-cap instead: https://github.com/theshock/console-cap/ */
-	//atom.log = function () { throw new Error('deprecated') };
+	atom.log = function () { throw new Error('deprecated') };
 	/** @deprecated - use atom.core.isArrayLike instead */
-	//atom.isArrayLike = coreIsArrayLike;
+	atom.isArrayLike = coreIsArrayLike;
 	/** @deprecated - use atom.core.append instead */
-	//atom.append = coreAppend;
+	atom.append = coreAppend;
 
 };
 
@@ -750,7 +750,7 @@ function innerExtend (proto) {
 			elem = atom;
 		}
 
-		var ext = proto ? elem[prototype] : elem,
+		var ext = proto ? elem.prototype : elem,
 		    accessors = atom.accessors && atom.accessors.inherit;
 
 		for (var i in from) if (i != 'constructor') {
@@ -1198,7 +1198,7 @@ var Class = function (params) {
 		}
 	};
 	extend(Constructor, Class);
-	Constructor[prototype] = getInstance(Class);
+	Constructor.prototype = getInstance(Class);
 
 	Constructor
 		.implement(params, false)
@@ -1209,7 +1209,7 @@ var Class = function (params) {
 		.reserved({
 			factory : function() {
 				function Factory(args) { return Constructor.apply(this, args); }
-				Factory[prototype] = Constructor[prototype];
+				Factory.prototype = Constructor.prototype;
 				return function(args) { return new Factory(args || []); }
 			}()
 		});
@@ -1223,7 +1223,7 @@ var parent = function(){
 	if (!this.$caller) throw new Error('The method «parent» cannot be called.');
 	var name    = this.$caller.$name,
 		parent   = this.$caller.$owner.parent,
-		previous = parent && parent[prototype][name];
+		previous = parent && parent.prototype[name];
 	if (!previous) throw new Error('The method «' + name + '» has no parent.');
 	return previous.apply(this, arguments);
 };
@@ -1280,7 +1280,7 @@ Class.extend({
 		}
 
 		for (var key in params) {
-			if (!accessors(params, this[prototype], key)) {
+			if (!accessors(params, this.prototype, key)) {
 				var value = params[key];
 
 				if (Class.Mutators.hasOwnProperty(key)){
@@ -1295,9 +1295,9 @@ Class.extend({
 					} else if (value.$hidden) {
 						continue;
 					}
-					this[prototype][key] = (retain) ? value : wrap(this, key, value);
+					this.prototype[key] = (retain) ? value : wrap(this, key, value);
 				} else {
-					this[prototype][key] = atom.clone(value);
+					this.prototype[key] = atom.clone(value);
 				}
 			}
 		}
@@ -1314,7 +1314,7 @@ Class.extend({
 			props = toProto;
 			toProto = false;
 		}
-		var target = toProto ? this[prototype] : this;
+		var target = toProto ? this.prototype : this;
 		for (var name in props) {
 			atom.accessors.define(target, name, { get: lambda(props[name]) });
 		}
@@ -1330,7 +1330,7 @@ Class.extend({
 		Extends: function(parent){
 			if (parent == null) throw new TypeError('Cant extends from null');
 			this.extend(parent).reserved({ parent: parent });
-			this[prototype] = getInstance(parent);
+			this.prototype = getInstance(parent);
 		},
 
 		Implements: function(items){
@@ -1834,7 +1834,7 @@ declare.config.mutator({
 		parent = parent || declare;
 		methods.addTo( Constructor, parent );
 		Constructor.prototype = methods.proto( parent );
-		Constructor.parent    = parent;
+		Constructor.Parent    = parent;
 	},
 	mixin: function (Constructor, mixins) {
 		if (mixins) methods.mixin( Constructor, mixins );
