@@ -151,6 +151,17 @@ provides: dom
 		parent : function(step) {
 			return findParentByLevel(this.first, step);
 		},
+		contains: function (child) {
+			var parent = this.first;
+			child = atom.dom(child).first;
+			while ( child ) {
+				if( child == parent ) {
+					return true;
+				}
+				child = child.parentNode;
+			}
+			return false;
+		},
 		filter: function (selector) {
 			var property = null;
 			// speed optimization for "tag" & "id" filtering
@@ -333,6 +344,25 @@ provides: dom
 				result = true;
 			});
 			return result;
+		},
+		offset: function () {
+			var element = this.first;
+			if (element.offsetX != null) {
+				return { x: element.offsetX, y: element.offsetY };
+			}
+
+			var box = element.getBoundingClientRect(),
+				body    = document.body,
+				docElem = document.documentElement,
+				scrollLeft = window.pageXOffset || docElem.scrollLeft || body.scrollLeft,
+				scrollTop  = window.pageYOffset || docElem.scrollTop  || body.scrollTop,
+				clientLeft = docElem.clientLeft || body.clientLeft || 0,
+				clientTop  = docElem.clientTop  || body.clientTop  || 0;
+
+			return {
+				x: Math.round(box.left + scrollLeft - clientLeft),
+				y: Math.round(box.top  + scrollTop  - clientTop )
+			};
 		},
 		log : function () {
 			console.log('atom.dom: ', this.elems);
