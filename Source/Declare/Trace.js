@@ -88,7 +88,7 @@ atom.trace = declare( 'atom.trace', {
 		destroy : function (force) {
 			var trace = this;
 			if (force) this.stop();
-			trace.node.css('background', '#300');
+			trace.node.addClass('atom-trace-node-destroy');
 			trace.timeout = setTimeout(function () {
 				if (trace.node) {
 					trace.node.destroy();
@@ -107,16 +107,6 @@ atom.trace = declare( 'atom.trace', {
 			var cont = atom.dom('#traceContainer');
 			return cont.length ? cont :
 				atom.dom.create('div', { 'id' : 'traceContainer'})
-					.css({
-						'zIndex'   : '87223',
-						'position' : 'fixed',
-						'top'      : '3px',
-						'right'    : '6px',
-						'maxWidth' : '70%',
-						'maxHeight': '100%',
-						'overflowY': 'auto',
-						'background': 'rgba(0,192,0,0.2)'
-					})
 					.appendTo('body');
 		},
 		/** @deprecated */
@@ -125,58 +115,25 @@ atom.trace = declare( 'atom.trace', {
 			return this;
 		},
 		/** @private */
-		events : function (remove) {
-			var trace = this;
-			// add events unbind
-			!remove || trace.node.bind({
-				mouseover : function () {
-					trace.node.css('background', '#222');
-				},
-				mouseout  : function () {
-					trace.node.css('background', '#000');
-				},
-				mousedown : function () {
-					trace.blocked = true;
-				},
-				mouseup : function () {
-					trace.blocked = false;
-				}
-			});
-			return trace.node;
-		},
-		/** @private */
 		createNode : function () {
 			var trace = this, node = trace.node;
 
 			if (node) {
 				if (trace.timeout) {
 					clearTimeout(trace.timeout);
-					trace.events(node);
-					node.css('background', '#000');
+					node.removeClass('atom-trace-node-destroy');
 				}
 				return node;
 			}
 
-			trace.node = atom.dom
+			return trace.node = atom.dom
 				.create('div')
-				.css({
-					background : '#000',
-					border     : '1px dashed #0c0',
-					color      : '#0c0',
-					cursor     : 'pointer',
-					fontFamily : 'monospace',
-					margin     : '1px',
-					minWidth   : '200px',
-					overflow   : 'auto',
-					padding    : '3px 12px',
-					whiteSpace : 'pre'
-				})
+				.addClass('atom-trace-node')
 				.appendTo(trace.getContainer())
 				.bind({
 					click    : function () { trace.destroy(0) },
 					dblclick : function () { trace.destroy(1) }
 				});
-			return trace.events();
 		}
 	}
 });
