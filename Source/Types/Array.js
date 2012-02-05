@@ -294,7 +294,7 @@ atom.array = {
 	 * sort array by property value or method returns
 	 * @param {Array} array
 	 * @param {string} method
-	 * @param {boolean} [reverse=false]
+	 * @param {boolean} [reverse=false] (if true) first - smallest, last - biggest
 	 * @returns {Array}
 	 */
 	sortBy : function (array, method, reverse) {

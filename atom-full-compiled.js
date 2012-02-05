@@ -221,6 +221,22 @@ new function () {
 			return this;
 		};
 	}
+	function overloadGetter (fn, ignoreEmpty) {
+		return function (properties) {
+			if (Array.isArray(properties)) {
+				var result = {}, name, value;
+				for (var i = properties.length; i--;) {
+					name = properties[i];
+					value = fn.call(this, name);
+					if (!ignoreEmpty || typeof value !== 'undefined') {
+						result[name] = value;
+					}
+				}
+				return result;
+			}
+			return fn.call(this, properties);
+		};
+	}
 	/**
 	 * Returns function that calls callbacks.get
 	 * if first parameter is primitive & second parameter is undefined
@@ -251,10 +267,11 @@ new function () {
 		eraseAll  : coreEraseAll,
 		toArray   : coreToArray,
 		append    : coreAppend,
-		isArrayLike  : coreIsArrayLike,
-		includeUnique: includeUnique,
-		slickAccessor     : slickAccessor,
-		overloadSetter    : overloadSetter,
+		isArrayLike   : coreIsArrayLike,
+		includeUnique : includeUnique,
+		slickAccessor : slickAccessor,
+		overloadSetter: overloadSetter,
+		overloadGetter: overloadGetter,
 		ensureObjectSetter: ensureObjectSetter
 	};
 
@@ -520,11 +537,10 @@ provides: dom
 		contains: function (child) {
 			var parent = this.first;
 			child = atom.dom(child).first;
-			while ( child ) {
+			if ( child ) while ( child = child.parentNode ) {
 				if( child == parent ) {
 					return true;
 				}
-				child = child.parentNode;
 			}
 			return false;
 		},
@@ -2273,11 +2289,11 @@ var Settings = declare( 'atom.Settings',
 	},
 
 	/**
-	 * @param {String} name
+	 * @param {string|Array} name
 	 */
-	get: function (name) {
+	get: atom.core.overloadGetter(function (name) {
 		return this.values[name];
-	},
+	}, true),
 
 	/**
 	 * @param {Object} options
@@ -3154,7 +3170,7 @@ atom.array = {
 	 * sort array by property value or method returns
 	 * @param {Array} array
 	 * @param {string} method
-	 * @param {boolean} [reverse=false]
+	 * @param {boolean} [reverse=false] (if true) first - smallest, last - biggest
 	 * @returns {Array}
 	 */
 	sortBy : function (array, method, reverse) {
@@ -3853,6 +3869,37 @@ return declare( 'atom.Keyboard',
 /*
 ---
 
+name: "Registry"
+
+description: ""
+
+license:
+	- "[GNU Lesser General Public License](http://opensource.org/licenses/lgpl-license.php)"
+	- "[MIT License](http://opensource.org/licenses/mit-license.php)"
+
+requires:
+	- declare
+
+provides: Registry
+
+...
+*/
+
+var Registry = declare( 'atom.Registry', {
+	initialize: function () {
+		this.items = {};
+	},
+	set: atom.core.overloadSetter(function (name, value) {
+		this.items[name] = value;
+	}),
+	get: atom.core.overloadGetter(function (name) {
+		return this.items[name];
+	})
+});
+
+/*
+---
+
 name: "trace"
 
 description: ""
@@ -3940,7 +3987,7 @@ atom.trace = declare( 'atom.trace', {
 		destroy : function (force) {
 			var trace = this;
 			if (force) this.stop();
-			trace.node.css('background', '#300');
+			trace.node.addClass('atom-trace-node-destroy');
 			trace.timeout = setTimeout(function () {
 				if (trace.node) {
 					trace.node.destroy();
@@ -3956,19 +4003,9 @@ atom.trace = declare( 'atom.trace', {
 		},
 		/** @private */
 		getContainer : function () {
-			var cont = atom.dom('#traceContainer');
+			var cont = atom.dom('#atom-trace-container');
 			return cont.length ? cont :
-				atom.dom.create('div', { 'id' : 'traceContainer'})
-					.css({
-						'zIndex'   : '87223',
-						'position' : 'fixed',
-						'top'      : '3px',
-						'right'    : '6px',
-						'maxWidth' : '70%',
-						'maxHeight': '100%',
-						'overflowY': 'auto',
-						'background': 'rgba(0,192,0,0.2)'
-					})
+				atom.dom.create('div', { 'id' : 'atom-trace-container'})
 					.appendTo('body');
 		},
 		/** @deprecated */
@@ -3977,58 +4014,25 @@ atom.trace = declare( 'atom.trace', {
 			return this;
 		},
 		/** @private */
-		events : function (remove) {
-			var trace = this;
-			// add events unbind
-			!remove || trace.node.bind({
-				mouseover : function () {
-					trace.node.css('background', '#222');
-				},
-				mouseout  : function () {
-					trace.node.css('background', '#000');
-				},
-				mousedown : function () {
-					trace.blocked = true;
-				},
-				mouseup : function () {
-					trace.blocked = false;
-				}
-			});
-			return trace.node;
-		},
-		/** @private */
 		createNode : function () {
 			var trace = this, node = trace.node;
 
 			if (node) {
 				if (trace.timeout) {
 					clearTimeout(trace.timeout);
-					trace.events(node);
-					node.css('background', '#000');
+					node.removeClass('atom-trace-node-destroy');
 				}
 				return node;
 			}
 
-			trace.node = atom.dom
+			return trace.node = atom.dom
 				.create('div')
-				.css({
-					background : '#000',
-					border     : '1px dashed #0c0',
-					color      : '#0c0',
-					cursor     : 'pointer',
-					fontFamily : 'monospace',
-					margin     : '1px',
-					minWidth   : '200px',
-					overflow   : 'auto',
-					padding    : '3px 12px',
-					whiteSpace : 'pre'
-				})
+				.addClass('atom-trace-node')
 				.appendTo(trace.getContainer())
 				.bind({
 					click    : function () { trace.destroy(0) },
 					dblclick : function () { trace.destroy(1) }
 				});
-			return trace.events();
 		}
 	}
 });

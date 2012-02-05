@@ -154,11 +154,10 @@ provides: dom
 		contains: function (child) {
 			var parent = this.first;
 			child = atom.dom(child).first;
-			while ( child ) {
+			if ( child ) while ( child = child.parentNode ) {
 				if( child == parent ) {
 					return true;
 				}
-				child = child.parentNode;
 			}
 			return false;
 		},
