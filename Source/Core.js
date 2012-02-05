@@ -90,6 +90,22 @@ new function () {
 			return this;
 		};
 	}
+	function overloadGetter (fn, ignoreEmpty) {
+		return function (properties) {
+			if (Array.isArray(properties)) {
+				var result = {}, name, value;
+				for (var i = properties.length; i--;) {
+					name = properties[i];
+					value = fn.call(this, name);
+					if (!ignoreEmpty || typeof value !== 'undefined') {
+						result[name] = value;
+					}
+				}
+				return result;
+			}
+			return fn.call(this, properties);
+		};
+	}
 	/**
 	 * Returns function that calls callbacks.get
 	 * if first parameter is primitive & second parameter is undefined
@@ -120,10 +136,11 @@ new function () {
 		eraseAll  : coreEraseAll,
 		toArray   : coreToArray,
 		append    : coreAppend,
-		isArrayLike  : coreIsArrayLike,
-		includeUnique: includeUnique,
-		slickAccessor     : slickAccessor,
-		overloadSetter    : overloadSetter,
+		isArrayLike   : coreIsArrayLike,
+		includeUnique : includeUnique,
+		slickAccessor : slickAccessor,
+		overloadSetter: overloadSetter,
+		overloadGetter: overloadGetter,
 		ensureObjectSetter: ensureObjectSetter
 	};
 
