@@ -1751,14 +1751,9 @@ declare = function (declareName, params) {
 		};
 	}
 
-	// we need this for shorter line in chrome debugger;
-	function make (a) {
-		return methods.construct.call(this, Constructor, a);
-	}
-
 	// line break for more user-friendly debug string
 	function Constructor()
-	{ return make.call(this, arguments) }
+	{ return methods.construct.call(this, Constructor, arguments) }
 
 	for (var i = 0, l = mutators.length; i < l; i++) {
 		mutators[i].fn( Constructor, params[mutators[i].name] );
@@ -1855,13 +1850,11 @@ methods = {
 		prototyping = false;
 		return result;
 	},
-	fetchArgs: function (args) {
-		args = slice.call(factory ? args[0] : args);
-		factory = false;
-		return args;
-	},
 	construct: function (Constructor, args) {
-		args = methods.fetchArgs(args);
+		if (factory) {
+			args = args[0];
+			factory = false;
+		}
 
 		if (prototyping) return this;
 
