@@ -104,9 +104,9 @@ atom.trace = declare( 'atom.trace', {
 		},
 		/** @private */
 		getContainer : function () {
-			var cont = atom.dom('#traceContainer');
+			var cont = atom.dom('#atom-trace-container');
 			return cont.length ? cont :
-				atom.dom.create('div', { 'id' : 'traceContainer'})
+				atom.dom.create('div', { 'id' : 'atom-trace-container'})
 					.appendTo('body');
 		},
 		/** @deprecated */
