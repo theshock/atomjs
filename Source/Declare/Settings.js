@@ -50,11 +50,11 @@ var Settings = declare( 'atom.Settings',
 	},
 
 	/**
-	 * @param {String} name
+	 * @param {string|Array} name
 	 */
-	get: function (name) {
+	get: atom.core.overloadGetter(function (name) {
 		return this.values[name];
-	},
+	}, true),
 
 	/**
 	 * @param {Object} options
