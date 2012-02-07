@@ -27,16 +27,6 @@ provides: Animatable
 declare( 'atom.Animatable',
 /** @class atom.Animatable */
 {
-	defaultCallbacks: function (element) {
-		return {
-			get: function (property) {
-				return atom.object.path.get(element, property);
-			},
-			set: atom.core.overloadSetter(function (property, value) {
-				return atom.object.path.set(element, property, value);
-			})
-		};
-	},
 	
 	element: null,
 
@@ -50,10 +40,42 @@ declare( 'atom.Animatable',
 		if (this.isValidCallbacks(callbacks)) {
 			this.callbacks = callbacks;
 		} else {
-			this.callbacks = this.defaultCallbacks(callbacks);
+			this.callbacks = this.getDefaultCallbacks(callbacks);
 		}
 	},
 
+	get current () {
+		return this.animations[0];
+	},
+
+	/**
+	 * Binded to `Animatable`
+	 * @returns {atom.Animatable.Animation}
+	 */
+	animate: atom.core.ensureObjectSetter(function (properties) {
+		return this.next(new atom.Animatable.Animation(this, properties));
+	}),
+
+	stop: function (all) {
+		var current = this.current;
+		if (current) {
+			if (all) this.animations.length = 0;
+			current.destroy('stop');
+		}
+		return this;
+	},
+
+	/** @private */
+	getDefaultCallbacks: function (element) {
+		return {
+			get: function (property) {
+				return atom.object.path.get(element, property);
+			},
+			set: atom.core.overloadSetter(function (property, value) {
+				return atom.object.path.set(element, property, value);
+			})
+		};
+	},
 	/** @private */
 	isValidCallbacks: function (callbacks) {
 		return typeof callbacks == 'object' &&
@@ -64,14 +86,6 @@ declare( 'atom.Animatable',
 
 	/** @private */
 	animations: null,
-
-	animate: atom.core.ensureObjectSetter(function (properties) {
-		return this.next(new atom.Animatable.Animation(this, properties));
-	}),
-
-	get current () {
-		return this.animations[0];
-	},
 
 	/** @private */
 	next: function (animation) {
@@ -96,20 +110,11 @@ declare( 'atom.Animatable',
 		});
 		animation.start();
 	},
-
-	stop: function (all) {
-		var current = this.current;
-		if (current) {
-			if (all) this.animations.length = 0;
-			current.destroy('stop');
-		}
-		return this;
-	},
-
+	/** @private */
 	get: function (name) {
 		return this.callbacks.get.apply(this.context, arguments);
 	},
-
+	/** @private */
 	set: function (name, value) {
 		return this.callbacks.set.apply(this.context, arguments);
 	}
