@@ -29,7 +29,9 @@ function coreObjectize (properties, value) {
 	if (typeof properties != 'object') {
 		var key = properties;
 		properties = {};
-		properties[key] = value;
+		if (key != null) {
+			properties[key] = value;
+		}
 	}
 	return properties;
 }

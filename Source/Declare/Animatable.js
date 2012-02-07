@@ -142,7 +142,7 @@ declare( 'atom.Animatable.Animation',
 		this.bindMethods('tick');
 
 		if (!settings.props) settings = {props: settings};
-		this.events   = new atom.Events(this);
+		this.events   = new atom.Events(animatable);
 		this.settings = new atom.Settings({
 				fn  : 'linear',
 				time: 500
@@ -185,6 +185,7 @@ declare( 'atom.Animatable.Animation',
 				if (!v) {
 					v = new atom.Color(value);
 					v.alpha = 0;
+					return v;
 				}
 				return new atom.Color(v);
 			} else if (isNaN(v)) {
