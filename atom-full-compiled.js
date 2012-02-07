@@ -2292,14 +2292,14 @@ var Settings = declare( 'atom.Settings',
 	 * @param {Object} options
 	 * @return atom.Options
 	 */
-	set: function (options) {
+	set: atom.core.ensureObjectSetter(function (options) {
 		var method = this.recursive ? 'extend' : 'append';
 		if (this.isValidOptions(options)) {
 			atom.core[method](this.values, options);
 		}
 		this.invokeEvents();
 		return this;
-	},
+	}),
 
 	/**
 	 * @param {String} name
