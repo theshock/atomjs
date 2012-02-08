@@ -72,7 +72,7 @@ return declare( 'atom.Keyboard',
 			var type = typeof code;
 
 			if (type == 'number') {
-				return this.codeNames[code.keyCode];
+				return this.codeNames[code];
 			} else if (type == 'string' && code in this.keyCodes) {
 				return code;
 			}
@@ -86,9 +86,9 @@ return declare( 'atom.Keyboard',
 				preventDefault = element;
 				element = null;
 			}
-			if (element == null) element = window;
+			if (element == null) element = document;
 
-			if (element == window) {
+			if (element == document) {
 				if (this.constructor.instance) {
 					return this.constructor.instance;
 				}
@@ -137,7 +137,7 @@ return declare( 'atom.Keyboard',
 			return pD && (pD === true || pD.indexOf(key) >= 0);
 		},
 		key: function (keyName) {
-			return !this.keyStates[ this.constructor.keyName(keyName) ];
+			return !!this.keyStates[ this.constructor.keyName(keyName) ];
 		}
 	}
 });
