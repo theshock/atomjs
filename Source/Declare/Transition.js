@@ -104,7 +104,7 @@ atom.Transition.set({
 	},
 
 	Elastic: function(p){
-		return Math.pow(2, 10 * --p) * Math.cos(20 * p * Math.PI/ 3);
+		return Math.pow(2, 10 * --p) * Math.cos(12 * p);
 	}
 
 });
