@@ -139,7 +139,7 @@ declare( 'atom.Animatable.Animation',
 	target: null,
 
 	initialize: function (animatable, settings) {
-		this.bindMethods('tick');
+		this.bindMethods([ 'tick', 'start' ]);
 
 		if (!settings.props) settings = {props: settings};
 		this.events   = new atom.Events(animatable);
@@ -181,7 +181,7 @@ declare( 'atom.Animatable.Animation',
 		var animatable = this.animatable;
 		return atom.object.map(this.target, function (value, key) {
 			var v = animatable.get(key);
-			if (atom.Color && atom.Color.isColorString(value)) {
+			if (atom.Color && atom.Color.isColorString(value) || value instanceof atom.Color) {
 				if (!v) {
 					v = new atom.Color(value);
 					v.alpha = 0;
