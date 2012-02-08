@@ -4380,7 +4380,7 @@ atom.string = {
 	 * @param {string} substr
 	 */
 	contains: function (string, substr) {
-		return string.indexOf( substr ) >= 0;
+		return string ? string.indexOf( substr ) >= 0 : false;
 	},
 	/**
 	 * Checks if string begins with such substring
@@ -4390,6 +4390,7 @@ atom.string = {
 	 * @returns {boolean}
 	 */
 	begins: function (string, substring, caseInsensitive) {
+		if (!string) return false;
 		return (!caseInsensitive) ? substring == string.substr(0, substring.length) :
 			substring.toLowerCase() == string.substr(0, substring.length).toLowerCase();
 	},
@@ -4401,6 +4402,7 @@ atom.string = {
 	 * @returns {boolean}
 	 */
 	ends: function (string, substring, caseInsensitive) {
+		if (!string) return false;
 		return (!caseInsensitive) ? substring == string.substr(string.length - substring.length) :
 			substring.toLowerCase() == string.substr(string.length - substring.length).toLowerCase();
 	},
@@ -4410,7 +4412,7 @@ atom.string = {
 	 * @returns {string}
 	 */
 	ucfirst : function (string) {
-		return string[0].toUpperCase() + string.substr(1);
+		return string ? string[0].toUpperCase() + string.substr(1) : '';
 	},
 	/**
 	 * Lowercase first character
@@ -4418,7 +4420,7 @@ atom.string = {
 	 * @returns {string}
 	 */
 	lcfirst : function (string) {
-		return string[0].toLowerCase() + string.substr(1);
+		return string ? string[0].toLowerCase() + string.substr(1) : '';
 	}
 };
 
