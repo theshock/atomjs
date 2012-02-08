@@ -36,7 +36,7 @@ declare( 'atom.Color',
 			if (typeof string != 'string') return false;
 			return string in this.colorNames ||
 				string.match(/^#\w{3,6}$/) ||
-				string.match(/^rgba?\([\d, ]+\)$/);
+				string.match(/^rgba?\([\d\., ]+\)$/);
 		},
 
 		colorNames: {
