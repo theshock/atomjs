@@ -211,7 +211,7 @@ declare( 'atom.Color',
 				});
 				if (array.length == 4) array[3] /= 255;
 			} else {
-				array = string.match(/([\.\d]{1,3})/g).map( Number );
+				array = string.match(/([\.\d]{1,})/g).map( Number );
 			}
 			return this.fromArray(array);
 		},
