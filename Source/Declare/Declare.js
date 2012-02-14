@@ -132,10 +132,8 @@ methods = {
 	},
 	addTo: function (target, source) {
 		for (var i in source) if (i != 'constructor') {
-			if (!accessors(source, target, i)) {
-				if (source[i] != declare.config) {
-					target[i] = source[i];
-				}
+			if (!accessors(source, target, i) && source[i] != declare.config) {
+				target[i] = source[i];
 			}
 		}
 		return target;
