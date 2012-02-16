@@ -113,14 +113,16 @@ atom.object = {
 
 			var key = path.pop();
 
-			object = Object.path.get( object, path.length > 0 && path, delimiter );
-
-			if (object == null) {
-				return false;
-			} else {
-				object[key] = value;
-				return true;
+			while (path.length) {
+				var current = path.shift();
+				if (object[current]) {
+					object = object[current];
+				} else {
+					object = object[current] = {};
+				}
 			}
+
+			object[key] = value;
 		}
 	}
 };
