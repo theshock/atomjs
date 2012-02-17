@@ -1754,8 +1754,16 @@ declare = function (declareName, params) {
 	}
 
 	// line break for more user-friendly debug string
-	function Constructor()
-	{ return methods.construct.call(this, Constructor, arguments) }
+	var Constructor = function ()
+	{ return methods.construct.call(this, Constructor, arguments) };
+
+	// <debug> - should be removed on production
+	if (params.name) {
+		Constructor = new Function('con', 'return {"' + params.name + '": ' +
+			function(){ return con.apply(this, arguments) }
+		 + '}["' + params.name + '"];')(Constructor);
+	}
+	// </debug>
 
 	for (var i = 0, l = mutators.length; i < l; i++) {
 		mutators[i].fn( Constructor, params[mutators[i].name] );
