@@ -161,9 +161,11 @@ equal( Object.path.get(test, 'foo'), 2, 'Object.path.get: First level');
 equal( Object.path.get(test, 'bar.zog.asd'), 4, 'Object.path.get: Third level');
 strictEqual( Object.path.get(test, 'no.value'), undefined, 'Object.path.get: no such value');
 
-equal( Object.path.set(test, 'rex', 15), true, 'First level Object.path.set');
-equal( Object.path.set(test, 'bar.zog.max', 42), true, 'Third level Object.path.set');
-equal( Object.path.set(test, 'no.value'), false, 'Cant set value at Object.path.set');
+Object.path.set(test, 'rex', 15);
+Object.path.set(test, 'bar.zog.max', 42);
+
+equal( test.rex, 15, 'First level Object.path.set');
+equal( test.bar.zog.max, 42, 'Third level Object.path.set');
 
 deepEqual(test, { foo: 2, rex: 15, bar: { qux: 3, zog: { max: 42, asd: 4 } } });
 });
