@@ -486,7 +486,8 @@ provides: dom
 		}
 
 		var elems = this.elems =
-			  sel instanceof Dom     ? coreToArray(sel.elems)
+			  sel == window          ? [ document ]
+			: sel instanceof Dom     ? coreToArray(sel.elems)
 			: coreIsArrayLike(sel)   ? coreToArray(sel)
 			: typeof sel == 'string' ? Dom.query(context, sel)
 			:                          Dom.find(context, sel);
