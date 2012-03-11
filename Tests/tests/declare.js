@@ -90,11 +90,11 @@ test('Extending', function(){
 			},
 
 			// test calling "parent" function
-			setParentProperty: function(parentProperty) {
-				Foo.prototype.setParentProperty.call(this, parentProperty + 3);
+			setParentProperty: function method(parentProperty) {
+				method.previous.call(this, parentProperty + 3);
 			},
-			getParentProperty: function() {
-				return Foo.prototype.getParentProperty.call(this) + 4;
+			getParentProperty: function method() {
+				return method.previous.call(this) + 4;
 			}
 		}
 	});
