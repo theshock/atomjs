@@ -68,6 +68,7 @@ function coreIsArrayLike (item) {
 	return item && (Array.isArray(item) || (
 		typeof item != 'string' &&
 		!coreIsFunction(item) &&
+		typeof item.nodeName != 'string' &&
 		typeof item.length == 'number'
 	));
 }

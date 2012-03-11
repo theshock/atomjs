@@ -138,10 +138,18 @@ methods = {
 		}
 		return this;
 	},
-	addTo: function (target, source) {
-		for (var i in source) if (i != 'constructor') {
+	addTo: function (target, source, name) {
+		var i, property;
+		if (source) for (i in source) if (i != 'constructor') {
 			if (!accessors(source, target, i) && source[i] != declare.config) {
-				target[i] = source[i];
+				property = source[i];
+				if (coreIsFunction(property)) {
+					if (name) property.path = name + i;
+					if (!property.previous && coreIsFunction(target[i])) {
+						property.previous = target[i];
+					}
+				}
+				target[i] = property;
 			}
 		}
 		return target;
@@ -177,27 +185,26 @@ declare.config = {
 	})
 };
 
-declare.config.mutator({
-	parent: function (Constructor, parent) {
+declare.config
+	.mutator( 'parent', function (Constructor, parent) {
 		parent = parent || declare;
 		methods.addTo( Constructor, parent );
 		Constructor.prototype = methods.proto( parent );
 		Constructor.Parent    = parent;
-	},
-	mixin: function (Constructor, mixins) {
+	})
+	.mutator( 'mixin', function (Constructor, mixins) {
 		if (mixins) methods.mixin( Constructor, mixins );
-	},
-	name: function (Constructor, name) {
+	})
+	.mutator( 'name', function (Constructor, name) {
 		if (!name) return;
 		Constructor.NAME = name;
-	},
-	own: function (Constuctor, properties) {
-		methods.addTo(Constuctor, properties);
-	},
-	prototype: function (Constuctor, properties) {
-		methods.addTo(Constuctor.prototype, properties);
-	}
-});
+	})
+	.mutator( 'own', function (Constructor, properties) {
+		methods.addTo(Constructor, properties, Constructor.NAME + '.');
+	})
+	.mutator( 'prototype', function (Constructor, properties) {
+		methods.addTo(Constructor.prototype, properties, Constructor.NAME + '#');
+	});
 
 return atom.declare = declare;
 
