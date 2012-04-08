@@ -115,7 +115,7 @@ provides: dom
 	};
 	coreAppend(Dom, {
 		query : function (context, sel) {
-			return sel.match(regexp.Id)    ?            [context.getElementById        (sel.substr(1))] :
+			return sel.match(regexp.Id)    ? [(context.getElementById ? context : document).getElementById(sel.substr(1))] :
 			       sel.match(regexp.Class) ? coreToArray(context.getElementsByClassName(sel.substr(1))) :
 			       sel.match(regexp.Tag)   ? coreToArray(context.getElementsByTagName  (sel)) :
 			                                 coreToArray(context.querySelectorAll      (sel));
