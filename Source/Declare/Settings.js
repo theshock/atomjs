@@ -36,8 +36,10 @@ var Settings = declare( 'atom.Settings',
 			initialValues = null;
 		}
 
-		this.values    = initialValues || {};
+		this.values    = {};
 		this.recursive = !!recursive;
+
+		if (initialValues) this.set(initialValues);
 	},
 
 	/**
