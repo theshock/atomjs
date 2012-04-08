@@ -73,7 +73,7 @@ test('Extending', function(){
 	var Bar = atom.declare({
 		parent: Foo,
 
-		proto: {
+		prototype: {
 			// test overload
 			setProperty: function(property) {
 				this.property = property * 2;
@@ -158,7 +158,7 @@ test('Factory', function(){
 
 		parent: Foo,
 
-		proto: {
+		prototype: {
 			surname : null,
 			initialize: function (firstname, lastname, surname) {
 				Foo.prototype.initialize.call(this, firstname, lastname);
@@ -191,7 +191,7 @@ test('Static', function(){
 			qweStat: 'qweStatValue'
 		},
 
-		proto: {}
+		prototype: {}
 	});
 
 	var Bar = atom.declare({
@@ -200,7 +200,7 @@ test('Static', function(){
 			qweStat: 'qweStat[Bar]',
 			barStat: 'barStatValue'
 		},
-		proto: {}
+		prototype: {}
 	});
 
 	var foo = new Foo();
@@ -288,7 +288,7 @@ test('With Class', function () {
 		own: {
 			nop: 'noob'
 		},
-		proto: {
+		prototype: {
 			initialize: function (value) {
 				this.qwe = 'qwe ' + value;
 			},
