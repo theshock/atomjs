@@ -64,6 +64,10 @@ var Settings = declare( 'atom.Settings',
 	 */
 	set: atom.core.ensureObjectSetter(function (options) {
 		var method = this.recursive ? 'extend' : 'append';
+		if (options instanceof this.constructor) {
+			options = options.values;
+		}
+
 		if (this.isValidOptions(options)) {
 			atom.core[method](this.values, options);
 		}
