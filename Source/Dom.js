@@ -375,6 +375,13 @@ provides: dom
 
 			return atom.dom(elements);
 		},
+		empty: function () {
+			return this.each(function (elem) {
+				while (elem.hasChildNodes()) {
+					elem.removeChild( elem.firstChild );
+				}
+			});
+		},
 		log : function () {
 			console.log('atom.dom: ', this.elems);
 			return this;
