@@ -17,9 +17,11 @@ provides: Registry
 ...
 */
 
+/** @name atom.Registry */
 var Registry = declare( 'atom.Registry', {
-	initialize: function () {
+	initialize: function (initial) {
 		this.items = {};
+		if (initial) this.set(initial);
 	},
 	set: atom.core.overloadSetter(function (name, value) {
 		this.items[name] = value;
