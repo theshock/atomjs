@@ -55,7 +55,7 @@ var Events = declare( 'atom.Events',
 
 	/**
 	 * @param {String} name
-	 * @param {Function} callback
+	 * @param {Function} [callback]
 	 * @return Boolean
 	 */
 	remove: function (name, callback) {
@@ -87,7 +87,7 @@ var Events = declare( 'atom.Events',
 
 	/**
 	 * @param {String} name
-	 * @param {Array} args
+	 * @param {Array} [args=null]
 	 * @return atom.Events
 	 */
 	ready: function (name, args) {
