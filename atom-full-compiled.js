@@ -501,7 +501,7 @@ provides: dom
 	};
 	coreAppend(Dom, {
 		query : function (context, sel) {
-			return sel.match(regexp.Id)    ?            [context.getElementById        (sel.substr(1))] :
+			return sel.match(regexp.Id)    ? [(context.getElementById ? context : document).getElementById(sel.substr(1))] :
 			       sel.match(regexp.Class) ? coreToArray(context.getElementsByClassName(sel.substr(1))) :
 			       sel.match(regexp.Tag)   ? coreToArray(context.getElementsByTagName  (sel)) :
 			                                 coreToArray(context.querySelectorAll      (sel));
@@ -749,6 +749,24 @@ provides: dom
 				x: Math.round(box.left + scrollLeft - clientLeft),
 				y: Math.round(box.top  + scrollTop  - clientTop )
 			};
+		},
+		clone: function (deep) {
+			var i = 0, elements = [];
+
+			if (deep == null) deep = true;
+
+			for (; i < this.elems.length; i++) {
+				elements.push(this.elems[i].cloneNode(deep));
+			}
+
+			return atom.dom(elements);
+		},
+		empty: function () {
+			return this.each(function (elem) {
+				while (elem.hasChildNodes()) {
+					elem.removeChild( elem.firstChild );
+				}
+			});
 		},
 		log : function () {
 			console.log('atom.dom: ', this.elems);
@@ -2092,7 +2110,7 @@ var Events = declare( 'atom.Events',
 
 	/**
 	 * @param {String} name
-	 * @param {Function} callback
+	 * @param {Function} [callback]
 	 * @return Boolean
 	 */
 	remove: function (name, callback) {
@@ -2124,7 +2142,7 @@ var Events = declare( 'atom.Events',
 
 	/**
 	 * @param {String} name
-	 * @param {Array} args
+	 * @param {Array} [args=null]
 	 * @return atom.Events
 	 */
 	ready: function (name, args) {
@@ -2285,8 +2303,10 @@ var Settings = declare( 'atom.Settings',
 			initialValues = null;
 		}
 
-		this.values    = initialValues || {};
+		this.values    = {};
 		this.recursive = !!recursive;
+
+		if (initialValues) this.set(initialValues);
 	},
 
 	/**
@@ -2311,6 +2331,10 @@ var Settings = declare( 'atom.Settings',
 	 */
 	set: atom.core.ensureObjectSetter(function (options) {
 		var method = this.recursive ? 'extend' : 'append';
+		if (options instanceof this.constructor) {
+			options = options.values;
+		}
+
 		if (this.isValidOptions(options)) {
 			atom.core[method](this.values, options);
 		}
@@ -3905,9 +3929,11 @@ provides: Registry
 ...
 */
 
+/** @name atom.Registry */
 var Registry = declare( 'atom.Registry', {
-	initialize: function () {
+	initialize: function (initial) {
 		this.items = {};
+		if (initial) this.set(initial);
 	},
 	set: atom.core.overloadSetter(function (name, value) {
 		this.items[name] = value;
