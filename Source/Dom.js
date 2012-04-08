@@ -364,6 +364,17 @@ provides: dom
 				y: Math.round(box.top  + scrollTop  - clientTop )
 			};
 		},
+		clone: function (deep) {
+			var i = 0, elements = [];
+
+			if (deep == null) deep = true;
+
+			for (; i < this.elems.length; i++) {
+				elements.push(this.elems[i].cloneNode(deep));
+			}
+
+			return atom.dom(elements);
+		},
 		log : function () {
 			console.log('atom.dom: ', this.elems);
 			return this;
