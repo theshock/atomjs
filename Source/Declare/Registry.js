@@ -17,8 +17,9 @@ provides: Registry
 ...
 */
 
-/** @name atom.Registry */
-var Registry = declare( 'atom.Registry', {
+/** @class atom.Registry */
+declare( 'atom.Registry', {
+	items: {},
 	initialize: function (initial) {
 		this.items = {};
 		if (initial) this.set(initial);
@@ -30,3 +31,5 @@ var Registry = declare( 'atom.Registry', {
 		return this.items[name];
 	})
 });
+
+var Registry = atom.Registry;
