@@ -19,7 +19,7 @@ provides: ClassCompat
 */
 
 declare( 'atom.Settings.Mixin',
-/** @class atom.Settings.Mixin */
+/** @deprecated */
 {
 	/**
 	 * @private
@@ -67,7 +67,6 @@ declare( 'atom.Events.Mixin', new function () {
 		}
 	};
 
-	/** @class atom.Events.Mixin */
 	return {
 		get events ( ) { return init.call(this); },
 		set events (e) { this.__events = e;       },
