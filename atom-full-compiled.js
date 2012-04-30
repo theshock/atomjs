@@ -1753,25 +1753,10 @@ var
 	prototyping = false,
 	mutators    = [];
 
-declare = function (declareName, params) {
+declare = function (declareName, Parent, params) {
 	if (prototyping) return this;
 
-	if (typeof declareName != 'string') {
-		params = declareName;
-		declareName = null;
-	}
-
-	if (!params) params = {};
-	if (!params.prototype) {
-		params.prototype = params.proto || params;
-	}
-	if (!params.name) params.name = declareName;
-	if (!params.prototype.initialize) {
-		params.prototype.initialize = function () {
-			if (!params.parent) return;
-			return params.parent.prototype.initialize.apply(this, arguments);
-		};
-	}
+	params = methods.prepareParams(declareName, Parent, params);
 
 	// line break for more user-friendly debug string
 	var Constructor = function ()
@@ -1791,7 +1776,7 @@ declare = function (declareName, params) {
 
 	Constructor.prototype.constructor = Constructor;
 
-	if (declareName) methods.define( declareName, Constructor );
+	if (params.declareName) methods.define( params.declareName, Constructor );
 
 	return Constructor;
 };
@@ -1843,8 +1828,8 @@ methods = {
 	define: function (path, value) {
 		var key, part, target = atom.global;
 
-		path   = path.split('.');
-		key    = path.pop();
+		path = path.split('.');
+		key  = path.pop();
 
 		while (path.length) {
 			part = path.shift();
@@ -1866,7 +1851,7 @@ methods = {
 	},
 	addTo: function (target, source, name) {
 		var i, property;
-		if (source) for (i in source) if (i != 'constructor') {
+		if (source) for (i in source) if (source.hasOwnProperty(i)) {
 			if (!accessors(source, target, i) && source[i] != declare.config) {
 				property = source[i];
 				if (coreIsFunction(property)) {
@@ -1879,6 +1864,32 @@ methods = {
 			}
 		}
 		return target;
+	},
+	prepareParams: function (declareName, Parent, params) {
+		if (typeof declareName != 'string') {
+			params = Parent;
+			Parent = declareName;
+			declareName = null;
+		}
+
+		if (params == null) {
+			params = Parent;
+			Parent = null;
+		}
+
+		if (!params                 ) params = {};
+		if (!params.prototype       ) params = { prototype: params };
+		if (!params.name            ) params.name = declareName;
+		if (!params.declareName     ) params.declareName = declareName;
+		if (!params.parent && Parent) params.parent = Parent;
+
+		if (!params.prototype.initialize) {
+			params.prototype.initialize = function () {
+				if (!params.parent) return;
+				return params.parent.prototype.initialize.apply(this, arguments);
+			};
+		}
+		return params;
 	},
 	proto: function (Fn) {
 		prototyping = true;
@@ -2536,7 +2547,7 @@ provides: Animatable
 
 
 declare( 'atom.Animatable',
-/** @class atom.Animatable */
+/** @name atom.Animatable */
 {
 	
 	element: null,

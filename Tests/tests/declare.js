@@ -5,6 +5,7 @@ var undefined;
 module('[Atom Plugins] Declare');
 
 test('Creating', function(){
+
 	var Foo = atom.declare({
 		name: 'default',
 
@@ -220,7 +221,7 @@ test('Static', function(){
 
 test('invoke', function () {
 
-	var Foo = atom.declare({
+	var Foo = atom.declare( 'Foo', {
 		initialize: function (x) {
 			this.x = x;
 		}
@@ -230,14 +231,14 @@ test('invoke', function () {
 	ok( foo instanceof Foo, 'Class invokation successful' );
 	equal( foo.x, 42, 'Class construction successful' );
 
-	var Bar = atom.declare({
+	var Bar = atom.declare( 'Bar', {
 		own: {
-			invoke: function () {
+			invoke: function iiinvoke () {
 				return Foo.factory(arguments);
 			}
 		},
 
-		proto: {}
+		prototype: {}
 	});
 
 	var bar = Bar(13);

@@ -25,7 +25,7 @@ provides: Animatable
 
 
 declare( 'atom.Animatable',
-/** @class atom.Animatable */
+/** @name atom.Animatable */
 {
 	
 	element: null,
