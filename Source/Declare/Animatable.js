@@ -23,10 +23,8 @@ provides: Animatable
 ...
 */
 
-
-declare( 'atom.Animatable',
-/** @name atom.Animatable */
-{
+/** @class atom.Animatable */
+declare( 'atom.Animatable', {
 	
 	element: null,
 
@@ -120,9 +118,8 @@ declare( 'atom.Animatable',
 	}
 });
 
-declare( 'atom.Animatable.Animation',
 /** @class atom.Animatable.Animation */
-{
+declare( 'atom.Animatable.Animation', {
 	/** @property {atom.Animatable} */
 	animatable: null,
 
