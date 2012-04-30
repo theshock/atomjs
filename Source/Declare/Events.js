@@ -21,9 +21,8 @@ provides: Events
 ...
 */
 
-var Events = declare( 'atom.Events',
 /** @class atom.Events */
-{
+declare( 'atom.Events', {
 
 	/** @constructs */
 	initialize: function (context) {
@@ -209,3 +208,6 @@ var Events = declare( 'atom.Events',
 		}
 	}
 });
+
+// local alias
+var Events = atom.Events;
