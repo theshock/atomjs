@@ -20,7 +20,8 @@ provides: Keyboard
 
 var Keyboard = function () {
 
-var keyName,
+var
+	keyName,
 	codeNames = {},
 	keyCodes  = {
 		// Alphabet
@@ -57,88 +58,87 @@ var keyName,
 		aleft:37, aup:38, aright:39, adown:40
 	};
 
-for (keyName in keyCodes) codeNames[ keyCodes[keyName] ] = keyName;
+for (keyName in keyCodes) if (keyCodes.hasOwnProperty(keyName)) {
+	codeNames[ keyCodes[keyName] ] = keyName;
+}
 
-return declare( 'atom.Keyboard',
-{
-	own: {
-		keyCodes : keyCodes,
-		codeNames: codeNames,
-		keyName: function (code) {
-			if (code && code.keyCode != null) {
-				code = code.keyCode;
-			}
-
-			var type = typeof code;
-
-			if (type == 'number') {
-				return this.codeNames[code];
-			} else if (type == 'string' && code in this.keyCodes) {
-				return code;
-			}
-
-			return null;
+/** @class atom.Keyboard */
+return declare( 'atom.Keyboard', {
+	initialize : function (element, preventDefault) {
+		if (Array.isArray(element)) {
+			preventDefault = element;
+			element = null;
 		}
+		if (element == null) element = document;
+
+		if (element == document) {
+			if (this.constructor.instance) {
+				return this.constructor.instance;
+			}
+			this.constructor.instance = this;
+		}
+
+		this.events = new Events(this);
+		this.keyStates = {};
+		this.preventDefault = preventDefault;
+
+		atom.dom(element).bind({
+			keyup:    this.keyEvent('up'),
+			keydown:  this.keyEvent('down'),
+			keypress: this.keyEvent('press')
+		});
 	},
-	prototype: {
-		initialize : function (element, preventDefault) {
-			if (Array.isArray(element)) {
-				preventDefault = element;
-				element = null;
-			}
-			if (element == null) element = document;
+	/** @private */
+	keyEvent: function (event) {
+		return this.onKeyEvent.bind(this, event);
+	},
+	/** @private */
+	onKeyEvent: function (event, e) {
+		var key = this.constructor.keyName(e),
+			prevent = this.prevent(key);
 
-			if (element == document) {
-				if (this.constructor.instance) {
-					return this.constructor.instance;
-				}
-				this.constructor.instance = this;
-			}
+		e.keyName = key;
 
-			this.events = new Events(this);
-			this.keyStates = {};
-			this.preventDefault = preventDefault;
+		if (prevent) e.preventDefault();
+		this.events.fire( event, [e] );
 
-			atom.dom(element).bind({
-				keyup:    this.keyEvent('up'),
-				keydown:  this.keyEvent('down'),
-				keypress: this.keyEvent('press')
-			});
-		},
-		/** @private */
-		keyEvent: function (event) {
-			return this.onKeyEvent.bind(this, event);
-		},
-		/** @private */
-		onKeyEvent: function (event, e) {
-			var key = this.constructor.keyName(e),
-				prevent = this.prevent(key);
-
-			e.keyName = key;
-
-			if (prevent) e.preventDefault();
-			this.events.fire( event, [e] );
-			
-			if (event == 'down') {
-				this.events.fire(key, [e]);
-				this.keyStates[key] = true;
-			} else if (event == 'up') {
-				this.events.fire(key + ':up', [e]);
-				delete this.keyStates[key];
-			} else if (event == 'press') {
-				this.events.fire(key + ':press', [e]);
-			}
-			
-			return !prevent;
-		},
-		/** @private */
-		prevent : function (key) {
-			var pD = this.preventDefault;
-			return pD && (pD === true || pD.indexOf(key) >= 0);
-		},
-		key: function (keyName) {
-			return !!this.keyStates[ this.constructor.keyName(keyName) ];
+		if (event == 'down') {
+			this.events.fire(key, [e]);
+			this.keyStates[key] = true;
+		} else if (event == 'up') {
+			this.events.fire(key + ':up', [e]);
+			delete this.keyStates[key];
+		} else if (event == 'press') {
+			this.events.fire(key + ':press', [e]);
 		}
+
+		return !prevent;
+	},
+	/** @private */
+	prevent : function (key) {
+		var pD = this.preventDefault;
+		return pD && (pD === true || pD.indexOf(key) >= 0);
+	},
+	key: function (keyName) {
+		return !!this.keyStates[ this.constructor.keyName(keyName) ];
+	}
+}).own({
+	keyCodes : keyCodes,
+	codeNames: codeNames,
+	keyName: function (code) {
+		if (code && code.keyCode != null) {
+			code = code.keyCode;
+		}
+
+		var type = typeof code;
+
+		if (type == 'number') {
+			return this.codeNames[code];
+		} else if (type == 'string' && code in this.keyCodes) {
+			return code;
+		}
+
+		return null;
 	}
 });
 
