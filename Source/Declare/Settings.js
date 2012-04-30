@@ -17,8 +17,8 @@ provides: Settings
 ...
 */
 
-var Settings = declare( 'atom.Settings',
-{
+/** @class atom.Settings */
+declare( 'atom.Settings', {
 	/** @private */
 	recursive: false,
 
@@ -94,7 +94,7 @@ var Settings = declare( 'atom.Settings',
 		if (!this.events) return this;
 
 		var values = this.values, name, option;
-		for (name in values) {
+		for (name in values) if (values.hasOwnProperty(name)) {
 			option = values[name];
 			if (this.isInvokable(name, option)) {
 				this.events.add(name, option);
@@ -112,3 +112,5 @@ var Settings = declare( 'atom.Settings',
 			(/^on[A-Z]/).test(name);
 	}
 });
+
+var Settings = atom.Settings;
