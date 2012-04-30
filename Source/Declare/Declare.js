@@ -84,6 +84,11 @@ declare.invoke = function () {
 	return this.factory( arguments );
 };
 
+declare.own = function (properties) {
+	methods.addTo(this, properties, this.NAME + '.');
+	return this;
+};
+
 declare.factory = function (args) {
 	factory = true;
 	return new this(args);
@@ -211,7 +216,7 @@ declare.config
 		Constructor.NAME = name;
 	})
 	.mutator( 'own', function (Constructor, properties) {
-		methods.addTo(Constructor, properties, Constructor.NAME + '.');
+		Constructor.own(properties);
 	})
 	.mutator( 'prototype', function (Constructor, properties) {
 		methods.addTo(Constructor.prototype, properties, Constructor.NAME + '#');
