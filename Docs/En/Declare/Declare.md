@@ -98,4 +98,103 @@ If `params` object without `prototype` property it will be recognized as `protot
 		console.log( Bar.fooProp ); // 'foo-static-prop'
 		console.log( Bar.barProp ); // 'bar-static-prop'
 	
+### alternate constructor params
+
+You can use alternate optional constructor params.
+
+	Function atom.declare( String declareName = null, Function parent = null, Object params = null )
 	
+* `declareName` - will set `name` & `declareName` of original params, so:
+
+		atom.declare( 'Foo.Bar', {
+			prototype: { test: 1241 } 
+		});
+		
+		// equals to:
+		
+		atom.declare({
+			declareName: 'Foo.Bar',
+			name: 'Foo.Bar',
+			prototype: { test: 1241 }
+		});
+
+* `parent` - will set `parent` of original params, so:
+
+		atom.declare( Foo );
+		
+		// equals to: 
+		
+		atom.declare({
+			parent: Foo,
+			prototype: {}
+		});
+
+Also, you can skip `prototype` property in `params` if you want `params` to be `prototype`:
+
+	atom.declare({
+		prototype: {
+			foo: 123,
+			bar: function () {
+				return this.foo;
+			}
+		}
+	});
+	
+	// equals to:
+	
+	atom.declare({
+		foo: 123,
+		bar: function () {
+			return this.foo;
+		}
+	});
+
+That's why if you want empty `prototype` - you should set it manualy:
+
+	// wrong way: 
+	atom.declare({
+		own: {/* static methods here */}
+	});
+	// it equals to: 
+	atom.declare({
+		prototype: {
+			own: {/* static methods here */}
+		}
+	});
+	// right way:
+	atom.declare({
+		own: {/* static methods here */},
+		prototype: {}
+	});
+	
+### static methods of result constructor:
+
+* `own` - will mixin properties as static to constructor:
+
+		var Foo = atom.declare({});
+		Foo.own({ a: 123 });
+		console.log( Foo.a ); // 123
+
+* `factory` - will produce object from array of params. It can be used, if you want to construct object from array (as `.apply` method of function):
+
+		Foo.factory( [42, 'string', {test: null}] )
+		// equals to:
+		new Foo(42, 'string', {test: null});
+
+### initialize
+
+`initialize` method in prototype will be called on instance construction:
+
+	var Foo = atom.declare({
+		initialize: function (id) {
+			console.log( 'Foo#initialize', id );
+			this.id = id;
+		}
+ 	});
+	
+	var foo = new Foo(42); // Foo#initialize 42
+	console.log( foo.id ); // 42
+	
+	
+	
+
