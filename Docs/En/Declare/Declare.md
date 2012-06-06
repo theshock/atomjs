@@ -194,7 +194,63 @@ That's why if you want empty `prototype` - you should set it manualy:
 	
 	var foo = new Foo(42); // Foo#initialize 42
 	console.log( foo.id ); // 42
+
+### extended methods
+
+Library mixin two properties to your methods - `path` & `previous` (if exists). You can access to them by named function:
+
+	atom.declare( 'Foo', {
+		method: function YOUR_NAME_HERE () {
+			// use YOUR_NAME_HERE.%property%
+		}
+	});
+
+Such way is fast & easy for debug.
+
+`path` property shows full path to method & can be used for logging:
+
+	atom.declare( 'Foo.Bar', {
+		testPathProperty: function method () {
+			console.log( 'Invoke: ', method.path, arguments );
+		}
+	});
 	
+	new Foo.Bar().testPathProperty(); // Invoke: Foo.Bar#testPathProperty [13, 42]
+
+`previous` can be used for calling parent method. It contains link to method, that way previous with that name or null. You should call it with manual context set using `.call` or `.apply`
+
+	atom.declare( 'Foo', {
+		testPrevious: function method (arg) {
+			console.log( method.path, arg );
+		}
+	});
+
+	atom.declare( 'Bar', Foo, {
+		testPrevious: function method (arg) {
+			method.previous.call(this, arg);
+			console.log( method.path, arg );
+			method.previous.call(this, 95612);
+		}
+	});
 	
+	new Bar().testPrevious(42);
+	/* Foo#testPrevious 42
+	 * Bar#testPrevious 42
+	 * Foo#testPrevious 95612
+	 */
+
+Use `previous` property carefull - calling without `.call(this)` will provide wrong context & calling `null` property will throw an error:
+
 	
+	atom.declare( 'Fail', {
+		testPrevious: function method () {
+			method.previous.call(this);
+		}
+	});
+	
+	new Fail().testPrevious(); // TypeError: Cannot call method 'call' of undefined
+
+	
+
+
 
