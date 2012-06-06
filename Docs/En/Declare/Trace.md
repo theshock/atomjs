@@ -11,7 +11,7 @@ Returns plain dump (string) of object, that can be logged e.g. in console or ano
 
 #### example:
 
-  atom.trace.dumpPlain({
+	atom.trace.dumpPlain({
 		foo: 123,
 		bar: null,
 		arr: [ 1, 2, 3 ],
