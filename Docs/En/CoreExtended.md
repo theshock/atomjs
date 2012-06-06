@@ -24,10 +24,10 @@ Extend `object` with `from` properties.
 Extend `object.prototype` with `from` properties.
 
 #### Example: class extends
-	atom.implement(child, parent);
+	atom.core.implement(child, parent);
 
 #### Example: expanding atom
-	atom.implement({
+	atom.core.implement({
 		test: function () {
 			alert(123);
 		}
@@ -38,21 +38,21 @@ Extend `object.prototype` with `from` properties.
 ## atom.clone(object)
 Returns clone of object
 
-	var cloneArray = atom.clone(oldArray);
+	var cloneArray = atom.core.clone(oldArray);
 
 ## atom.typeOf(object)
 Returns type of object:
 
-	atom.typeOf( document.body ) == 'element'
-	atom.typeOf(  function(){} ) == 'function'
-	atom.typeOf(    new Date() ) == 'date'
-	atom.typeOf(          null ) == 'null'
-	atom.typeOf(     arguments ) == 'arguments'
-	atom.typeOf(        /abc/i ) == 'regexp'
-	atom.typeOf(            [] ) == 'array'
-	atom.typeOf(            {} ) == 'object'
-	atom.typeOf(            15 ) == 'number'
-	atom.typeOf(          true ) == 'boolean'
+	atom.core.typeOf( document.body ) == 'element'
+	atom.core.typeOf(  function(){} ) == 'function'
+	atom.core.typeOf(    new Date() ) == 'date'
+	atom.core.typeOf(          null ) == 'null'
+	atom.core.typeOf(     arguments ) == 'arguments'
+	atom.core.typeOf(        /abc/i ) == 'regexp'
+	atom.core.typeOf(            [] ) == 'array'
+	atom.core.typeOf(            {} ) == 'object'
+	atom.core.typeOf(            15 ) == 'number'
+	atom.core.typeOf(          true ) == 'boolean'
 
 	var MyClass = atom.Class({});
-	atom.typeOf( new MyClass() ) == 'class'
+	atom.core.typeOf( new MyClass() ) == 'class'
