@@ -5,10 +5,10 @@ Provides interface to perform animation. It calls you function up to 60 times pe
 Alternative (and wrapper in future) for `requestAnimationFrame`
 
 
-### atom.frame.add(callback)
+### atom.frame.add(function callback)
 Adds callback for animation
 
-### atom.frame.add(callback)
+### atom.frame.remove(function callback)
 Remove callback from animation
 
 #### Example
