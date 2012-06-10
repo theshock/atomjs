@@ -2747,16 +2747,16 @@ declare( 'atom.Animatable.Animation', {
 	},
 
 	/** @private */
-	changeValues: function (progress) {
-		var delta = this.delta, initial;
-		for (var i in delta) {
-			initial = this.initial[i];
-			this.animatable.set( i,
-				atom.Color && initial instanceof atom.Color ?
-					initial.clone().move(delta[i].clone().mul(progress)).toString() :
-					initial + delta[i] * progress
-			);
-		}
+	tick: function (time) {
+		var lastTick = time >= this.timeLeft;
+		this.timeLeft = lastTick ? 0 : this.timeLeft - time;
+
+		this.changeValues(this.transition(
+			lastTick ? 1 : (this.allTime - this.timeLeft) / this.allTime
+		));
+		this.events.fire( 'tick', [ this ]);
+
+		if (lastTick) this.destroy('complete');
 	},
 
 	destroy: function (type) {
