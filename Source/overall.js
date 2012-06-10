@@ -18,7 +18,8 @@ inspiration:
 */
 
 (function (Object, Array, undefined) { // AtomJS
-'use strict';
+// Safari 5 bug:
+// 'use strict';
 
 var
 	toString  = Object.prototype.toString,
