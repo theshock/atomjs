@@ -151,7 +151,7 @@ methods = {
 			declareName = null;
 		}
 
-		if (params == null) {
+		if (params == null && typeof Parent != 'function') {
 			params = Parent;
 			Parent = null;
 		}
