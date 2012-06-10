@@ -194,16 +194,24 @@ declare( 'atom.Animatable.Animation', {
 	},
 
 	/** @private */
-	tick: function (time) {
-		var lastTick = time >= this.timeLeft;
-		this.timeLeft = lastTick ? 0 : this.timeLeft - time;
-
-		this.changeValues(this.transition(
-			lastTick ? 1 : (this.allTime - this.timeLeft) / this.allTime
-		));
-		this.events.fire( 'tick', [ this ]);
-
-		if (lastTick) this.destroy('complete');
+	changeValues: function (progress) {
+		var delta = this.delta, animatable = this.animatable, initial, target;
+		for (var i in delta) if (delta.hasOwnProperty(i)) {
+			if (progress == null) {
+				target = this.target[i];
+				animatable.set( i,
+					atom.Color && target instanceof atom.Color
+						? target.toString() : target
+				);
+			} else {
+				initial = this.initial[i];
+				animatable.set( i,
+					atom.Color && initial instanceof atom.Color ?
+						initial.clone().move(delta[i].clone().mul(progress)).toString() :
+						initial + delta[i] * progress
+				);
+			}
+		}
 	},
 
 	/** @private */
