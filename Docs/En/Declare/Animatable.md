@@ -66,6 +66,13 @@ Stops current animation
 
 	atom.dom('div').stopAnimation(true);
 
+atom.Color
+==========
+
+You can animate colors if `atom.Color` class used.
+
+	var object = { color: 'red' };
 	
+	new atom.Animatable( object ).animate({ color: 'blue' });
 
 
