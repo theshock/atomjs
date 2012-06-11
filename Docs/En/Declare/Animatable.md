@@ -3,7 +3,7 @@ atom.Animatable
 
 `atom.Animatable` provides you the way to change properies of objects during time. 
 
-  var animatable = new atom.Animatable( targetObject );
+	var animatable = new atom.Animatable( targetObject );
 
 ### get current
 
@@ -51,5 +51,21 @@ Private class, which represents animation. It returns by `atom.Animatable#animat
 * `allTime`    - time, which animation should continue
 * `timeLeft`   - time, animation left to continue
 
+atom.dom.animate
+================
+
+### atom.dom().animate()
+
+Provides the way to animate dom properties
+
+	atom.dom('div').animate({ width: 150 });
+
+### atom.dom().stopAnimation(all)
+
+Stops current animation
+
+	atom.dom('div').stopAnimation(true);
+
+	
 
 
