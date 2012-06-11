@@ -5,7 +5,7 @@ atom.Transition
 
 ### atom.Transition.set
 
-  atom.Transition.set( id, fn );
+	atom.Transition.set( id, fn );
 
 Sets new transition function:
 
