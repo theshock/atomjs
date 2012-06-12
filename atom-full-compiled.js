@@ -4300,6 +4300,9 @@ var
 	deg360 = Math.PI * 2;
 
 atom.math = {
+
+	DEGREE360: deg360,
+
 	/**
 	 * Cast degrees to radians
 	 * atom.math.degree(90) == Math.PI/2
@@ -4310,7 +4313,7 @@ atom.math = {
 
 	/**
 	 * Cast radians to degrees
-	 * atom.math.degree(Math.PI/2) == 90
+	 * atom.math.getDegree(Math.PI/2) == 90
 	 */
 	getDegree: function (radians, round) {
 		radians /= degree;
