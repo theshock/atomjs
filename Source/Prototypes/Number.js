@@ -11,6 +11,7 @@ license:
 
 requires:
 	- Types.Number
+	- Types.Math
 	- Prototypes.Abstract
 
 provides: Prototypes.Number
@@ -20,7 +21,8 @@ provides: Prototypes.Number
 
 prototypize
 	.own(Number, atom.number, 'random')
-	.proto(Number, prototypize.fn(atom.number), 'between equals limit round stop' );
+	.proto(Number, prototypize.fn(atom.number), 'between equals limit round stop' )
+	.proto(Number, prototypize.fn(atom.math  ), 'degree getDegree normalizeAngle' );
 
 coreAppend(Number.prototype, {
 	toFloat: function(){
