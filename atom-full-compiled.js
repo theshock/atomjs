@@ -3768,6 +3768,318 @@ declare( 'atom.Color.Shift', atom.Color, { noLimits: true });
 /*
 ---
 
+name: "Types.String"
+
+description: "Contains string-manipulation methods like repeat, substitute, replaceAll and begins."
+
+license:
+	- "[GNU Lesser General Public License](http://opensource.org/licenses/lgpl-license.php)"
+	- "[MIT License](http://opensource.org/licenses/mit-license.php)"
+
+requires:
+	- Core
+
+provides: Types.String
+
+...
+*/
+
+new function () {
+
+var UID = Date.now();
+
+atom.string = {
+	/**
+	 * @returns {string} - unique for session value in 36-radix
+	 */
+	uniqueID: function () {
+		return (UID++).toString(36);
+	},
+	/**
+	 * escape all html unsafe characters - & ' " < >
+	 * @param {string} string
+	 * @returns {string}
+	 */
+	safeHtml: function (string) {
+		return string.replaceAll(/[<'&">]/g, {
+			'&'  : '&amp;',
+			'\'' : '&#039;',
+			'\"' : '&quot;',
+			'<'  : '&lt;',
+			'>'  : '&gt;'
+		});
+	},
+	/**
+	 * repeat string `times` times
+	 * @param {string} string
+	 * @param {int} times
+	 * @returns {string}
+	 */
+	repeat: function(string, times) {
+		return new Array(times + 1).join(string);
+	},
+	/**
+	 * @param {string} string
+	 * @param {Object} object
+	 * @param {RegExp} [regexp=null]
+	 * @returns {string}
+	 */
+	substitute: function(string, object, regexp){
+		return string.replace(regexp || /\\?\{([^{}]+)\}/g, function(match, name){
+			return (match[0] == '\\') ? match.slice(1) : (object[name] == null ? '' : object[name]);
+		});
+	},
+	/**
+	 * @param {string} string
+	 * @param {Object|RegExp|string} find
+	 * @param {Object|string} [replace=null]
+	 * @returns {String}
+	 */
+	replaceAll: function (string, find, replace) {
+		if (toString.call(find) == '[object RegExp]') {
+			return string.replace(find, function (symb) { return replace[symb]; });
+		} else if (typeof find == 'object') {
+			for (var i in find) string = string.replaceAll(i, find[i]);
+			return string;
+		}
+		return string.split(find).join(replace);
+	},
+	/**
+	 * Checks if string contains such substring
+	 * @param {string} string
+	 * @param {string} substr
+	 */
+	contains: function (string, substr) {
+		return string ? string.indexOf( substr ) >= 0 : false;
+	},
+	/**
+	 * Checks if string begins with such substring
+	 * @param {string} string
+	 * @param {string} substring
+	 * @param {boolean} [caseInsensitive=false]
+	 * @returns {boolean}
+	 */
+	begins: function (string, substring, caseInsensitive) {
+		if (!string) return false;
+		return (!caseInsensitive) ? substring == string.substr(0, substring.length) :
+			substring.toLowerCase() == string.substr(0, substring.length).toLowerCase();
+	},
+	/**
+	 * Checks if string ends with such substring
+	 * @param {string} string
+	 * @param {string} substring
+	 * @param {boolean} [caseInsensitive=false]
+	 * @returns {boolean}
+	 */
+	ends: function (string, substring, caseInsensitive) {
+		if (!string) return false;
+		return (!caseInsensitive) ? substring == string.substr(string.length - substring.length) :
+			substring.toLowerCase() == string.substr(string.length - substring.length).toLowerCase();
+	},
+	/**
+	 * Uppercase first character
+	 * @param {string} string
+	 * @returns {string}
+	 */
+	ucfirst : function (string) {
+		return string ? string[0].toUpperCase() + string.substr(1) : '';
+	},
+	/**
+	 * Lowercase first character
+	 * @param {string} string
+	 * @returns {string}
+	 */
+	lcfirst : function (string) {
+		return string ? string[0].toLowerCase() + string.substr(1) : '';
+	}
+};
+
+}();
+
+/*
+---
+
+name: "ImagePreloader"
+
+description: ""
+
+license:
+	- "[GNU Lesser General Public License](http://opensource.org/licenses/lgpl-license.php)"
+	- "[MIT License](http://opensource.org/licenses/mit-license.php)"
+
+requires:
+	- Core
+	- declare
+	- Events
+	- Settings
+	- Types.Object
+	- Types.String
+	- Types.Number
+
+provides: ImagePreloader
+
+...
+*/
+
+/** @class ImagePreloader */
+atom.declare( 'atom.ImagePreloader', {
+	processed : 0,
+	number    : 0,
+
+	initialize: function (settings) {
+		this.events   = new Events(this);
+		this.settings = new Settings(settings).addEvents(this.events);
+
+		this.count = {
+			error: 0,
+			abort: 0,
+			load : 0
+		};
+
+		this.suffix    = this.settings.get('suffix') || '';
+		this.usrImages = this.prefixImages(this.settings.get('images'));
+		this.domImages = this.createDomImages();
+		this.images    = {};
+	},
+	get isReady () {
+		return this.number == this.processed;
+	},
+	get info () {
+		var stat = atom.string.substitute(
+			"Images loaded: {load}; Errors: {error}; Aborts: {abort}",
+			this.count
+		);
+		if (this.isReady) stat = "Image preloading has completed;\n" + stat;
+		return stat;
+	},
+	get progress () {
+		return this.isReady ? 1 : atom.number.round(this.processed / this.number, 4);
+	},
+	exists: function (name) {
+		return !!this.images[name];
+	},
+	get: function (name) {
+		var image = this.images[name];
+		if (image) {
+			return image;
+		} else {
+			throw new Error('No image «' + name + '»');
+		}
+	},
+
+	/** @private */
+	cropImage: function (img, c) {
+		if (!c) return img;
+
+		var canvas = document.createElement('canvas');
+		canvas.width  = c[2];
+		canvas.height = c[3];
+		canvas.getContext('2d').drawImage( img,
+			c[0], c[1], c[2], c[3], 0, 0, c[2], c[3]
+		);
+		return canvas;
+	},
+	/** @private */
+	withoutPrefix: function (src) {
+		return src.indexOf('http://') === 0 || src.indexOf('https://') === 0;
+	},
+	/** @private */
+	prefixImages: function (images) {
+		var prefix = this.settings.get('prefix');
+		if (!prefix) return images;
+
+		return atom.object.map(images, function (src) {
+			return this.withoutPrefix(src) ? src : prefix + src;
+		}.bind(this));
+	},
+	/** @private */
+	cutImages: function () {
+		var i, parts, img;
+		for (i in this.usrImages) if (this.usrImages.hasOwnProperty(i)) {
+			parts = this.splitUrl( this.usrImages[i] );
+			img   = this.domImages[ parts.url ];
+			this.images[i] = this.cropImage(img, parts.coords);
+		}
+		return this;
+	},
+	/** @private */
+	splitUrl: function (str) {
+		var url = str, size, cell, match, coords = null;
+
+				// searching for pattern 'url [x:y:w:y]'
+		if (match = str.match(/ \[(\d+):(\d+):(\d+):(\d+)\]$/)) {
+			coords = match.slice( 1 );
+				// searching for pattern 'url [w:y]{x:y}'
+		} else if (match = str.match(/ \[(\d+):(\d+)\]\{(\d+):(\d+)\}$/)) {
+			coords = match.slice( 1 ).map( Number );
+			size = coords.slice( 0, 2 );
+			cell = coords.slice( 2, 4 );
+			coords = [ cell[0] * size[0], cell[1] * size[1], size[0], size[1] ];
+		}
+		if (match) {
+			url = str.substr(0, str.lastIndexOf(match[0]));
+			coords = coords.map( Number );
+		}
+		if (this.suffix) {
+			if (typeof this.suffix == 'function') {
+				url = this.suffix( url );
+			} else {
+				url += this.suffix;
+			}
+		}
+
+		return { url: url, coords: coords };
+	},
+	/** @private */
+	createDomImages: function () {
+		var i, result = {}, url, images = this.usrImages;
+		for (i in images) if (images.hasOwnProperty(i)) {
+			url = this.splitUrl( images[i] ).url;
+			if (!result[url]) result[url] = this.createDomImage( url );
+		}
+		return result;
+	},
+	/** @private */
+	createDomImage : function (src) {
+		var img = new Image();
+		img.src = src;
+		if (window.opera && img.complete) {
+			setTimeout(this.onProcessed.bind(this, 'load', img), 10);
+		} else {
+			['load', 'error', 'abort'].forEach(function (event) {
+				img.addEventListener( event, this.onProcessed.bind(this, event, img), false );
+			}.bind(this));
+		}
+		this.number++;
+		return img;
+	},
+	/** @private */
+	onProcessed : function (type, img) {
+		if (type == 'load' && window.opera) {
+			// opera fullscreen bug workaround
+			img.width  = img.width;
+			img.height = img.height;
+			img.naturalWidth  = img.naturalWidth;
+			img.naturalHeight = img.naturalHeight;
+		}
+		this.count[type]++;
+		this.processed++;
+		if (this.isReady) this.cutImages().events.ready('ready', [this]);
+		return this;
+	}
+}).own({
+	run: function (images, callback, context) {
+		var preloader = new this({ images: images });
+
+		preloader.events.add( 'ready', context ? callback.bind(context) : callback );
+
+		return preloader;
+	}
+});
+
+/*
+---
+
 name: "Keyboard"
 
 description: ""
@@ -4405,137 +4717,6 @@ provides: Prototypes.Object
 */
 
 coreAppend(Object, atom.object);
-
-/*
----
-
-name: "Types.String"
-
-description: "Contains string-manipulation methods like repeat, substitute, replaceAll and begins."
-
-license:
-	- "[GNU Lesser General Public License](http://opensource.org/licenses/lgpl-license.php)"
-	- "[MIT License](http://opensource.org/licenses/mit-license.php)"
-
-requires:
-	- Core
-
-provides: Types.String
-
-...
-*/
-
-new function () {
-
-var UID = Date.now();
-
-atom.string = {
-	/**
-	 * @returns {string} - unique for session value in 36-radix
-	 */
-	uniqueID: function () {
-		return (UID++).toString(36);
-	},
-	/**
-	 * escape all html unsafe characters - & ' " < >
-	 * @param {string} string
-	 * @returns {string}
-	 */
-	safeHtml: function (string) {
-		return string.replaceAll(/[<'&">]/g, {
-			'&'  : '&amp;',
-			'\'' : '&#039;',
-			'\"' : '&quot;',
-			'<'  : '&lt;',
-			'>'  : '&gt;'
-		});
-	},
-	/**
-	 * repeat string `times` times
-	 * @param {string} string
-	 * @param {int} times
-	 * @returns {string}
-	 */
-	repeat: function(string, times) {
-		return new Array(times + 1).join(string);
-	},
-	/**
-	 * @param {string} string
-	 * @param {Object} object
-	 * @param {RegExp} [regexp=null]
-	 * @returns {string}
-	 */
-	substitute: function(string, object, regexp){
-		return string.replace(regexp || /\\?\{([^{}]+)\}/g, function(match, name){
-			return (match[0] == '\\') ? match.slice(1) : (object[name] == null ? '' : object[name]);
-		});
-	},
-	/**
-	 * @param {string} string
-	 * @param {Object|RegExp|string} find
-	 * @param {Object|string} [replace=null]
-	 * @returns {String}
-	 */
-	replaceAll: function (string, find, replace) {
-		if (toString.call(find) == '[object RegExp]') {
-			return string.replace(find, function (symb) { return replace[symb]; });
-		} else if (typeof find == 'object') {
-			for (var i in find) string = string.replaceAll(i, find[i]);
-			return string;
-		}
-		return string.split(find).join(replace);
-	},
-	/**
-	 * Checks if string contains such substring
-	 * @param {string} string
-	 * @param {string} substr
-	 */
-	contains: function (string, substr) {
-		return string ? string.indexOf( substr ) >= 0 : false;
-	},
-	/**
-	 * Checks if string begins with such substring
-	 * @param {string} string
-	 * @param {string} substring
-	 * @param {boolean} [caseInsensitive=false]
-	 * @returns {boolean}
-	 */
-	begins: function (string, substring, caseInsensitive) {
-		if (!string) return false;
-		return (!caseInsensitive) ? substring == string.substr(0, substring.length) :
-			substring.toLowerCase() == string.substr(0, substring.length).toLowerCase();
-	},
-	/**
-	 * Checks if string ends with such substring
-	 * @param {string} string
-	 * @param {string} substring
-	 * @param {boolean} [caseInsensitive=false]
-	 * @returns {boolean}
-	 */
-	ends: function (string, substring, caseInsensitive) {
-		if (!string) return false;
-		return (!caseInsensitive) ? substring == string.substr(string.length - substring.length) :
-			substring.toLowerCase() == string.substr(string.length - substring.length).toLowerCase();
-	},
-	/**
-	 * Uppercase first character
-	 * @param {string} string
-	 * @returns {string}
-	 */
-	ucfirst : function (string) {
-		return string ? string[0].toUpperCase() + string.substr(1) : '';
-	},
-	/**
-	 * Lowercase first character
-	 * @param {string} string
-	 * @returns {string}
-	 */
-	lcfirst : function (string) {
-		return string ? string[0].toLowerCase() + string.substr(1) : '';
-	}
-};
-
-}();
 
 /*
 ---
