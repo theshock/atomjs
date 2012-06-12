@@ -54,9 +54,19 @@ declare( 'atom.Settings', {
 	/**
 	 * @param {string|Array} name
 	 */
-	get: atom.core.overloadGetter(function (name) {
-		return this.values[name];
-	}, true),
+	get: function (name, defaultValue) {
+		return name in this.values ? this.values[name] : defaultValue;
+	},
+
+	subset: function (names, defaultValue) {
+		var i, values = {};
+
+		for (i = names.length; i--;) {
+			values[names[i]] = this.get( names[i], defaultValue );
+		}
+
+		return values;
+	},
 
 	/**
 	 * @param {Object} options

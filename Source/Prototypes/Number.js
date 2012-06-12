@@ -42,5 +42,3 @@ coreAppend(Number.prototype, {
 			return Math[method].apply(null, [this].append(arguments));
 		};
 	});
-
-
