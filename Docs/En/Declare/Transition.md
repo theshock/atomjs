@@ -39,3 +39,5 @@ Returns transition function. Returns 'ease-in-out' as default, 'ease-in' if `-in
 * cubic
 * quart
 * quint
+
+![Transition Graph](https://github.com/theshock/atomjs/raw/master/Docs/En/Declare/transition-graph.png)
