@@ -2341,6 +2341,8 @@ declare( 'atom.Settings', {
 	 * @param {string|Array} name
 	 */
 	get: function (name, defaultValue) {
+		if (Array.isArray(name)) return this.subset(name, defaultValue);
+
 		return name in this.values ? this.values[name] : defaultValue;
 	},
 
@@ -2350,7 +2352,7 @@ declare( 'atom.Settings', {
 		for (i = names.length; i--;) {
 			values[names[i]] = this.get( names[i], defaultValue );
 		}
-		
+
 		return values;
 	},
 

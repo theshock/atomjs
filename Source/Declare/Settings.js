@@ -55,6 +55,8 @@ declare( 'atom.Settings', {
 	 * @param {string|Array} name
 	 */
 	get: function (name, defaultValue) {
+		if (Array.isArray(name)) return this.subset(name, defaultValue);
+
 		return name in this.values ? this.values[name] : defaultValue;
 	},
 
