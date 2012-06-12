@@ -34,7 +34,7 @@ atom.math = {
 
 	/**
 	 * Cast radians to degrees
-	 * atom.math.degree(Math.PI/2) == 90
+	 * atom.math.getDegree(Math.PI/2) == 90
 	 */
 	getDegree: function (radians, round) {
 		radians /= degree;
