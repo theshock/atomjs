@@ -3,7 +3,7 @@ Object extending
 
 Generally build-in type extending use `atom.%type%.*` methods, so here you will only see links to manual and examples
 
-### See: [atom.object](https://github.com/theshock/atomjs/blob/master/Source/Types/Object.js)
+### See: [atom.object](https://github.com/theshock/atomjs/blob/master/Docs/En/Types/Object.md)
 
 ### Own properties
 
