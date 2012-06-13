@@ -3,7 +3,7 @@ Function extending
 
 Generally build-in type extending use `atom.%type%.*` methods, so here you will only see links to manual and examples
 
-### See: [atom.fn](https://github.com/theshock/atomjs/blob/master/Source/Types/Function.js)
+### See: [atom.fn](https://github.com/theshock/atomjs/blob/master/Docs/En/Types/Function.md)
 
 ### Own properties
 
