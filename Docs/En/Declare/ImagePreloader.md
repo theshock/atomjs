@@ -109,7 +109,7 @@ Preloader can dynamically crop images (sprites). Just add `[x:y:w:h]` part in th
 		'building-warehouse': 'building.jpg [0:200:200:100]'
 	});
 
-Another way is tile `cropping`. Syntax is `[w:h]{x:y}` where `w` is width of tile, `h` is height of tile, `x` is horisontal index of tile at image and `y` is vertical index of tile in image. Next code is indetial to previous:
+Another way is `tile cropping`. Syntax is `[w:h]{x:y}` where `w` is width of tile, `h` is height of tile, `x` is horisontal index of tile at image and `y` is vertical index of tile in image. Next code is indetial to previous:
 
 	ImagePrealoader.run({
 		'unit-tractor'  : 'units.png [50:50]{0:0}',
