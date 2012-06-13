@@ -3,7 +3,7 @@ String extending
 
 Generally build-in type extending use `atom.%type%.*` methods, so here you will only see links to manual and examples
 
-### See: [atom.string](https://github.com/theshock/atomjs/blob/master/Source/Types/String.js)
+### See: [atom.string](https://github.com/theshock/atomjs/blob/master/Docs/En/Types/String.md)
 
 ### prototype extending
 
