@@ -1,34 +1,83 @@
-# Moved from Math to Number.prototype:
-	abs, acos, asin, atan, atan2, ceil, cos, exp, floor, log, max, min, pow, sin, sqrt, tan
+Number extending
+================
 
-# Static Number methods
+Generally build-in type extending use `atom.%type%.*` methods, so here you will only see links to manual and examples
 
-### random
-	Number.random(int min, int max)
-Returns random number between min & max:
+### See: [atom.number](https://github.com/theshock/atomjs/blob/master/Docs/En/Types/Number.md), [atom.math](https://github.com/theshock/atomjs/blob/master/Docs/En/Types/Math.md)
 
-	var x = Number.random(5, 40); // 24
+### Own properties
 
-# Dynamic Number methods
-### between
-	number.between(n1, n2, equals)
+* Number.random
 
-	(5).between(2, 6); // true
-	(6).between(2, 6); // false
-	(6).between(2, 6, true); // true
+	Equivalent to `atom.number.random`:
 
-### equals
-	number.equals(to, accuracy = 8)
+		Number.random(5, 100);
+		// equals to
+		atom.number.random(5, 100);
+		
+### prototype extending
 
-Allows to compare two float numbers (which can't be done with `==`) with
-`accuracy` digits after dot
+Next properties mixed into prototype from `atom.number`, where first property is `this` array:
 
-	(1.15124124).equals(1.15124124); // true
-	(1.15124124).equals(1.15124001); // false
-	(1.15124124).equals(1.15124001, 3); // true (1.151 == 1.151)
+* between
+* equals
+* limit
+* round
+* stop
 
-### limit(min, max)
-### round(precision)
-### toFloat()
-### toInt(base)
-### stop()
+
+Next properties mixed into prototype from `atom.math`, where first property is `this` array:
+
+* degree
+* getDegree
+* normalizeAngle
+
+
+##### example
+	var myNumber = 10;
+
+	myNumber.between( 5, 15 );
+	// equals to:
+	atom.number.between( myNumber, 5, 15 );
+	
+	// and
+	
+	myNumber.degree()
+	// equals to:
+	atom.math.degree( myNumber );
+	
+
+Next properties mixed into prototype from javascript build-in `Math`, where first property is `this` array:
+
+* abs
+* acos
+* asin
+* atan
+* atan2
+* ceil
+* cos
+* exp
+* floor
+* log
+* max
+* min
+* pow
+* sin
+* sqrt
+* tan
+
+	
+##### example
+
+	var myNumber = -5.123;
+	
+	myNumber.abs();
+	// equals to
+	Math.abs( myNumber );
+	
+	// and
+	
+	myNumber.pow(3);
+	// equals to:
+	Math.pow( myNumber, 3 );
+
