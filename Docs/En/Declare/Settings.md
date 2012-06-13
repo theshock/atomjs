@@ -23,12 +23,13 @@ atom.Settings
 
 `get` - returns value of key, or all values
 
-	mixed get( string key );
+	mixed get( string key, mixed defaultValue = undefined );
 	object get();
 
 #### example:
 
 	settings.get( 'test' ); // 123
+	settings.get( 'wrong', 'default' ); // 'default'
 
 ### initial values
 
