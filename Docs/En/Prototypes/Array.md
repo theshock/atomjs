@@ -3,7 +3,7 @@ Array extending
 
 Generally build-in type extending use `atom.%type%.*` methods, so here you will only see links to manual and examples
 
-### Source: [atom.array](https://github.com/theshock/atomjs/blob/master/Source/Types/Array.js)
+### See: [atom.array](https://github.com/theshock/atomjs/blob/master/Source/Types/Array.js)
 
 ### Own properties
 
