@@ -24,7 +24,6 @@ atom.Settings
 `get` - returns value of key, or all values
 
 	mixed get( string key, mixed defaultValue = undefined );
-	object get();
 
 #### example:
 
