@@ -42,7 +42,7 @@ Returns html-element from current collection
 
 #### atom.dom().create(tagName, index = 0, attrs = null)
 
-Creates element, adds it to node and returns it
+Creates element, adds it to node and returns node
 
 Optional arguments:
 
@@ -52,13 +52,29 @@ Optional arguments:
 Example:
 
 	// creating Canvas in fifth div:
-	var atomCanvas = atom.dom('div').create('canvas', 5);
+	atom.dom('div').create('canvas', 5);
 
 	// creating Canvas with properties
-	var atomCanvas = atom.dom('div').create('canvas', {
+	atom.dom('div').create('canvas', {
 		width  : 400,
 		height : 100
 	});
+
+	// creating few elements in div
+	var divNode = atom.dom('div')
+					.create('canvas')
+					.create('canvas')
+					.create('footer')
+
+	console.log(divNode) //<div>...</div>
+
+	and now div looks like: 
+
+	<div>
+		<canvas></canvas>
+		<canvas></canvas>
+		<footer></footer>
+	</div> 
 
 #### atom.dom().each(fn)
 

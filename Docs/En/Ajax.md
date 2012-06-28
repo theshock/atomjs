@@ -30,6 +30,8 @@ Atom AJAX
 		}
 	});
 
+**Note:** if you're declare `onLoad()` function, then you function will be override  default `onLoad()`  and response text will not be added, like he did it default.
+
 # Atom.Plugins.Ajax + Atom.Plugins.Dom
 
 	atom.dom('#newMsgs').ajax({ // update html of #newMsgs
