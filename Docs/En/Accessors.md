@@ -11,7 +11,7 @@ Checks if `object` has getter or setter for property `prop` as own property, or 
 	};
 
 	atom.accessors.has(object, 'foo'); // true
-	atom.accessors.has(object, 'bar'); // true
+	atom.accessors.has(object, 'bar'); // false
 
 ## atom.accessors.define(object, prop, value)
 
