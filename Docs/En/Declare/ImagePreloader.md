@@ -75,9 +75,9 @@ Returns image with name `name`, if exists, or throws `Error` otherwise
 	imagePreloader.exists( 'unit-traktor' ); // returns image
 	imagePreloader.exists( 'unit-diablo'  ); // throws Error
 
-## atom.ImagePrealoader.run
+## atom.ImagePreloader.run
 
-	imagePreloader ImagePrealoader.run( Object images, Function onReady, mixed context = null )
+	imagePreloader ImagePreloader.run( Object images, Function onReady, mixed context = null )
 
 Short way to create image preloader.
 
