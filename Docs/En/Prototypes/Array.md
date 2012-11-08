@@ -17,6 +17,7 @@ Next list of properties mixin to Array:
 * collect
 * create
 * toHash
+* toPoint
 
 ##### example
 
@@ -78,5 +79,10 @@ Next properties mixed in to prototype, where first property is `this` array:
 
 		var myArray = ['foo','bar','qux'];
 		console.log( myArray.random ); // 'foo' or 'bar' or 'qux'
+		
+* `toPoint` - returns a Point from Array
+
+		var myArray = [1, 1];
+		console.log( myArray.toPoint ); // atom.Point
 
 
