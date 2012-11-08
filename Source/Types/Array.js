@@ -475,5 +475,10 @@ atom.array = {
 			value = value === undefined ? array[i] : callback.call(null, value, array[i], i, array);
 		}
 		return value;
+	},
+	
+	/** @returns Point */
+	toPoint: function () {
+		return new Point(this);
 	}
 };
