@@ -17,6 +17,7 @@ Next list of properties mixin to Array:
 * collect
 * create
 * toHash
+* toPoint
 
 ##### example
 
