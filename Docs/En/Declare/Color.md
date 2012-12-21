@@ -29,7 +29,7 @@ Set of color names & hex values
 ### atom.Color.isColorString( string string );
 Checks if `string` is hex/rgba or color name
 
-  atom.Color.isColorString( [42,0,13] ) // false
+	atom.Color.isColorString( [42,0,13] ) // false
 	atom.Color.isColorString( 'foobar'  ) // false
 	atom.Color.isColorString( '#dec0de' ) // true
 	atom.Color.isColorString( 'red'     ) // true
