@@ -1,28 +1,3 @@
-/*
----
-
-name: "ImagePreloader"
-
-description: ""
-
-license:
-	- "[GNU Lesser General Public License](http://opensource.org/licenses/lgpl-license.php)"
-	- "[MIT License](http://opensource.org/licenses/mit-license.php)"
-
-requires:
-	- Core
-	- declare
-	- Events
-	- Settings
-	- Types.Object
-	- Types.String
-	- Types.Number
-
-provides: ImagePreloader
-
-...
-*/
-
 /** @class ImagePreloader */
 atom.declare( 'atom.ImagePreloader', {
 	processed : 0,
@@ -40,8 +15,11 @@ atom.declare( 'atom.ImagePreloader', {
 
 		this.suffix    = this.settings.get('suffix') || '';
 		this.usrImages = this.prefixImages(this.settings.get('images'));
-		this.domImages = this.createDomImages();
+		this.imageUrls = this.fetchUrls();
+		this.domImages = {};
+		//this.domImages = this.createDomImages();
 		this.images    = {};
+		this.createNext();
 	},
 	get isReady () {
 		return this.number == this.processed;
@@ -56,6 +34,12 @@ atom.declare( 'atom.ImagePreloader', {
 	},
 	get progress () {
 		return this.isReady ? 1 : atom.number.round(this.processed / this.number, 4);
+	},
+	append: function (preloader) {
+		for (var i in preloader.images) {
+			this.images[i] = preloader.images[i];
+		}
+		return this;
 	},
 	exists: function (name) {
 		return !!this.images[name];
@@ -133,11 +117,15 @@ atom.declare( 'atom.ImagePreloader', {
 		return { url: url, coords: coords };
 	},
 	/** @private */
-	createDomImages: function () {
-		var i, result = {}, url, images = this.usrImages;
+	fetchUrls: function () {
+		var i, result = [], hash = {}, url, images = this.usrImages;
 		for (i in images) if (images.hasOwnProperty(i)) {
 			url = this.splitUrl( images[i] ).url;
-			if (!result[url]) result[url] = this.createDomImage( url );
+			if (!hash[url]) {
+				result.push(url);
+				hash[url] = true;
+				this.number++;
+			}
 		}
 		return result;
 	},
@@ -152,21 +140,36 @@ atom.declare( 'atom.ImagePreloader', {
 				img.addEventListener( event, this.onProcessed.bind(this, event, img), false );
 			}.bind(this));
 		}
-		this.number++;
 		return img;
+	},
+	createNext: function () {
+		if (this.imageUrls.length) {
+			var url = this.imageUrls.shift();
+			this.domImages[url] = this.createDomImage(url);
+		}
+	},
+	resetImage: function (img) {
+		// opera fullscreen bug workaround
+		img.width  = img.width;
+		img.height = img.height;
+		img.naturalWidth  = img.naturalWidth;
+		img.naturalHeight = img.naturalHeight;
 	},
 	/** @private */
 	onProcessed : function (type, img) {
 		if (type == 'load' && window.opera) {
-			// opera fullscreen bug workaround
-			img.width  = img.width;
-			img.height = img.height;
-			img.naturalWidth  = img.naturalWidth;
-			img.naturalHeight = img.naturalHeight;
+			this.resetImage(img);
 		}
 		this.count[type]++;
 		this.processed++;
-		if (this.isReady) this.cutImages().events.ready('ready', [this]);
+		this.events.fire('progress', [this, img]);
+
+		if (this.isReady) {
+			this.cutImages();
+			this.events.ensureReady('ready', [this]);
+		} else {
+			this.createNext();
+		}
 		return this;
 	}
 }).own({
