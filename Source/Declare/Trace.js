@@ -36,13 +36,15 @@ atom.trace = declare( 'atom.trace', {
 	destroy : function (force) {
 		var trace = this;
 		if (force) this.stop();
-		trace.node.addClass('atom-trace-node-destroy');
-		trace.timeout = setTimeout(function () {
-			if (trace.node) {
-				trace.node.destroy();
-				trace.node = null;
-			}
-		}, 500);
+		if (trace.node) {
+			trace.node.addClass('atom-trace-node-destroy');
+			trace.timeout = setTimeout(function () {
+				if (trace.node) {
+					trace.node.destroy();
+					trace.node = null;
+				}
+			}, 500);
+		}
 		return trace;
 	},
 	/** @private */
