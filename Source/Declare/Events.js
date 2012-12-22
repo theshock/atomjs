@@ -102,6 +102,19 @@ declare( 'atom.Events', {
 		return this;
 	},
 
+	/**
+	 * @param {String} name
+	 * @param {Array} [args=null]
+	 * @return atom.Events
+	 */
+	ensureReady: function (name, args) {
+		if (!(name in this.readyList)) {
+			this.ready(name, args);
+		}
+		return this;
+	},
+
+
 	// only private are below
 
 	/** @private */
