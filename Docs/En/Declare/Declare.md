@@ -1,7 +1,7 @@
 atom.declare
 ============
 
-Lite and fast wrapper for native prototype-based OOP.
+Light and fast wrapper for native prototype-based OOP.
 
 	Function atom.declare( String declareName = null, Function parent = null, Object params = null )
 	Function atom.declare( Object params )
@@ -20,7 +20,7 @@ Each argument is optional. Returns constructor that can be called with "new".
 
 `params` object without `prototype` property is recognized as `prototype`, otherwise it is parsed with the following rules:
 
-* `name` - name of result constructor and instances. Can be used for debug and is returned by `toString` method
+* `name` - name of the resulting constructor and instances. Can be used for debugging, and is returned by `toString` method
 		
 		var C = atom.declare({
 			name: 'FooQux',
