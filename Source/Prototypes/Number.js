@@ -20,7 +20,7 @@ provides: Prototypes.Number
 */
 
 prototypize
-	.own(Number, atom.number, 'random')
+	.own(Number, atom.number, 'random randomFloat')
 	.proto(Number, prototypize.fn(atom.number), 'between equals limit round stop' )
 	.proto(Number, prototypize.fn(atom.math  ), 'degree getDegree normalizeAngle' );
 
