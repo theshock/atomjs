@@ -2924,6 +2924,9 @@ provides: Types.Number
 */
 
 atom.number = {
+	randomFloat: function (max, min) {
+		return Math.random() * (max - min) + min;
+	},
 	random : function (min, max) {
 		return Math.floor(Math.random() * (max - min + 1) + min);
 	},
@@ -4570,7 +4573,7 @@ provides: Prototypes.Number
 */
 
 prototypize
-	.own(Number, atom.number, 'random')
+	.own(Number, atom.number, 'random randomFloat')
 	.proto(Number, prototypize.fn(atom.number), 'between equals limit round stop' )
 	.proto(Number, prototypize.fn(atom.math  ), 'degree getDegree normalizeAngle' );
 
