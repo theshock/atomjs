@@ -8,6 +8,11 @@ Returns random number between `min` & `max` inclusive
 
 	atom.number.random(1, 3); // returns 1 or 2 or 3
 
+### randomFloat(min, max) {
+Returns random float number between `min` & `max`
+
+	atom.number.randomFloat(1, 3.5); // returns 1.4152 or 3.672, or smth else
+
 ### between(number, left, right, equals) {
 
 Checks if `number` is greater than `left` & less than `right`. 

@@ -14,6 +14,14 @@ Generally build-in type extending use `atom.%type%.*` methods, so here you will 
 		Number.random(5, 100);
 		// equals to
 		atom.number.random(5, 100);
+
+* Number.randomFloat
+
+	Equivalent to `atom.number.randomFloat`:
+
+		Number.randomFloat(5, 100);
+		// equals to
+		atom.number.randomFloat(5, 100);
 		
 ### prototype extending
 
