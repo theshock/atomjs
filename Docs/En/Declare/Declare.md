@@ -1,12 +1,12 @@
 atom.declare
 ============
 
-Lite & fast wrapper for native prototype-based OOP.
+Light and fast wrapper for native prototype-based OOP.
 
 	Function atom.declare( String declareName = null, Function parent = null, Object params = null )
 	Function atom.declare( Object params )
 
-Each argument is optional. Returns constructor, which can be called with "new".
+Each argument is optional. Returns constructor that can be called with "new".
 
 #### Example:
 
@@ -18,9 +18,9 @@ Each argument is optional. Returns constructor, which can be called with "new".
 
 ### params
 
-If `params` object without `prototype` property it will be recognized as `prototype`. Else itt will be parsed with next rules:
+`params` object without `prototype` property is recognized as `prototype`, otherwise it is parsed with the following rules:
 
-* `name` - own name of result constructor & instances. Can be user for debug & will returns with `toString` method
+* `name` - name of the resulting constructor and instances. Can be used for debugging, and is returned by `toString` method
 		
 		var C = atom.declare({
 			name: 'FooQux',
@@ -28,7 +28,7 @@ If `params` object without `prototype` property it will be recognized as `protot
 		});
 		console.log( new C().toString() ); // '[object FooQux]'
 
-* `declareName` - property, which will be created by library. Can be used for easy namespace creation. It will automaticaly create all nessesary objects
+* `declareName` - property created by library. Can be used for easy namespace creation. It will automaticaly create all nessesary objects
 
 		atom.declare({
 			declareName: 'Foo.Qux.Bar',
