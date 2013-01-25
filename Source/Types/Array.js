@@ -73,8 +73,7 @@ atom.array = {
 	 * @returns {Array}
 	 */
 	pickFrom: function (args) {
-		var fromZeroArgument = args
-			&& args.length == 1
+		var fromZeroArgument = args && args.length == 1
 			&& coreIsArrayLike( args[0] );
 
 		return atom.array.from( fromZeroArgument ? args[0] : args );

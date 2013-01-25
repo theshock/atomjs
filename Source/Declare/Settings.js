@@ -28,16 +28,9 @@ declare( 'atom.Settings', {
 	/**
 	 * @constructs
 	 * @param {Object} [initialValues]
-	 * @param {Boolean} [recursive=false]
 	 */
-	initialize: function (initialValues, recursive) {
-		if (!this.isValidOptions(initialValues)) {
-			recursive = !!initialValues;
-			initialValues = null;
-		}
-
+	initialize: function (initialValues) {
 		this.values    = {};
-		this.recursive = !!recursive;
 
 		if (initialValues) this.set(initialValues);
 	},
@@ -60,6 +53,29 @@ declare( 'atom.Settings', {
 		return name in this.values ? this.values[name] : defaultValue;
 	},
 
+	/**
+	 * @test
+	 * @param {object} target
+	 * @param {string[]} names
+	 * @return {atom.Settings}
+	 */
+	properties: function (target, names) {
+		if (typeof names == 'string') {
+			names = names.split(' ');
+		}
+
+		this['properties.names' ] = names;
+		this['properties.target'] = target;
+
+		for (var i in this.values) if (this.values.hasOwnProperty(i)) {
+			if (names.indexOf(i) >= 0) {
+				target[i] = this.values[i];
+			}
+		}
+
+		return this;
+	},
+
 	subset: function (names, defaultValue) {
 		var i, values = {};
 
@@ -74,18 +90,40 @@ declare( 'atom.Settings', {
 	 * @param {Object} options
 	 * @return atom.Options
 	 */
-	set: atom.core.ensureObjectSetter(function (options) {
-		var method = this.recursive ? 'extend' : 'append';
-		if (options instanceof this.constructor) {
-			options = options.values;
+	set: function (options, value) {
+		var i,
+			values = this.values,
+			target = this['properties.target'],
+			names  = this['properties.names'];
+
+		options = this.prepareOptions(options, value);
+
+		for (i in options) if (options.hasOwnProperty(i)) {
+			value = options[i];
+			if (values[i] != value) {
+				values[i] = value;
+				if (target && names.indexOf(i) >= 0) {
+					target[i] = values[i];
+				}
+			}
 		}
 
-		if (this.isValidOptions(options)) {
-			atom.core[method](this.values, options);
-		}
 		this.invokeEvents();
+
 		return this;
-	}),
+	},
+
+	/** @private */
+	prepareOptions: function (options, value) {
+		if (typeof options == 'string') {
+			var i = options;
+			options = {};
+			options[i] = value;
+		} else if (options instanceof this.constructor) {
+			options = options.values;
+		}
+		return options;
+	},
 
 	/**
 	 * @param {String} name
@@ -94,11 +132,6 @@ declare( 'atom.Settings', {
 	unset: function (name) {
 		delete this.values[name];
 		return this;
-	},
-
-	/** @private */
-	isValidOptions: function (options) {
-		return options && typeof options == 'object';
 	},
 
 	/** @private */
