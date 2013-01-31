@@ -18,6 +18,12 @@ provides: Types.Object
 */
 
 atom.object = {
+	append: function (target, source1, source2) {
+		for (var i = 1, l = arguments.length; i < l; i++) {
+			atom.core.append(target, arguments[i]);
+		}
+		return target;
+	},
 	invert: function (object) {
 		var newObj = {};
 		for (var i in object) newObj[object[i]] = i;

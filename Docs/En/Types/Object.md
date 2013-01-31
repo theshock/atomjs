@@ -3,13 +3,23 @@ atom.object
 
 Provides methods to operate with object
 
+#### append(target, source1, source2, ... )
+
+Appends source objects content to target
+
+	var source = { a: 1, b: 2, c: 3 };
+
+	atom.object.append( source, {d:4}, {e:5} );
+
+	console.log( source ); // { a: 1, b: 2, c: 3, d: 4, e: 5 };
+
 #### invert(object)
 
 Returns inverted object - where keys is values & values is keys.
 
-    var source = { a: 1, b: 2, c: 3 };
+	var source = { a: 1, b: 2, c: 3 };
 	var result = atom.object.invert( source );
-	
+
 	console.log( result ); // { 1: 'a', 2: 'b', 3: 'c' };
 
 
