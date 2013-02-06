@@ -2831,6 +2831,7 @@ declare( 'atom.Animatable.Animation', {
 		this.initial  = this.fetchInitialValues();
 		this.delta    = this.countValuesDelta();
 		this.timeLeft = this.allTime;
+		this.events.fire( 'start', [ this ]);
 		atom.frame.add(this.tick);
 		return this;
 	},
