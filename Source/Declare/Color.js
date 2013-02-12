@@ -12,13 +12,17 @@ license:
 requires:
 	- Core
 	- declare
-	- Types.Number
-	- Types.Array
 
 provides: Color
 
 ...
 */
+
+new function () {
+
+function random (max) {
+	return Math.floor(Math.random() * max);
+}
 
 /** @class atom.Color */
 declare( 'atom.Color', {
@@ -73,7 +77,9 @@ declare( 'atom.Color', {
 
 	/** @private */
 	safeAlphaSet: function (v) {
-		if (v != null) this.alpha = atom.number.round(v, 3);
+		if (v != null) {
+			this.alpha = Math.round(v*1000)/1000;
+		}
 	},
 
 	/** @private */
@@ -87,6 +93,10 @@ declare( 'atom.Color', {
 		// We don't want application down, if user script (e.g. animation)
 		// generates such wrong array: [150, 125, -1]
 		// `noLimits` switch off this check
+		if (this.noLimits) {
+
+		}
+
 		this[prop] = this.noLimits ? value :
 			atom.number.limit( value, 0, isFloat ? 1 : 255 );
 	},
@@ -201,11 +211,9 @@ declare( 'atom.Color', {
 	},
 	/** @returns {object} */
 	toObject: function (abbreviationNames) {
-		return atom.array.associate( this.toArray(),
-			abbreviationNames ?
-				['r'  , 'g'    , 'b'   ,'a'    ] :
-				['red', 'green', 'blue','alpha']
-		);
+		return abbreviationNames ?
+			{ r  : this.r, g    : this.g, b   : this.b, a    : this.a } :
+			{ red: this.r, green: this.g, blue: this.b, alpha: this.a };
 	},
 
 	// manipulations
@@ -324,20 +332,16 @@ declare( 'atom.Color', {
 	 * @returns {atom.Color}
 	 */
 	random: function (html) {
-		var random = atom.number.random;
 		if (html) {
-			return new this(atom.array.random(
-				Object.keys(this.colorNames)
-			));
+			var keys = Object.keys(this.colorNames);
+			return new this(keys[random(keys.length)]);
 		} else {
-			return new this([
-				random(0, 255),
-				random(0, 255),
-				random(0, 255)
-			]);
+			return new this([ random(256), random(256), random(256) ]);
 		}
 	}
 });
 
 /** @class atom.Color.Shift */
 declare( 'atom.Color.Shift', atom.Color, { noLimits: true });
+
+};

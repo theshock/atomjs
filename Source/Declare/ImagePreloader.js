@@ -1,4 +1,24 @@
-/** @class ImagePreloader */
+/*
+---
+
+name: "ImagePreloader"
+
+description: ""
+
+license:
+	- "[GNU Lesser General Public License](http://opensource.org/licenses/lgpl-license.php)"
+	- "[MIT License](http://opensource.org/licenses/mit-license.php)"
+
+requires:
+	- declare
+	- Events
+	- Settings
+
+provides: ImagePreloader
+
+...
+*/
+
 atom.declare( 'atom.ImagePreloader', {
 	processed : 0,
 	number    : 0,

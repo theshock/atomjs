@@ -11,7 +11,6 @@ license:
 
 requires:
 	- Core
-	- Types.Array
 
 provides: Types.Function
 

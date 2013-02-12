@@ -3026,6 +3026,879 @@ declare( 'atom.Events.Mixin', new function () {
 /*
 ---
 
+name: "Color"
+
+description: "Provides Color class"
+
+license:
+	- "[GNU Lesser General Public License](http://opensource.org/licenses/lgpl-license.php)"
+	- "[MIT License](http://opensource.org/licenses/mit-license.php)"
+
+requires:
+	- Core
+	- declare
+
+provides: Color
+
+...
+*/
+
+new function () {
+
+function random (max) {
+	return Math.floor(Math.random() * max);
+}
+
+/** @class atom.Color */
+declare( 'atom.Color', {
+	initialize: function (value) {
+		var a = arguments, type;
+		if (a.length == 4 || a.length == 3) {
+			value = slice.call(a);
+		} else if (value && value.length == 1) {
+			value = value[0];
+		}
+
+		type = typeof value;
+		if (Array.isArray(value)) {
+			this.fromArray(value);
+		} else if (type == 'number') {
+			this.fromNumber(value);
+		} else if (type == 'string') {
+			this.fromString(value);
+		} else if (type == 'object') {
+			this.fromObject(value);
+		} else {
+			throw new TypeError('Unknown type in atom.Color: ' + typeof value + ';\n' + value);
+		}
+	},
+
+	/** @private */
+	r: 0,
+	/** @private */
+	g: 0,
+	/** @private */
+	b: 0,
+	/** @private */
+	a: 1,
+
+	/**
+	 * We are array-like object (looks at accessors at bottom of class)
+	 * @constant
+	 */
+	length: 4,
+
+	noLimits: false,
+
+	get red   () { return this.r; },
+	get green () { return this.g; },
+	get blue  () { return this.b; },
+	get alpha () { return this.a; },
+
+	set red   (v) { this.setValue('r', v) },
+	set green (v) { this.setValue('g', v) },
+	set blue  (v) { this.setValue('b', v) },
+	set alpha (v) { this.setValue('a', v, true) },
+
+	/** @private */
+	safeAlphaSet: function (v) {
+		if (v != null) {
+			this.alpha = Math.round(v*1000)/1000;
+		}
+	},
+
+	/** @private */
+	setValue: function (prop, value, isFloat) {
+		value = Number(value);
+		if (value != value) { // isNaN
+			throw new TypeError('Value is NaN (' + prop + '): ' + value);
+		}
+
+		if (!isFloat) value = Math.round(value);
+		// We don't want application down, if user script (e.g. animation)
+		// generates such wrong array: [150, 125, -1]
+		// `noLimits` switch off this check
+		if (this.noLimits) {
+
+		}
+
+		this[prop] = this.noLimits ? value :
+			atom.number.limit( value, 0, isFloat ? 1 : 255 );
+	},
+
+	// Parsing
+
+	/**
+	 * @param {int[]} array
+	 * @returns {atom.Color}
+	 */
+	fromArray: function (array) {
+		if (!array || array.length < 3 || array.length > 4) {
+			throw new TypeError('Wrong array in atom.Color: ' + array);
+		}
+		this.red   = array[0];
+		this.green = array[1];
+		this.blue  = array[2];
+		this.safeAlphaSet(array[3]);
+		return this;
+	},
+	/**
+	 * @param {Object} object
+	 * @param {number} object.red
+	 * @param {number} object.green
+	 * @param {number} object.blue
+	 * @returns {atom.Color}
+	 */
+	fromObject: function (object) {
+		if (typeof object != 'object') {
+			throw new TypeError( 'Not object in "fromObject": ' + typeof object );
+		}
+
+		function fetch (p1, p2) {
+			return object[p1] != null ? object[p1] : object[p2]
+		}
+
+		this.red   = fetch('r', 'red'  );
+		this.green = fetch('g', 'green');
+		this.blue  = fetch('b', 'blue' );
+		this.safeAlphaSet(fetch('a', 'alpha'));
+		return this;
+	},
+	/**
+	 * @param {string} string
+	 * @returns {atom.Color}
+	 */
+	fromString: function (string) {
+		if (!this.constructor.isColorString(string)) {
+			throw new TypeError( 'Not color string in "fromString": ' + string );
+		}
+
+		var hex, array;
+
+		string = string.toLowerCase();
+		string = this.constructor.colorNames[string] || string;
+
+		if (hex = string.match(/^#(\w{1,2})(\w{1,2})(\w{1,2})(\w{1,2})?$/)) {
+			array = hex.slice(1).clean();
+			array = array.map(function (part) {
+				if (part.length == 1) part += part;
+				return parseInt(part, 16);
+			});
+			if (array.length == 4) array[3] /= 255;
+		} else {
+			array = string.match(/([\.\d]{1,})/g).map( Number );
+		}
+		return this.fromArray(array);
+	},
+	/**
+	 * @param {number} number
+	 * @returns {atom.Color}
+	 */
+	fromNumber: function (number) {
+		if (typeof number != 'number' || number < 0 || number > 0xffffffff) {
+			throw new TypeError( 'Not color number in "fromNumber": ' + (number.toString(16)) );
+		}
+
+		return this.fromArray([
+			(number>>24) & 0xff,
+			(number>>16) & 0xff,
+			(number>> 8) & 0xff,
+			(number      & 0xff) / 255
+		]);
+	},
+
+	// Casting
+
+	/** @returns {int[]} */
+	toArray: function () {
+		return [this.r, this.g, this.b, this.a];
+	},
+	/** @returns {string} */
+	toString: function (type) {
+		var arr = this.toArray();
+		if (type == 'hex' || type == 'hexA') {
+			return '#' + arr.map(function (color, i) {
+				if (i == 3) { // alpha
+					if (type == 'hex') return '';
+					color = Math.round(color * 255);
+				}
+				var bit = color.toString(16);
+				return bit.length == 1 ? '0' + bit : bit;
+			}).join('');
+		} else {
+			return 'rgba(' + arr + ')';
+		}
+	},
+	/** @returns {number} */
+	toNumber: function () {
+		// maybe needs optimizations
+		return parseInt( this.toString('hexA').substr(1) , 16)
+	},
+	/** @returns {object} */
+	toObject: function (abbreviationNames) {
+		return abbreviationNames ?
+			{ r  : this.r, g    : this.g, b   : this.b, a    : this.a } :
+			{ red: this.r, green: this.g, blue: this.b, alpha: this.a };
+	},
+
+	// manipulations
+
+	/**
+	 * @param {atom.Color} color
+	 * @returns {atom.Color}
+	 */
+	diff: function (color) {
+		// we can't use this.constructor, because context exists in such way
+		// && invoke is not called
+		color = atom.Color( color );
+		return new atom.Color.Shift([
+			color.red   - this.red  ,
+			color.green - this.green,
+			color.blue  - this.blue ,
+			color.alpha - this.alpha
+		]);
+	},
+	/**
+	 * @param {atom.Color} color
+	 * @returns {atom.Color}
+	 */
+	move: function (color) {
+		color = atom.Color.Shift(color);
+		this.red   += color.red  ;
+		this.green += color.green;
+		this.blue  += color.blue ;
+		this.alpha += color.alpha;
+		return this;
+	},
+	/** @deprecated - use `clone`+`move` instead */
+	shift: function (color) {
+		return this.clone().move(color);
+	},
+	map: function (fn) {
+		var color = this;
+		['red', 'green', 'blue', 'alpha'].forEach(function (component) {
+			color[component] = fn.call( color, color[component], component, color );
+		});
+		return color;
+	},
+	add: function (factor) {
+		return this.map(function (value) {
+			return value + factor;
+		});
+	},
+	mul: function (factor) {
+		return this.map(function (value) {
+			return value * factor;
+		});
+	},
+	/**
+	 * @param {atom.Color} color
+	 * @returns {boolean}
+	 */
+	equals: function (color) {
+		return color &&
+			color instanceof this.constructor &&
+			color.red   == this.red   &&
+			color.green == this.green &&
+			color.blue  == this.blue  &&
+			color.alpha == this.alpha;
+	},
+
+	/** @private */
+	dump: function () {
+		return '[atom.Color(' + this.toString('hexA') + ')]';
+	},
+
+	/**
+	 * @returns {atom.Color}
+	 */
+	clone: function () {
+		return new this.constructor(this);
+	}
+}).own({
+	invoke: declare.castArguments,
+
+	/**
+	 * Checks if string is color description
+	 * @param {string} string
+	 * @returns {boolean}
+	 */
+	isColorString : function (string) {
+		if (typeof string != 'string') return false;
+		return Boolean(
+			string in this.colorNames  ||
+			string.match(/^#\w{3,6}$/) ||
+			string.match(/^rgba?\([\d\., ]+\)$/)
+		);
+	},
+
+	colorNames: {
+		white:  '#ffffff',
+		silver: '#c0c0c0',
+		gray:   '#808080',
+		black:  '#000000',
+		red:    '#ff0000',
+		maroon: '#800000',
+		yellow: '#ffff00',
+		olive:  '#808000',
+		lime:   '#00ff00',
+		green:  '#008000',
+		aqua:   '#00ffff',
+		teal:   '#008080',
+		blue:   '#0000ff',
+		navy:   '#000080',
+		fuchsia:'#ff00ff',
+		purple: '#800080',
+		orange: '#ffa500'
+	},
+
+	/**
+	 * @param {boolean} [html=false] - only html color names
+	 * @returns {atom.Color}
+	 */
+	random: function (html) {
+		if (html) {
+			var keys = Object.keys(this.colorNames);
+			return new this(keys[random(keys.length)]);
+		} else {
+			return new this([ random(256), random(256), random(256) ]);
+		}
+	}
+});
+
+/** @class atom.Color.Shift */
+declare( 'atom.Color.Shift', atom.Color, { noLimits: true });
+
+};
+
+/*
+---
+
+name: "ImagePreloader"
+
+description: ""
+
+license:
+	- "[GNU Lesser General Public License](http://opensource.org/licenses/lgpl-license.php)"
+	- "[MIT License](http://opensource.org/licenses/mit-license.php)"
+
+requires:
+	- declare
+	- Events
+	- Settings
+
+provides: ImagePreloader
+
+...
+*/
+
+atom.declare( 'atom.ImagePreloader', {
+	processed : 0,
+	number    : 0,
+
+	initialize: function (settings) {
+		this.events   = new Events(this);
+		this.settings = new Settings(settings).addEvents(this.events);
+
+		this.count = {
+			error: 0,
+			abort: 0,
+			load : 0
+		};
+
+		this.suffix    = this.settings.get('suffix') || '';
+		this.usrImages = this.prefixImages(this.settings.get('images'));
+		this.imageUrls = this.fetchUrls();
+		this.domImages = {};
+		//this.domImages = this.createDomImages();
+		this.images    = {};
+		this.createNext();
+	},
+	get isReady () {
+		return this.number == this.processed;
+	},
+	get info () {
+		var stat = atom.string.substitute(
+			"Images loaded: {load}; Errors: {error}; Aborts: {abort}",
+			this.count
+		);
+		if (this.isReady) stat = "Image preloading has completed;\n" + stat;
+		return stat;
+	},
+	get progress () {
+		return this.isReady ? 1 : atom.number.round(this.processed / this.number, 4);
+	},
+	append: function (preloader) {
+		for (var i in preloader.images) {
+			this.images[i] = preloader.images[i];
+		}
+		return this;
+	},
+	exists: function (name) {
+		return !!this.images[name];
+	},
+	get: function (name) {
+		var image = this.images[name];
+		if (image) {
+			return image;
+		} else {
+			throw new Error('No image «' + name + '»');
+		}
+	},
+
+	/** @private */
+	cropImage: function (img, c) {
+		if (!c) return img;
+
+		var canvas = document.createElement('canvas');
+		canvas.width  = c[2];
+		canvas.height = c[3];
+		canvas.getContext('2d').drawImage( img,
+			c[0], c[1], c[2], c[3], 0, 0, c[2], c[3]
+		);
+		return canvas;
+	},
+	/** @private */
+	withoutPrefix: function (src) {
+		return src.indexOf('http://') === 0 || src.indexOf('https://') === 0;
+	},
+	/** @private */
+	prefixImages: function (images) {
+		var prefix = this.settings.get('prefix');
+		if (!prefix) return images;
+
+		return atom.object.map(images, function (src) {
+			return this.withoutPrefix(src) ? src : prefix + src;
+		}.bind(this));
+	},
+	/** @private */
+	cutImages: function () {
+		var i, parts, img;
+		for (i in this.usrImages) if (this.usrImages.hasOwnProperty(i)) {
+			parts = this.splitUrl( this.usrImages[i] );
+			img   = this.domImages[ parts.url ];
+			this.images[i] = this.cropImage(img, parts.coords);
+		}
+		return this;
+	},
+	/** @private */
+	splitUrl: function (str) {
+		var url = str, size, cell, match, coords = null;
+
+				// searching for pattern 'url [x:y:w:y]'
+		if (match = str.match(/ \[(\d+):(\d+):(\d+):(\d+)\]$/)) {
+			coords = match.slice( 1 );
+				// searching for pattern 'url [w:y]{x:y}'
+		} else if (match = str.match(/ \[(\d+):(\d+)\]\{(\d+):(\d+)\}$/)) {
+			coords = match.slice( 1 ).map( Number );
+			size = coords.slice( 0, 2 );
+			cell = coords.slice( 2, 4 );
+			coords = [ cell[0] * size[0], cell[1] * size[1], size[0], size[1] ];
+		}
+		if (match) {
+			url = str.substr(0, str.lastIndexOf(match[0]));
+			coords = coords.map( Number );
+		}
+		if (this.suffix) {
+			if (typeof this.suffix == 'function') {
+				url = this.suffix( url );
+			} else {
+				url += this.suffix;
+			}
+		}
+
+		return { url: url, coords: coords };
+	},
+	/** @private */
+	fetchUrls: function () {
+		var i, result = [], hash = {}, url, images = this.usrImages;
+		for (i in images) if (images.hasOwnProperty(i)) {
+			url = this.splitUrl( images[i] ).url;
+			if (!hash[url]) {
+				result.push(url);
+				hash[url] = true;
+				this.number++;
+			}
+		}
+		return result;
+	},
+	/** @private */
+	createDomImage : function (src) {
+		var img = new Image();
+		img.src = src;
+		if (window.opera && img.complete) {
+			setTimeout(this.onProcessed.bind(this, 'load', img), 10);
+		} else {
+			['load', 'error', 'abort'].forEach(function (event) {
+				img.addEventListener( event, this.onProcessed.bind(this, event, img), false );
+			}.bind(this));
+		}
+		return img;
+	},
+	createNext: function () {
+		if (this.imageUrls.length) {
+			var url = this.imageUrls.shift();
+			this.domImages[url] = this.createDomImage(url);
+		}
+	},
+	resetImage: function (img) {
+		// opera fullscreen bug workaround
+		img.width  = img.width;
+		img.height = img.height;
+		img.naturalWidth  = img.naturalWidth;
+		img.naturalHeight = img.naturalHeight;
+	},
+	/** @private */
+	onProcessed : function (type, img) {
+		if (type == 'load' && window.opera) {
+			this.resetImage(img);
+		}
+		this.count[type]++;
+		this.processed++;
+		this.events.fire('progress', [this, img]);
+
+		if (this.isReady) {
+			this.cutImages();
+			this.events.ensureReady('ready', [this]);
+		} else {
+			this.createNext();
+		}
+		return this;
+	}
+}).own({
+	run: function (images, callback, context) {
+		var preloader = new this({ images: images });
+
+		preloader.events.add( 'ready', context ? callback.bind(context) : callback );
+
+		return preloader;
+	}
+});
+
+/*
+---
+
+name: "Keyboard"
+
+description: ""
+
+license:
+	- "[GNU Lesser General Public License](http://opensource.org/licenses/lgpl-license.php)"
+	- "[MIT License](http://opensource.org/licenses/mit-license.php)"
+
+requires:
+	- declare
+	- Events
+
+provides: Keyboard
+
+...
+*/
+
+var Keyboard = function () {
+
+var
+	keyName,
+	codeNames = {},
+	keyCodes  = {
+		// Alphabet
+		a:65, b:66, c:67, d:68, e:69,
+		f:70, g:71, h:72, i:73, j:74,
+		k:75, l:76, m:77, n:78, o:79,
+		p:80, q:81, r:82, s:83, t:84,
+		u:85, v:86, w:87, x:88, y:89, z:90,
+		// Numbers
+		n0:48, n1:49, n2:50, n3:51, n4:52,
+		n5:53, n6:54, n7:55, n8:56, n9:57,
+		// Controls
+		tab:  9, enter:13, shift:16, backspace:8,
+		ctrl:17, alt  :18, esc  :27, space    :32,
+		menu:93, pause:19, cmd  :91,
+		insert  :45, home:36, pageup  :33,
+		'delete':46, end :35, pagedown:34,
+		// F*
+		f1:112, f2:113, f3:114, f4 :115, f5 :116, f6 :117,
+		f7:118, f8:119, f9:120, f10:121, f11:122, f12:123,
+		// numpad
+		np0: 96, np1: 97, np2: 98, np3: 99, np4:100,
+		np5:101, np6:102, np7:103, np8:104, np9:105,
+		npslash:11,npstar:106,nphyphen:109,npplus:107,npdot:110,
+		// Lock
+		capslock:20, numlock:144, scrolllock:145,
+
+		// Symbols
+		equals: 61, hyphen   :109, coma  :188, dot:190,
+		gravis:192, backslash:220, sbopen:219, sbclose:221,
+		slash :191, semicolon: 59, apostrophe: 222,
+
+		// Arrows
+		aleft:37, aup:38, aright:39, adown:40
+	};
+
+for (keyName in keyCodes) if (keyCodes.hasOwnProperty(keyName)) {
+	codeNames[ keyCodes[keyName] ] = keyName;
+}
+
+/** @class atom.Keyboard */
+return declare( 'atom.Keyboard', {
+	initialize : function (element, preventDefault) {
+		if (Array.isArray(element)) {
+			preventDefault = element;
+			element = null;
+		}
+		if (element == null) element = document;
+
+		if (element == document) {
+			if (this.constructor.instance) {
+				return this.constructor.instance;
+			}
+			this.constructor.instance = this;
+		}
+
+		this.events = new Events(this);
+		this.keyStates = {};
+		this.preventDefault = preventDefault;
+
+		atom.dom(element).bind({
+			keyup:    this.keyEvent('up'),
+			keydown:  this.keyEvent('down'),
+			keypress: this.keyEvent('press')
+		});
+	},
+	/** @private */
+	keyEvent: function (event) {
+		return this.onKeyEvent.bind(this, event);
+	},
+	/** @private */
+	onKeyEvent: function (event, e) {
+		var key = this.constructor.keyName(e),
+			prevent = this.prevent(key);
+
+		e.keyName = key;
+
+		if (prevent) e.preventDefault();
+		this.events.fire( event, [e] );
+
+		if (event == 'down') {
+			this.events.fire(key, [e]);
+			this.keyStates[key] = true;
+		} else if (event == 'up') {
+			this.events.fire(key + ':up', [e]);
+			delete this.keyStates[key];
+		} else if (event == 'press') {
+			this.events.fire(key + ':press', [e]);
+		}
+
+		return !prevent;
+	},
+	/** @private */
+	prevent : function (key) {
+		var pD = this.preventDefault;
+		return pD && (pD === true || pD.indexOf(key) >= 0);
+	},
+	key: function (keyName) {
+		return !!this.keyStates[ this.constructor.keyName(keyName) ];
+	}
+}).own({
+	keyCodes : keyCodes,
+	codeNames: codeNames,
+	keyName: function (code) {
+		if (code && code.keyCode != null) {
+			code = code.keyCode;
+		}
+
+		var type = typeof code;
+
+		if (type == 'number') {
+			return this.codeNames[code];
+		} else if (type == 'string' && code in this.keyCodes) {
+			return code;
+		}
+
+		return null;
+	}
+});
+
+}();
+
+
+/*
+---
+
+name: "Registry"
+
+description: ""
+
+license:
+	- "[GNU Lesser General Public License](http://opensource.org/licenses/lgpl-license.php)"
+	- "[MIT License](http://opensource.org/licenses/mit-license.php)"
+
+requires:
+	- declare
+
+provides: Registry
+
+...
+*/
+
+/** @class atom.Registry */
+declare( 'atom.Registry', {
+	items: {},
+	initialize: function (initial) {
+		this.items = {};
+		if (initial) this.set(initial);
+	},
+	set: atom.core.overloadSetter(function (name, value) {
+		this.items[name] = value;
+	}),
+	get: atom.core.overloadGetter(function (name) {
+		return this.items[name];
+	})
+});
+
+var Registry = atom.Registry;
+
+/*
+---
+
+name: "trace"
+
+description: ""
+
+license:
+	- "[GNU Lesser General Public License](http://opensource.org/licenses/lgpl-license.php)"
+	- "[MIT License](http://opensource.org/licenses/mit-license.php)"
+
+requires:
+	- declare
+	- dom
+	- CoreExtended
+
+provides: trace
+
+...
+*/
+
+atom.trace = declare( 'atom.trace', {
+	initialize : function (object) {
+		this.value = object;
+		this.stopped = false;
+	},
+	set value (value) {
+		if (!this.stopped) {
+			var html = atom.string.replaceAll( this.constructor.dump(value), {
+				'\t': '&nbsp;'.repeat(3),
+				'\n': '<br />'
+			});
+			this.createNode().html(html);
+		}
+	},
+	destroy : function (force) {
+		var trace = this;
+		if (force) this.stop();
+		if (trace.node) {
+			trace.node.addClass('atom-trace-node-destroy');
+			trace.timeout = setTimeout(function () {
+				if (trace.node) {
+					trace.node.destroy();
+					trace.node = null;
+				}
+			}, 500);
+		}
+		return trace;
+	},
+	/** @private */
+	stop  : function () {
+		this.stopped = true;
+		return this;
+	},
+	/** @private */
+	getContainer : function () {
+		var cont = atom.dom('#atom-trace-container');
+		return cont.length ? cont :
+			atom.dom.create('div', { 'id' : 'atom-trace-container'})
+				.appendTo('body');
+	},
+	/** @deprecated */
+	trace : function (value) {
+		this.value = value;
+		return this;
+	},
+	/** @private */
+	createNode : function () {
+		var trace = this, node = trace.node;
+
+		if (node) {
+			if (trace.timeout) {
+				clearTimeout(trace.timeout);
+				node.removeClass('atom-trace-node-destroy');
+			}
+			return node;
+		}
+
+		return trace.node = atom.dom
+			.create('div')
+			.addClass('atom-trace-node')
+			.appendTo(trace.getContainer())
+			.bind({
+				click    : function () { trace.destroy(0) },
+				dblclick : function () { trace.destroy(1) }
+			});
+	}
+}).own({
+	dumpRec : function dumpRec (obj, level, plain) {
+		var html = '', type, tabs;
+
+		level  = parseInt(level) || 0;
+
+		if (level > 5) return '*TOO_DEEP*';
+
+		if (obj && typeof obj == 'object' && coreIsFunction(obj.dump)) return obj.dump();
+
+		function escape (v) {
+			return plain ? v : atom.string.safeHtml(v);
+		}
+
+		function subDump (elem, index) {
+			return tabs + '\t' + index + ': ' + dumpRec(elem, level+1, plain) + '\n';
+		}
+
+		type = atom.typeOf(obj);
+		tabs = '\t'.repeat(level);
+
+		switch (type) {
+			case 'object':
+				for (var index in obj) if (obj.hasOwnProperty(index)) {
+					html += subDump(obj[index], index);
+				}
+				return '{\n' + html + tabs + '}';
+
+			case 'element':
+				var prop = (obj.width && obj.height) ? '('+obj.width+'×'+obj.height+')' : '';
+				return '[DOM ' + obj.tagName.toLowerCase() + prop + ']';
+
+			case 'textnode':
+			case 'whitespace':
+				return '[DOM ' + type + ']';
+
+			case 'array'  : return '[\n' + obj.map(subDump).join('') + tabs + ']';
+			case 'null'   : return 'null';
+			case 'boolean': return obj ? 'true' : 'false';
+			case 'string' : return escape('"' + obj + '"');
+			default       : return escape('' + obj);
+		}
+	},
+	dumpPlain: function (object) {
+		return (this.dumpRec(object, 0, true));
+	},
+	dump : function (object) {
+		return (this.dumpRec(object, 0));
+	}
+});
+
+/*
+---
+
 name: "Types.Number"
 
 description: "Contains number-manipulation methods like limit, round, times, and ceil."
@@ -3570,855 +4443,6 @@ atom.array = {
 /*
 ---
 
-name: "Color"
-
-description: "Provides Color class"
-
-license:
-	- "[GNU Lesser General Public License](http://opensource.org/licenses/lgpl-license.php)"
-	- "[MIT License](http://opensource.org/licenses/mit-license.php)"
-
-requires:
-	- Core
-	- declare
-	- Types.Number
-	- Types.Array
-
-provides: Color
-
-...
-*/
-
-/** @class atom.Color */
-declare( 'atom.Color', {
-	initialize: function (value) {
-		var a = arguments, type;
-		if (a.length == 4 || a.length == 3) {
-			value = slice.call(a);
-		} else if (value && value.length == 1) {
-			value = value[0];
-		}
-
-		type = typeof value;
-		if (Array.isArray(value)) {
-			this.fromArray(value);
-		} else if (type == 'number') {
-			this.fromNumber(value);
-		} else if (type == 'string') {
-			this.fromString(value);
-		} else if (type == 'object') {
-			this.fromObject(value);
-		} else {
-			throw new TypeError('Unknown type in atom.Color: ' + typeof value + ';\n' + value);
-		}
-	},
-
-	/** @private */
-	r: 0,
-	/** @private */
-	g: 0,
-	/** @private */
-	b: 0,
-	/** @private */
-	a: 1,
-
-	/**
-	 * We are array-like object (looks at accessors at bottom of class)
-	 * @constant
-	 */
-	length: 4,
-
-	noLimits: false,
-
-	get red   () { return this.r; },
-	get green () { return this.g; },
-	get blue  () { return this.b; },
-	get alpha () { return this.a; },
-
-	set red   (v) { this.setValue('r', v) },
-	set green (v) { this.setValue('g', v) },
-	set blue  (v) { this.setValue('b', v) },
-	set alpha (v) { this.setValue('a', v, true) },
-
-	/** @private */
-	safeAlphaSet: function (v) {
-		if (v != null) this.alpha = atom.number.round(v, 3);
-	},
-
-	/** @private */
-	setValue: function (prop, value, isFloat) {
-		value = Number(value);
-		if (value != value) { // isNaN
-			throw new TypeError('Value is NaN (' + prop + '): ' + value);
-		}
-
-		if (!isFloat) value = Math.round(value);
-		// We don't want application down, if user script (e.g. animation)
-		// generates such wrong array: [150, 125, -1]
-		// `noLimits` switch off this check
-		this[prop] = this.noLimits ? value :
-			atom.number.limit( value, 0, isFloat ? 1 : 255 );
-	},
-
-	// Parsing
-
-	/**
-	 * @param {int[]} array
-	 * @returns {atom.Color}
-	 */
-	fromArray: function (array) {
-		if (!array || array.length < 3 || array.length > 4) {
-			throw new TypeError('Wrong array in atom.Color: ' + array);
-		}
-		this.red   = array[0];
-		this.green = array[1];
-		this.blue  = array[2];
-		this.safeAlphaSet(array[3]);
-		return this;
-	},
-	/**
-	 * @param {Object} object
-	 * @param {number} object.red
-	 * @param {number} object.green
-	 * @param {number} object.blue
-	 * @returns {atom.Color}
-	 */
-	fromObject: function (object) {
-		if (typeof object != 'object') {
-			throw new TypeError( 'Not object in "fromObject": ' + typeof object );
-		}
-
-		function fetch (p1, p2) {
-			return object[p1] != null ? object[p1] : object[p2]
-		}
-
-		this.red   = fetch('r', 'red'  );
-		this.green = fetch('g', 'green');
-		this.blue  = fetch('b', 'blue' );
-		this.safeAlphaSet(fetch('a', 'alpha'));
-		return this;
-	},
-	/**
-	 * @param {string} string
-	 * @returns {atom.Color}
-	 */
-	fromString: function (string) {
-		if (!this.constructor.isColorString(string)) {
-			throw new TypeError( 'Not color string in "fromString": ' + string );
-		}
-
-		var hex, array;
-
-		string = string.toLowerCase();
-		string = this.constructor.colorNames[string] || string;
-
-		if (hex = string.match(/^#(\w{1,2})(\w{1,2})(\w{1,2})(\w{1,2})?$/)) {
-			array = hex.slice(1).clean();
-			array = array.map(function (part) {
-				if (part.length == 1) part += part;
-				return parseInt(part, 16);
-			});
-			if (array.length == 4) array[3] /= 255;
-		} else {
-			array = string.match(/([\.\d]{1,})/g).map( Number );
-		}
-		return this.fromArray(array);
-	},
-	/**
-	 * @param {number} number
-	 * @returns {atom.Color}
-	 */
-	fromNumber: function (number) {
-		if (typeof number != 'number' || number < 0 || number > 0xffffffff) {
-			throw new TypeError( 'Not color number in "fromNumber": ' + (number.toString(16)) );
-		}
-
-		return this.fromArray([
-			(number>>24) & 0xff,
-			(number>>16) & 0xff,
-			(number>> 8) & 0xff,
-			(number      & 0xff) / 255
-		]);
-	},
-
-	// Casting
-
-	/** @returns {int[]} */
-	toArray: function () {
-		return [this.r, this.g, this.b, this.a];
-	},
-	/** @returns {string} */
-	toString: function (type) {
-		var arr = this.toArray();
-		if (type == 'hex' || type == 'hexA') {
-			return '#' + arr.map(function (color, i) {
-				if (i == 3) { // alpha
-					if (type == 'hex') return '';
-					color = Math.round(color * 255);
-				}
-				var bit = color.toString(16);
-				return bit.length == 1 ? '0' + bit : bit;
-			}).join('');
-		} else {
-			return 'rgba(' + arr + ')';
-		}
-	},
-	/** @returns {number} */
-	toNumber: function () {
-		// maybe needs optimizations
-		return parseInt( this.toString('hexA').substr(1) , 16)
-	},
-	/** @returns {object} */
-	toObject: function (abbreviationNames) {
-		return atom.array.associate( this.toArray(),
-			abbreviationNames ?
-				['r'  , 'g'    , 'b'   ,'a'    ] :
-				['red', 'green', 'blue','alpha']
-		);
-	},
-
-	// manipulations
-
-	/**
-	 * @param {atom.Color} color
-	 * @returns {atom.Color}
-	 */
-	diff: function (color) {
-		// we can't use this.constructor, because context exists in such way
-		// && invoke is not called
-		color = atom.Color( color );
-		return new atom.Color.Shift([
-			color.red   - this.red  ,
-			color.green - this.green,
-			color.blue  - this.blue ,
-			color.alpha - this.alpha
-		]);
-	},
-	/**
-	 * @param {atom.Color} color
-	 * @returns {atom.Color}
-	 */
-	move: function (color) {
-		color = atom.Color.Shift(color);
-		this.red   += color.red  ;
-		this.green += color.green;
-		this.blue  += color.blue ;
-		this.alpha += color.alpha;
-		return this;
-	},
-	/** @deprecated - use `clone`+`move` instead */
-	shift: function (color) {
-		return this.clone().move(color);
-	},
-	map: function (fn) {
-		var color = this;
-		['red', 'green', 'blue', 'alpha'].forEach(function (component) {
-			color[component] = fn.call( color, color[component], component, color );
-		});
-		return color;
-	},
-	add: function (factor) {
-		return this.map(function (value) {
-			return value + factor;
-		});
-	},
-	mul: function (factor) {
-		return this.map(function (value) {
-			return value * factor;
-		});
-	},
-	/**
-	 * @param {atom.Color} color
-	 * @returns {boolean}
-	 */
-	equals: function (color) {
-		return color &&
-			color instanceof this.constructor &&
-			color.red   == this.red   &&
-			color.green == this.green &&
-			color.blue  == this.blue  &&
-			color.alpha == this.alpha;
-	},
-
-	/** @private */
-	dump: function () {
-		return '[atom.Color(' + this.toString('hexA') + ')]';
-	},
-
-	/**
-	 * @returns {atom.Color}
-	 */
-	clone: function () {
-		return new this.constructor(this);
-	}
-}).own({
-	invoke: declare.castArguments,
-
-	/**
-	 * Checks if string is color description
-	 * @param {string} string
-	 * @returns {boolean}
-	 */
-	isColorString : function (string) {
-		if (typeof string != 'string') return false;
-		return Boolean(
-			string in this.colorNames  ||
-			string.match(/^#\w{3,6}$/) ||
-			string.match(/^rgba?\([\d\., ]+\)$/)
-		);
-	},
-
-	colorNames: {
-		white:  '#ffffff',
-		silver: '#c0c0c0',
-		gray:   '#808080',
-		black:  '#000000',
-		red:    '#ff0000',
-		maroon: '#800000',
-		yellow: '#ffff00',
-		olive:  '#808000',
-		lime:   '#00ff00',
-		green:  '#008000',
-		aqua:   '#00ffff',
-		teal:   '#008080',
-		blue:   '#0000ff',
-		navy:   '#000080',
-		fuchsia:'#ff00ff',
-		purple: '#800080',
-		orange: '#ffa500'
-	},
-
-	/**
-	 * @param {boolean} [html=false] - only html color names
-	 * @returns {atom.Color}
-	 */
-	random: function (html) {
-		var random = atom.number.random;
-		if (html) {
-			return new this(atom.array.random(
-				Object.keys(this.colorNames)
-			));
-		} else {
-			return new this([
-				random(0, 255),
-				random(0, 255),
-				random(0, 255)
-			]);
-		}
-	}
-});
-
-/** @class atom.Color.Shift */
-declare( 'atom.Color.Shift', atom.Color, { noLimits: true });
-
-/** @class ImagePreloader */
-atom.declare( 'atom.ImagePreloader', {
-	processed : 0,
-	number    : 0,
-
-	initialize: function (settings) {
-		this.events   = new Events(this);
-		this.settings = new Settings(settings).addEvents(this.events);
-
-		this.count = {
-			error: 0,
-			abort: 0,
-			load : 0
-		};
-
-		this.suffix    = this.settings.get('suffix') || '';
-		this.usrImages = this.prefixImages(this.settings.get('images'));
-		this.imageUrls = this.fetchUrls();
-		this.domImages = {};
-		//this.domImages = this.createDomImages();
-		this.images    = {};
-		this.createNext();
-	},
-	get isReady () {
-		return this.number == this.processed;
-	},
-	get info () {
-		var stat = atom.string.substitute(
-			"Images loaded: {load}; Errors: {error}; Aborts: {abort}",
-			this.count
-		);
-		if (this.isReady) stat = "Image preloading has completed;\n" + stat;
-		return stat;
-	},
-	get progress () {
-		return this.isReady ? 1 : atom.number.round(this.processed / this.number, 4);
-	},
-	append: function (preloader) {
-		for (var i in preloader.images) {
-			this.images[i] = preloader.images[i];
-		}
-		return this;
-	},
-	exists: function (name) {
-		return !!this.images[name];
-	},
-	get: function (name) {
-		var image = this.images[name];
-		if (image) {
-			return image;
-		} else {
-			throw new Error('No image «' + name + '»');
-		}
-	},
-
-	/** @private */
-	cropImage: function (img, c) {
-		if (!c) return img;
-
-		var canvas = document.createElement('canvas');
-		canvas.width  = c[2];
-		canvas.height = c[3];
-		canvas.getContext('2d').drawImage( img,
-			c[0], c[1], c[2], c[3], 0, 0, c[2], c[3]
-		);
-		return canvas;
-	},
-	/** @private */
-	withoutPrefix: function (src) {
-		return src.indexOf('http://') === 0 || src.indexOf('https://') === 0;
-	},
-	/** @private */
-	prefixImages: function (images) {
-		var prefix = this.settings.get('prefix');
-		if (!prefix) return images;
-
-		return atom.object.map(images, function (src) {
-			return this.withoutPrefix(src) ? src : prefix + src;
-		}.bind(this));
-	},
-	/** @private */
-	cutImages: function () {
-		var i, parts, img;
-		for (i in this.usrImages) if (this.usrImages.hasOwnProperty(i)) {
-			parts = this.splitUrl( this.usrImages[i] );
-			img   = this.domImages[ parts.url ];
-			this.images[i] = this.cropImage(img, parts.coords);
-		}
-		return this;
-	},
-	/** @private */
-	splitUrl: function (str) {
-		var url = str, size, cell, match, coords = null;
-
-				// searching for pattern 'url [x:y:w:y]'
-		if (match = str.match(/ \[(\d+):(\d+):(\d+):(\d+)\]$/)) {
-			coords = match.slice( 1 );
-				// searching for pattern 'url [w:y]{x:y}'
-		} else if (match = str.match(/ \[(\d+):(\d+)\]\{(\d+):(\d+)\}$/)) {
-			coords = match.slice( 1 ).map( Number );
-			size = coords.slice( 0, 2 );
-			cell = coords.slice( 2, 4 );
-			coords = [ cell[0] * size[0], cell[1] * size[1], size[0], size[1] ];
-		}
-		if (match) {
-			url = str.substr(0, str.lastIndexOf(match[0]));
-			coords = coords.map( Number );
-		}
-		if (this.suffix) {
-			if (typeof this.suffix == 'function') {
-				url = this.suffix( url );
-			} else {
-				url += this.suffix;
-			}
-		}
-
-		return { url: url, coords: coords };
-	},
-	/** @private */
-	fetchUrls: function () {
-		var i, result = [], hash = {}, url, images = this.usrImages;
-		for (i in images) if (images.hasOwnProperty(i)) {
-			url = this.splitUrl( images[i] ).url;
-			if (!hash[url]) {
-				result.push(url);
-				hash[url] = true;
-				this.number++;
-			}
-		}
-		return result;
-	},
-	/** @private */
-	createDomImage : function (src) {
-		var img = new Image();
-		img.src = src;
-		if (window.opera && img.complete) {
-			setTimeout(this.onProcessed.bind(this, 'load', img), 10);
-		} else {
-			['load', 'error', 'abort'].forEach(function (event) {
-				img.addEventListener( event, this.onProcessed.bind(this, event, img), false );
-			}.bind(this));
-		}
-		return img;
-	},
-	createNext: function () {
-		if (this.imageUrls.length) {
-			var url = this.imageUrls.shift();
-			this.domImages[url] = this.createDomImage(url);
-		}
-	},
-	resetImage: function (img) {
-		// opera fullscreen bug workaround
-		img.width  = img.width;
-		img.height = img.height;
-		img.naturalWidth  = img.naturalWidth;
-		img.naturalHeight = img.naturalHeight;
-	},
-	/** @private */
-	onProcessed : function (type, img) {
-		if (type == 'load' && window.opera) {
-			this.resetImage(img);
-		}
-		this.count[type]++;
-		this.processed++;
-		this.events.fire('progress', [this, img]);
-
-		if (this.isReady) {
-			this.cutImages();
-			this.events.ensureReady('ready', [this]);
-		} else {
-			this.createNext();
-		}
-		return this;
-	}
-}).own({
-	run: function (images, callback, context) {
-		var preloader = new this({ images: images });
-
-		preloader.events.add( 'ready', context ? callback.bind(context) : callback );
-
-		return preloader;
-	}
-});
-
-/*
----
-
-name: "Keyboard"
-
-description: ""
-
-license:
-	- "[GNU Lesser General Public License](http://opensource.org/licenses/lgpl-license.php)"
-	- "[MIT License](http://opensource.org/licenses/mit-license.php)"
-
-requires:
-	- declare
-	- Events
-
-provides: Keyboard
-
-...
-*/
-
-var Keyboard = function () {
-
-var
-	keyName,
-	codeNames = {},
-	keyCodes  = {
-		// Alphabet
-		a:65, b:66, c:67, d:68, e:69,
-		f:70, g:71, h:72, i:73, j:74,
-		k:75, l:76, m:77, n:78, o:79,
-		p:80, q:81, r:82, s:83, t:84,
-		u:85, v:86, w:87, x:88, y:89, z:90,
-		// Numbers
-		n0:48, n1:49, n2:50, n3:51, n4:52,
-		n5:53, n6:54, n7:55, n8:56, n9:57,
-		// Controls
-		tab:  9, enter:13, shift:16, backspace:8,
-		ctrl:17, alt  :18, esc  :27, space    :32,
-		menu:93, pause:19, cmd  :91,
-		insert  :45, home:36, pageup  :33,
-		'delete':46, end :35, pagedown:34,
-		// F*
-		f1:112, f2:113, f3:114, f4 :115, f5 :116, f6 :117,
-		f7:118, f8:119, f9:120, f10:121, f11:122, f12:123,
-		// numpad
-		np0: 96, np1: 97, np2: 98, np3: 99, np4:100,
-		np5:101, np6:102, np7:103, np8:104, np9:105,
-		npslash:11,npstar:106,nphyphen:109,npplus:107,npdot:110,
-		// Lock
-		capslock:20, numlock:144, scrolllock:145,
-
-		// Symbols
-		equals: 61, hyphen   :109, coma  :188, dot:190,
-		gravis:192, backslash:220, sbopen:219, sbclose:221,
-		slash :191, semicolon: 59, apostrophe: 222,
-
-		// Arrows
-		aleft:37, aup:38, aright:39, adown:40
-	};
-
-for (keyName in keyCodes) if (keyCodes.hasOwnProperty(keyName)) {
-	codeNames[ keyCodes[keyName] ] = keyName;
-}
-
-/** @class atom.Keyboard */
-return declare( 'atom.Keyboard', {
-	initialize : function (element, preventDefault) {
-		if (Array.isArray(element)) {
-			preventDefault = element;
-			element = null;
-		}
-		if (element == null) element = document;
-
-		if (element == document) {
-			if (this.constructor.instance) {
-				return this.constructor.instance;
-			}
-			this.constructor.instance = this;
-		}
-
-		this.events = new Events(this);
-		this.keyStates = {};
-		this.preventDefault = preventDefault;
-
-		atom.dom(element).bind({
-			keyup:    this.keyEvent('up'),
-			keydown:  this.keyEvent('down'),
-			keypress: this.keyEvent('press')
-		});
-	},
-	/** @private */
-	keyEvent: function (event) {
-		return this.onKeyEvent.bind(this, event);
-	},
-	/** @private */
-	onKeyEvent: function (event, e) {
-		var key = this.constructor.keyName(e),
-			prevent = this.prevent(key);
-
-		e.keyName = key;
-
-		if (prevent) e.preventDefault();
-		this.events.fire( event, [e] );
-
-		if (event == 'down') {
-			this.events.fire(key, [e]);
-			this.keyStates[key] = true;
-		} else if (event == 'up') {
-			this.events.fire(key + ':up', [e]);
-			delete this.keyStates[key];
-		} else if (event == 'press') {
-			this.events.fire(key + ':press', [e]);
-		}
-
-		return !prevent;
-	},
-	/** @private */
-	prevent : function (key) {
-		var pD = this.preventDefault;
-		return pD && (pD === true || pD.indexOf(key) >= 0);
-	},
-	key: function (keyName) {
-		return !!this.keyStates[ this.constructor.keyName(keyName) ];
-	}
-}).own({
-	keyCodes : keyCodes,
-	codeNames: codeNames,
-	keyName: function (code) {
-		if (code && code.keyCode != null) {
-			code = code.keyCode;
-		}
-
-		var type = typeof code;
-
-		if (type == 'number') {
-			return this.codeNames[code];
-		} else if (type == 'string' && code in this.keyCodes) {
-			return code;
-		}
-
-		return null;
-	}
-});
-
-}();
-
-
-/*
----
-
-name: "Registry"
-
-description: ""
-
-license:
-	- "[GNU Lesser General Public License](http://opensource.org/licenses/lgpl-license.php)"
-	- "[MIT License](http://opensource.org/licenses/mit-license.php)"
-
-requires:
-	- declare
-
-provides: Registry
-
-...
-*/
-
-/** @class atom.Registry */
-declare( 'atom.Registry', {
-	items: {},
-	initialize: function (initial) {
-		this.items = {};
-		if (initial) this.set(initial);
-	},
-	set: atom.core.overloadSetter(function (name, value) {
-		this.items[name] = value;
-	}),
-	get: atom.core.overloadGetter(function (name) {
-		return this.items[name];
-	})
-});
-
-var Registry = atom.Registry;
-
-/*
----
-
-name: "trace"
-
-description: ""
-
-license:
-	- "[GNU Lesser General Public License](http://opensource.org/licenses/lgpl-license.php)"
-	- "[MIT License](http://opensource.org/licenses/mit-license.php)"
-
-requires:
-	- declare
-	- dom
-	- CoreExtended
-
-provides: trace
-
-...
-*/
-
-atom.trace = declare( 'atom.trace', {
-	initialize : function (object) {
-		this.value = object;
-		this.stopped = false;
-	},
-	set value (value) {
-		if (!this.stopped) {
-			var html = atom.string.replaceAll( this.constructor.dump(value), {
-				'\t': '&nbsp;'.repeat(3),
-				'\n': '<br />'
-			});
-			this.createNode().html(html);
-		}
-	},
-	destroy : function (force) {
-		var trace = this;
-		if (force) this.stop();
-		if (trace.node) {
-			trace.node.addClass('atom-trace-node-destroy');
-			trace.timeout = setTimeout(function () {
-				if (trace.node) {
-					trace.node.destroy();
-					trace.node = null;
-				}
-			}, 500);
-		}
-		return trace;
-	},
-	/** @private */
-	stop  : function () {
-		this.stopped = true;
-		return this;
-	},
-	/** @private */
-	getContainer : function () {
-		var cont = atom.dom('#atom-trace-container');
-		return cont.length ? cont :
-			atom.dom.create('div', { 'id' : 'atom-trace-container'})
-				.appendTo('body');
-	},
-	/** @deprecated */
-	trace : function (value) {
-		this.value = value;
-		return this;
-	},
-	/** @private */
-	createNode : function () {
-		var trace = this, node = trace.node;
-
-		if (node) {
-			if (trace.timeout) {
-				clearTimeout(trace.timeout);
-				node.removeClass('atom-trace-node-destroy');
-			}
-			return node;
-		}
-
-		return trace.node = atom.dom
-			.create('div')
-			.addClass('atom-trace-node')
-			.appendTo(trace.getContainer())
-			.bind({
-				click    : function () { trace.destroy(0) },
-				dblclick : function () { trace.destroy(1) }
-			});
-	}
-}).own({
-	dumpRec : function dumpRec (obj, level, plain) {
-		var html = '', type, tabs;
-
-		level  = parseInt(level) || 0;
-
-		if (level > 5) return '*TOO_DEEP*';
-
-		if (obj && typeof obj == 'object' && coreIsFunction(obj.dump)) return obj.dump();
-
-		function escape (v) {
-			return plain ? v : atom.string.safeHtml(v);
-		}
-
-		function subDump (elem, index) {
-			return tabs + '\t' + index + ': ' + dumpRec(elem, level+1, plain) + '\n';
-		}
-
-		type = atom.typeOf(obj);
-		tabs = '\t'.repeat(level);
-
-		switch (type) {
-			case 'object':
-				for (var index in obj) if (obj.hasOwnProperty(index)) {
-					html += subDump(obj[index], index);
-				}
-				return '{\n' + html + tabs + '}';
-
-			case 'element':
-				var prop = (obj.width && obj.height) ? '('+obj.width+'×'+obj.height+')' : '';
-				return '[DOM ' + obj.tagName.toLowerCase() + prop + ']';
-
-			case 'textnode':
-			case 'whitespace':
-				return '[DOM ' + type + ']';
-
-			case 'array'  : return '[\n' + obj.map(subDump).join('') + tabs + ']';
-			case 'null'   : return 'null';
-			case 'boolean': return obj ? 'true' : 'false';
-			case 'string' : return escape('"' + obj + '"');
-			default       : return escape('' + obj);
-		}
-	},
-	dumpPlain: function (object) {
-		return (this.dumpRec(object, 0, true));
-	},
-	dump : function (object) {
-		return (this.dumpRec(object, 0));
-	}
-});
-
-/*
----
-
 name: "Prototypes.Abstract"
 
 description: "Contains office methods for prototypes extension."
@@ -4530,7 +4554,6 @@ license:
 
 requires:
 	- Core
-	- Types.Array
 
 provides: Types.Function
 
