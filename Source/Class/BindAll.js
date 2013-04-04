@@ -31,7 +31,7 @@ atom.Class.bindAll = function (object, methods) {
 			object[methods] = object[methods].bind( object );
 		}
 	} else if (methods) {
-		for (i = methods.length; i--;) atom.Class.bindAll( object, methods[i] );
+		for (var i = methods.length; i--;) atom.Class.bindAll( object, methods[i] );
 	} else {
 		for (var i in object) atom.Class.bindAll( object, i );
 	}
