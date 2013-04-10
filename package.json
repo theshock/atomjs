@@ -1,0 +1,41 @@
+{
+  "name": "atom",
+  "version": "0.0.0",
+  "description": "Atom, The JavaScript framework",
+  "homepage": "http://atomjs.com",
+  "author": "Pavel Ponomarenko (github.com/theshock)",
+  "contributors": [
+    "Artem Smirnov",
+    "extempl",
+    "Alexander Solovyov",
+    "Alexey Dubinin",
+    "Nikita Baksalyar",
+    "DanilaMihailov",
+    "Jaguar™",
+    "Mike",
+    "Dmitry Bochkarev <dimabochkarev@gmail.com> (github.com/DmitryBochkarev)",
+    "WolF™"
+  ],
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/theshock/atomjs.git"
+  },
+  "licenses": [
+    {
+      "type": "MIT",
+      "url": "http://opensource.org/licenses/mit-license.php"
+    },
+    {
+      "type": "GNU",
+      "url": "http://opensource.org/licenses/lgpl-license.php"
+    }
+  ],
+  "devDependencies": {
+    "grunt": "~0.4.1",
+    "grunt-contrib-concat": "~0.2.0"
+  }
+}
