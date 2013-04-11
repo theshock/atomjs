@@ -21,5 +21,5 @@ Documentation: see [Docs folder](/master/Docs) for description of Atom core and 
 
 ##Build
 
-First of all you should install [grunt](gruntjs.com) `npm install -g grunt-cli`, then you should install development dependencies `npm install --dev`. After all you can run build `grunt`.
+First of all you should install [grunt](http://gruntjs.com) `npm install -g grunt-cli`, then you should install development dependencies `npm install --dev`. After all you can run build `grunt`.
 
