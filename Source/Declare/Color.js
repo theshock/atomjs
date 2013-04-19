@@ -93,10 +93,6 @@ declare( 'atom.Color', {
 		// We don't want application down, if user script (e.g. animation)
 		// generates such wrong array: [150, 125, -1]
 		// `noLimits` switch off this check
-		if (this.noLimits) {
-
-		}
-
 		this[prop] = this.noLimits ? value :
 			atom.number.limit( value, 0, isFloat ? 1 : 255 );
 	},
