@@ -626,27 +626,35 @@ provides: dom
 				}
 			}
 		}),
-		
-		bind : atom.core.overloadSetter(function (event, callback) {
+
+		addEvent: atom.core.overloadSetter(function (event, callback) {
 			if (callback === false) callback = prevent;
 
 			this.each(function (elem) {
 				if (elem == document && event == 'load') elem = window;
 				elem.addEventListener(event, callback, false);
 			});
-			
+
 			return this;
 		}),
-		unbind : atom.core.overloadSetter(function (event, callback) {
+		removeEvent : atom.core.overloadSetter(function (event, callback) {
 			if (callback === false) callback = prevent;
-				
+
 			this.each(function (elem) {
 				if (elem == document && event == 'load') elem = window;
 				elem.removeEventListener(event, callback, false);
 			});
-			
+
 			return this;
 		}),
+		/** @deprecated */
+		bind : function (event, callback) {
+			return this.addEvent.apply(this, arguments)
+		},
+		/** @deprecated */
+		unbind : function (event, callback) {
+			return this.addEvent.apply(this, arguments)
+		},
 		delegate : function (selector, event, fn) {
 			return this.bind(event, function (e) {
 				if (new Dom(e.target).is(selector)) {
@@ -682,7 +690,7 @@ provides: dom
 			Dom(to).first.appendChild(fr);
 			return this;
 		},
-		appendBefore: function (elem) {
+        appendBefore: function (elem) {
 			var fr = document.createDocumentFragment();
 			this.each(function (elem) {
 				fr.appendChild(elem);
@@ -1565,12 +1573,13 @@ atom.Class.bindAll = function (object, methods) {
 			object[methods] = object[methods].bind( object );
 		}
 	} else if (methods) {
-		for (i = methods.length; i--;) atom.Class.bindAll( object, methods[i] );
+		for (var i = methods.length; i--;) atom.Class.bindAll( object, methods[i] );
 	} else {
 		for (var i in object) atom.Class.bindAll( object, i );
 	}
 	return object;
 };
+
 
 /*
 ---
