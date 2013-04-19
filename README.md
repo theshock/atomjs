@@ -18,6 +18,10 @@ Supported browsers:
 
 Distributed under terms of MIT or LGPL.
 
-Documentation: see [Docs folder](/theshock/atomjs/tree/master/Docs) for description of Atom core and bundled plugins.
+Documentation: see [Docs folder](/master/Docs) for description of Atom core and bundled plugins.
 
+
+## Integration
+
+* [Ruby on Rails gem](https://github.com/tanraya/atomjs-rails)
 

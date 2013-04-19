@@ -682,6 +682,30 @@ provides: dom
 			Dom(to).first.appendChild(fr);
 			return this;
 		},
+		appendBefore: function (elem) {
+			var fr = document.createDocumentFragment();
+			this.each(function (elem) {
+				fr.appendChild(elem);
+			});
+			Dom(elem).parent().first.insertBefore(fr, Dom(elem).first);
+			return this;
+		},
+		appendAfter: function (elem) {
+			var parent = Dom(elem).parent().first;
+			var next = Dom(elem).first.nextSibling;
+			var fr = document.createDocumentFragment();
+			this.each(function (elem) {
+				fr.appendChild(elem);
+			});
+			
+			if (next) {
+				parent.insertBefore(fr, next);
+			} else {
+				parent.appendChild(fr);
+			}
+			
+			return this;
+		},
 		/** @private */
 		manipulateClass: function (classNames, fn) {
 			if (!classNames) return this;
