@@ -137,6 +137,8 @@ provides: dom
 		}
 	});
 	Dom.prototype = {
+		constructor: Dom,
+		elems: [],
 		get length() {
 			return this.elems ? this.elems.length : 0;
 		},
@@ -420,7 +422,9 @@ provides: dom
 		},
 		destroy : function () {
 			return this.each(function (elem) {
-				elem.parentNode.removeChild(elem);
+				if (elem.parentNode) {
+					elem.parentNode.removeChild(elem);
+				}
 			});
 		},
 		constructor: Dom
