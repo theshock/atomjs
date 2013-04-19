@@ -2469,23 +2469,29 @@ declare( 'atom.Settings', {
 	},
 
 	/**
-	 * @test
 	 * @param {object} target
-	 * @param {string[]} names
+	 * @param {string[]} [names=undefined]
 	 * @return {atom.Settings}
 	 */
 	properties: function (target, names) {
+		var originalNames = this.propertiesNames;
+
 		if (typeof names == 'string') {
 			names = names.split(' ');
 		}
 
-		this['properties.names' ] = names == null ? true : names;
-		this['properties.target'] = target;
+		if (names == null || names === true) {
+			this.propertiesNames = true;
+		} else if (originalNames == null) {
+			this.propertiesNames = names;
+		} else if (originalNames !== true) {
+			atom.array.append(originalNames, names);
+		}
+
+		this.propertiesTarget = target;
 
 		for (var i in this.values) {
-			if (names === true || names.indexOf(i) >= 0) {
-				target[i] = this.values[i];
-			}
+			this.exportProperty(i, values);
 		}
 
 		return this;
@@ -2501,15 +2507,17 @@ declare( 'atom.Settings', {
 		return values;
 	},
 
+	/** @private */
+	propertiesNames : null,
+	/** @private */
+	propertiesTarget: null,
+
 	/**
 	 * @param {Object} options
 	 * @return atom.Options
 	 */
 	set: function (options, value) {
-		var i,
-			values = this.values,
-			target = this['properties.target'],
-			names  = this['properties.names'];
+		var i, values = this.values;
 
 		options = this.prepareOptions(options, value);
 
@@ -2517,15 +2525,24 @@ declare( 'atom.Settings', {
 			value = options[i];
 			if (values[i] != value) {
 				values[i] = value;
-				if (target && (names === true || names.indexOf(i) >= 0)) {
-					target[i] = values[i];
-				}
+				this.exportProperty(i, values);
 			}
 		}
 
 		this.invokeEvents();
 
 		return this;
+	},
+
+	/** @private */
+	exportProperty: function (i, values) {
+		var
+			target = this.propertiesTarget,
+			names  = this.propertiesNames;
+
+		if (target && (names === true || names.indexOf(i) >= 0)) {
+			target[i] = values[i];
+		}
 	},
 
 	/** @private */
