@@ -64,11 +64,11 @@ declare( 'atom.Settings', {
 			names = names.split(' ');
 		}
 
-		this['properties.names' ] = names;
+		this['properties.names' ] = names == null ? true : names;
 		this['properties.target'] = target;
 
-		for (var i in this.values) if (this.values.hasOwnProperty(i)) {
-			if (names.indexOf(i) >= 0) {
+		for (var i in this.values) {
+			if (names === true || names.indexOf(i) >= 0) {
 				target[i] = this.values[i];
 			}
 		}
@@ -98,11 +98,11 @@ declare( 'atom.Settings', {
 
 		options = this.prepareOptions(options, value);
 
-		for (i in options) if (options.hasOwnProperty(i)) {
+		for (i in options) {
 			value = options[i];
 			if (values[i] != value) {
 				values[i] = value;
-				if (target && names.indexOf(i) >= 0) {
+				if (target && (names === true || names.indexOf(i) >= 0)) {
 					target[i] = values[i];
 				}
 			}
