@@ -110,27 +110,34 @@ Apply CSS to every element:
 	atom.dom('div').css('background', 'red');
 	atom.dom('div').css({background: 'red'});
 
-#### atom.dom().bind(events)
+#### atom.dom().addEvent(events)
 
 Attach event handler to every element in current collection
 
-	atom.dom('div').bind({click: function () {
+	atom.dom('div').addEvent({click: function () {
 		alert('div clicked')
 	}});
 
 Prevent default actions for events
 
-	atom.dom("a").bind("click", false);
+	atom.dom("a").addEvent("click", false);
 
-#### atom.dom().unbind(events)
+#### atom.dom().bind(events)
+
+Deprecated, use *addEvent*
+
+#### atom.dom().removeEvent(events)
 
 Detach event handler from evety element in current collection
 	
-	atom.dom("div").bind("click", function listener (event) {
+	atom.dom("div").addEvent("click", function listener (event) {
 		alert('div clicked')
-		this.unbind("click", listener);
+		this.removeEvent("click", listener);
 	});
 
+#### atom.dom().unbind(events)
+
+Deprecated, use *removeEvent*
 
 #### atom.dom().delegate(selector, event, fn)
 

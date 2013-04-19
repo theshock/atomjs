@@ -239,27 +239,35 @@ provides: dom
 				}
 			}
 		}),
-		
-		bind : atom.core.overloadSetter(function (event, callback) {
+
+		addEvent: atom.core.overloadSetter(function (event, callback) {
 			if (callback === false) callback = prevent;
 
 			this.each(function (elem) {
 				if (elem == document && event == 'load') elem = window;
 				elem.addEventListener(event, callback, false);
 			});
-			
+
 			return this;
 		}),
-		unbind : atom.core.overloadSetter(function (event, callback) {
+		removeEvent : atom.core.overloadSetter(function (event, callback) {
 			if (callback === false) callback = prevent;
-				
+
 			this.each(function (elem) {
 				if (elem == document && event == 'load') elem = window;
 				elem.removeEventListener(event, callback, false);
 			});
-			
+
 			return this;
 		}),
+		/** @deprecated */
+		bind : function (event, callback) {
+			return this.addEvent.apply(this, arguments)
+		},
+		/** @deprecated */
+		unbind : function (event, callback) {
+			return this.addEvent.apply(this, arguments)
+		},
 		delegate : function (selector, event, fn) {
 			return this.bind(event, function (e) {
 				if (new Dom(e.target).is(selector)) {
