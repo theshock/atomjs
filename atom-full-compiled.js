@@ -524,6 +524,8 @@ provides: dom
 		}
 	});
 	Dom.prototype = {
+		constructor: Dom,
+		elems: [],
 		get length() {
 			return this.elems ? this.elems.length : 0;
 		},
@@ -807,7 +809,9 @@ provides: dom
 		},
 		destroy : function () {
 			return this.each(function (elem) {
-				elem.parentNode.removeChild(elem);
+				if (elem.parentNode) {
+					elem.parentNode.removeChild(elem);
+				}
 			});
 		},
 		constructor: Dom
@@ -3075,13 +3079,6 @@ provides: Color
 
 ...
 */
-
-new function () {
-
-function random (max) {
-	return Math.floor(Math.random() * max);
-}
-
 /** @class atom.Color */
 declare( 'atom.Color', {
 	initialize: function (value) {
@@ -3151,10 +3148,6 @@ declare( 'atom.Color', {
 		// We don't want application down, if user script (e.g. animation)
 		// generates such wrong array: [150, 125, -1]
 		// `noLimits` switch off this check
-		if (this.noLimits) {
-
-		}
-
 		this[prop] = this.noLimits ? value :
 			atom.number.limit( value, 0, isFloat ? 1 : 255 );
 	},
@@ -3390,19 +3383,22 @@ declare( 'atom.Color', {
 	 * @returns {atom.Color}
 	 */
 	random: function (html) {
+		var source, random = atom.number.random;
+
 		if (html) {
-			var keys = Object.keys(this.colorNames);
-			return new this(keys[random(keys.length)]);
+			source = atom.array.random( this.colorNamesList );
 		} else {
-			return new this([ random(256), random(256), random(256) ]);
+			source = [ random(0, 255), random(0, 255), random(0, 255) ];
 		}
+
+		return new this(source);
 	}
 });
 
+atom.Color.colorNamesList = Object.keys(atom.Color.colorNames);
+
 /** @class atom.Color.Shift */
 declare( 'atom.Color.Shift', atom.Color, { noLimits: true });
-
-};
 
 /*
 ---
@@ -4587,6 +4583,7 @@ license:
 
 requires:
 	- Core
+	- Types.Array
 
 provides: Types.Function
 
