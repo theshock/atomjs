@@ -30,6 +30,23 @@ atom.Settings
 	settings.get( 'test' ); // 123
 	settings.get( 'wrong', 'default' ); // 'default'
 
+### properties
+
+`properties` - such properties will be set automatically to target object.
+If no names set - all properties will be set.
+
+	atom.Settings properties( string target, string[] names = null );
+
+#### example:
+
+	var object = {};
+
+	settings.properties( object, [ 'foo' ] );
+	settings.set({ foo: 1, bar: 2 });
+
+	console.log( object.foo ); // 1
+	console.log( object.bar ); // undefined
+
 ### initial values
 
 You can set initial values of Settings using first argument while constructing:
