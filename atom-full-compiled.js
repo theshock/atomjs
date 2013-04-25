@@ -1352,7 +1352,7 @@ inspiration:
 
 provides: Class
 
-deprected: "Use declare instead"
+deprecated: "Use declare instead"
 
 ...
 */
@@ -2491,7 +2491,7 @@ declare( 'atom.Settings', {
 		this.propertiesTarget = target;
 
 		for (var i in this.values) {
-			this.exportProperty(i, values);
+			this.exportProperty(i, this.values);
 		}
 
 		return this;

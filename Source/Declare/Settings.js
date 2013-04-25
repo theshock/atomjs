@@ -76,7 +76,7 @@ declare( 'atom.Settings', {
 		this.propertiesTarget = target;
 
 		for (var i in this.values) {
-			this.exportProperty(i, values);
+			this.exportProperty(i, this.values);
 		}
 
 		return this;
