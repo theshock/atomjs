@@ -426,8 +426,7 @@ provides: dom
 					elem.parentNode.removeChild(elem);
 				}
 			});
-		},
-		constructor: Dom
+		}
 	};
 
 	atom.dom = Dom;
