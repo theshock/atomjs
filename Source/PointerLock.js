@@ -17,15 +17,23 @@ provides: PointerLock
 ...
 */
 (function (document) {
-
 	var prefix =
 	      'pointerLockElement' in document ? '':
 	   'mozPointerLockElement' in document ? 'moz':
 	'webkitPointerLockElement' in document ? 'webkit': null;
 
-	function PointerLock (supports) {
-		this.supports = supports;
-	}
+    function PointerLock (supports) {
+        this.supports = supports;
+    }
+
+    function p (string) {
+        return prefix ? prefix + string :
+        string[0].toLowerCase() + string.substr(1);
+    }
+
+    function isLocked (element) {
+        return document[p('PointerLockElement')] === element;
+    }
 
 	if (prefix == null) {
 		PointerLock.prototype = {
@@ -34,15 +42,6 @@ provides: PointerLock
 			exit    : function () {}
 		};
 	} else {
-
-		function p (string) {
-			return prefix ? prefix + string :
-				string[0].toLowerCase() + string.substr(1);
-		}
-
-		function isLocked (element) {
-			return document[p('PointerLockElement')] === element;
-		}
 
 		document.addEventListener("mousemove", function onMove (e) {
 			if (lockedElement && isLocked(lockedElement)) {
