@@ -26,8 +26,6 @@ Example:
 		height : 100
 	});
 
-
-
 #### atom.dom().body
 
 	var body = atom.dom().body;

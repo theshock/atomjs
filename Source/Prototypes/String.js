@@ -18,6 +18,8 @@ provides: Prototypes.String
 ...
 */
 
-prototypize.proto(String, prototypize.fn(atom.string),
-	'safeHtml repeat substitute replaceAll contains begins ends ucfirst lcfirst'
-);
+prototypize.add(function (globalObject) {
+	prototypize.proto(globalObject.String, prototypize.fn(atom.string),
+		'safeHtml repeat substitute replaceAll contains begins ends ucfirst lcfirst'
+	);
+});

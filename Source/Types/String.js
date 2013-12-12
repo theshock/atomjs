@@ -34,7 +34,7 @@ atom.string = {
 	 * @returns {string}
 	 */
 	safeHtml: function (string) {
-		return string.replaceAll(/[<'&">]/g, {
+		return this.replaceAll(string, /[<'&">]/g, {
 			'&'  : '&amp;',
 			'\'' : '&#039;',
 			'\"' : '&quot;',
@@ -72,7 +72,7 @@ atom.string = {
 		if (toString.call(find) == '[object RegExp]') {
 			return string.replace(find, function (symb) { return replace[symb]; });
 		} else if (typeof find == 'object') {
-			for (var i in find) string = string.replaceAll(i, find[i]);
+			for (var i in find) string = this.replaceAll(string, i, find[i]);
 			return string;
 		}
 		return string.split(find).join(replace);

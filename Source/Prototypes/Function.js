@@ -19,7 +19,9 @@ provides: Prototypes.Function
 ...
 */
 
-new function () {
+prototypize.add(function (globalObject) {
+
+	var Function = globalObject.Function;
 
 	Function.lambda = atom.fn.lambda;
 
@@ -40,4 +42,4 @@ new function () {
 		periodical: timer(true )
 	});
 
-}(); 
+});

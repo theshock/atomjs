@@ -20,6 +20,7 @@ provides: Prototypes.Abstract
 */
 
 var prototypize = {
+	callbacks: [],
 	fn: function (source) {
 		return function (methodName) {
 			return function () {
@@ -38,5 +39,14 @@ var prototypize = {
 	own: function (object, source, methodsString) {
 		coreAppend(object, atom.object.collect( source, methodsString.split(' ') ));
 		return prototypize;
+	},
+	add: function (callback) {
+		this.callbacks.push(callback);
 	}
+};
+
+atom.patching = function (globalObject) {
+	prototypize.callbacks.forEach(function (callback) {
+		callback(globalObject);
+	});
 };

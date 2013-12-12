@@ -655,7 +655,7 @@ provides: dom
 		},
 		/** @deprecated */
 		unbind : function (event, callback) {
-			return this.addEvent.apply(this, arguments)
+			return this.removeEvent.apply(this, arguments)
 		},
 		delegate : function (selector, event, fn) {
 			return this.bind(event, function (e) {
@@ -813,8 +813,7 @@ provides: dom
 					elem.parentNode.removeChild(elem);
 				}
 			});
-		},
-		constructor: Dom
+		}
 	};
 
 	atom.dom = Dom;
@@ -1222,15 +1221,23 @@ provides: PointerLock
 ...
 */
 (function (document) {
-
 	var prefix =
 	      'pointerLockElement' in document ? '':
 	   'mozPointerLockElement' in document ? 'moz':
 	'webkitPointerLockElement' in document ? 'webkit': null;
 
-	function PointerLock (supports) {
-		this.supports = supports;
-	}
+    function PointerLock (supports) {
+        this.supports = supports;
+    }
+
+    function p (string) {
+        return prefix ? prefix + string :
+        string[0].toLowerCase() + string.substr(1);
+    }
+
+    function isLocked (element) {
+        return document[p('PointerLockElement')] === element;
+    }
 
 	if (prefix == null) {
 		PointerLock.prototype = {
@@ -1239,15 +1246,6 @@ provides: PointerLock
 			exit    : function () {}
 		};
 	} else {
-
-		function p (string) {
-			return prefix ? prefix + string :
-				string[0].toLowerCase() + string.substr(1);
-		}
-
-		function isLocked (element) {
-			return document[p('PointerLockElement')] === element;
-		}
 
 		document.addEventListener("mousemove", function onMove (e) {
 			if (lockedElement && isLocked(lockedElement)) {
@@ -2635,11 +2633,13 @@ atom.object = {
 		for (var i in obj) values.push(obj[i]);
 		return values;
 	},
+	/** @deprecated */
 	isDefined: function (obj) {
 		return typeof obj !== 'undefined';
 	},
+	/** @deprecated */
 	isReal: function (obj) {
-		return obj || obj === 0;
+		return obj != null;
 	},
 	map: function (obj, fn) {
 		var mapped = {};
@@ -2681,7 +2681,10 @@ atom.object = {
 		return true;
 	},
 	isEmpty: function (object) {
-		return Object.keys(object).length == 0;
+		for (var i in object) if (object.hasOwnProperty(i)) {
+			return false;
+		}
+		return true;
 	},
 	ifEmpty: function (object, key, defaultValue) {
 		if (!(key in object)) {
@@ -2696,7 +2699,7 @@ atom.object = {
 		get: function (object, path, delimiter) {
 			if (!path) return object;
 
-			path = Object.path.parts( path, delimiter );
+			path = atom.object.path.parts( path, delimiter );
 
 			for (var i = 0; i < path.length; i++) {
 				if (object != null && path[i] in object) {
@@ -2709,7 +2712,7 @@ atom.object = {
 			return object;
 		},
 		set: function (object, path, value, delimiter) {
-			path = Object.path.parts( path, delimiter );
+			path = atom.object.path.parts( path, delimiter );
 
 			var key = path.pop();
 
@@ -3222,7 +3225,7 @@ declare( 'atom.Color', {
 		string = this.constructor.colorNames[string] || string;
 
 		if (hex = string.match(/^#(\w{1,2})(\w{1,2})(\w{1,2})(\w{1,2})?$/)) {
-			array = hex.slice(1).clean();
+			array = atom.array.clean(hex.slice(1));
 			array = array.map(function (part) {
 				if (part.length == 1) part += part;
 				return parseInt(part, 16);
@@ -4508,6 +4511,7 @@ provides: Prototypes.Abstract
 */
 
 var prototypize = {
+	callbacks: [],
 	fn: function (source) {
 		return function (methodName) {
 			return function () {
@@ -4526,7 +4530,16 @@ var prototypize = {
 	own: function (object, source, methodsString) {
 		coreAppend(object, atom.object.collect( source, methodsString.split(' ') ));
 		return prototypize;
+	},
+	add: function (callback) {
+		this.callbacks.push(callback);
 	}
+};
+
+atom.patching = function (globalObject) {
+	prototypize.callbacks.forEach(function (callback) {
+		callback(globalObject);
+	});
 };
 
 /*
@@ -4549,7 +4562,9 @@ provides: Prototypes.Array
 ...
 */
 
-(function () {
+prototypize.add(function (globalObject) {
+
+var Array = globalObject.Array;
 
 var proto = prototypize.fn(atom.array);
 
@@ -4585,7 +4600,7 @@ coreAppend(Array.prototype, {
 if (!Array.prototype.reduce     ) Array.prototype.reduce      = proto('reduce');
 if (!Array.prototype.reduceRight) Array.prototype.reduceRight = proto('reduceRight');
 
-})();
+});
 
 /*
 ---
@@ -4652,7 +4667,9 @@ provides: Prototypes.Function
 ...
 */
 
-new function () {
+prototypize.add(function (globalObject) {
+
+	var Function = globalObject.Function;
 
 	Function.lambda = atom.fn.lambda;
 
@@ -4673,7 +4690,7 @@ new function () {
 		periodical: timer(true )
 	});
 
-}(); 
+});
 
 
 /*
@@ -4760,6 +4777,10 @@ provides: Prototypes.Number
 ...
 */
 
+prototypize.add(function (globalObject) {
+
+var Number = globalObject.Number;
+
 prototypize
 	.own(Number, atom.number, 'random randomFloat')
 	.proto(Number, prototypize.fn(atom.number), 'between equals limit round stop' )
@@ -4783,7 +4804,7 @@ coreAppend(Number.prototype, {
 			return Math[method].apply(null, [this].append(arguments));
 		};
 	});
-
+});
 
 /*
 ---
@@ -4804,7 +4825,9 @@ provides: Prototypes.Object
 ...
 */
 
-coreAppend(Object, atom.object);
+prototypize.add(function (globalObject) {
+	coreAppend(globalObject.Object, atom.object);
+});
 
 /*
 ---
@@ -4842,7 +4865,7 @@ atom.string = {
 	 * @returns {string}
 	 */
 	safeHtml: function (string) {
-		return string.replaceAll(/[<'&">]/g, {
+		return this.replaceAll(string, /[<'&">]/g, {
 			'&'  : '&amp;',
 			'\'' : '&#039;',
 			'\"' : '&quot;',
@@ -4880,7 +4903,7 @@ atom.string = {
 		if (toString.call(find) == '[object RegExp]') {
 			return string.replace(find, function (symb) { return replace[symb]; });
 		} else if (typeof find == 'object') {
-			for (var i in find) string = string.replaceAll(i, find[i]);
+			for (var i in find) string = this.replaceAll(string, i, find[i]);
 			return string;
 		}
 		return string.split(find).join(replace);
@@ -4957,8 +4980,10 @@ provides: Prototypes.String
 ...
 */
 
-prototypize.proto(String, prototypize.fn(atom.string),
-	'safeHtml repeat substitute replaceAll contains begins ends ucfirst lcfirst'
-);
+prototypize.add(function (globalObject) {
+	prototypize.proto(globalObject.String, prototypize.fn(atom.string),
+		'safeHtml repeat substitute replaceAll contains begins ends ucfirst lcfirst'
+	);
+});
 
 }.call(typeof exports == 'undefined' ? window : exports, Object, Array)); 

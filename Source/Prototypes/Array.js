@@ -18,7 +18,9 @@ provides: Prototypes.Array
 ...
 */
 
-(function () {
+prototypize.add(function (globalObject) {
+
+var Array = globalObject.Array;
 
 var proto = prototypize.fn(atom.array);
 
@@ -54,4 +56,4 @@ coreAppend(Array.prototype, {
 if (!Array.prototype.reduce     ) Array.prototype.reduce      = proto('reduce');
 if (!Array.prototype.reduceRight) Array.prototype.reduceRight = proto('reduceRight');
 
-})();
+});

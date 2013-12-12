@@ -41,11 +41,13 @@ atom.object = {
 		for (var i in obj) values.push(obj[i]);
 		return values;
 	},
+	/** @deprecated */
 	isDefined: function (obj) {
 		return typeof obj !== 'undefined';
 	},
+	/** @deprecated */
 	isReal: function (obj) {
-		return obj || obj === 0;
+		return obj != null;
 	},
 	map: function (obj, fn) {
 		var mapped = {};
@@ -87,7 +89,10 @@ atom.object = {
 		return true;
 	},
 	isEmpty: function (object) {
-		return Object.keys(object).length == 0;
+		for (var i in object) if (object.hasOwnProperty(i)) {
+			return false;
+		}
+		return true;
 	},
 	ifEmpty: function (object, key, defaultValue) {
 		if (!(key in object)) {
@@ -102,7 +107,7 @@ atom.object = {
 		get: function (object, path, delimiter) {
 			if (!path) return object;
 
-			path = Object.path.parts( path, delimiter );
+			path = atom.object.path.parts( path, delimiter );
 
 			for (var i = 0; i < path.length; i++) {
 				if (object != null && path[i] in object) {
@@ -115,7 +120,7 @@ atom.object = {
 			return object;
 		},
 		set: function (object, path, value, delimiter) {
-			path = Object.path.parts( path, delimiter );
+			path = atom.object.path.parts( path, delimiter );
 
 			var key = path.pop();
 

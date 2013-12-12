@@ -19,6 +19,10 @@ provides: Prototypes.Number
 ...
 */
 
+prototypize.add(function (globalObject) {
+
+var Number = globalObject.Number;
+
 prototypize
 	.own(Number, atom.number, 'random randomFloat')
 	.proto(Number, prototypize.fn(atom.number), 'between equals limit round stop' )
@@ -42,3 +46,4 @@ coreAppend(Number.prototype, {
 			return Math[method].apply(null, [this].append(arguments));
 		};
 	});
+});

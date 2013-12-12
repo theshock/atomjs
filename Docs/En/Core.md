@@ -1,6 +1,10 @@
 Atom Core
 =========
 
+* title: ore
+* group: core
+
+
 ## atom.core.isFunction(fn)
 
 Checks if `fn` is function

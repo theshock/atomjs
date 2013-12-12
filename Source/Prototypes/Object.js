@@ -17,4 +17,6 @@ provides: Prototypes.Object
 ...
 */
 
-coreAppend(Object, atom.object);
+prototypize.add(function (globalObject) {
+	coreAppend(globalObject.Object, atom.object);
+});

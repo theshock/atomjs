@@ -143,7 +143,7 @@ declare( 'atom.Color', {
 		string = this.constructor.colorNames[string] || string;
 
 		if (hex = string.match(/^#(\w{1,2})(\w{1,2})(\w{1,2})(\w{1,2})?$/)) {
-			array = hex.slice(1).clean();
+			array = atom.array.clean(hex.slice(1));
 			array = array.map(function (part) {
 				if (part.length == 1) part += part;
 				return parseInt(part, 16);
