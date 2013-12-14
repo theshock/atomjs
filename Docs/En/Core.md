@@ -1,7 +1,7 @@
 Atom Core
 =========
 
-* title: ore
+* title: Core
 * group: core
 
 
@@ -18,8 +18,8 @@ Checks if `fn` is function
 If `key` is not object - returns object, where `key` is single key & `value` is value of this key.
 Else - returns `key`
 
-	atom.core.objectize( 'test', 'foo' ); // { test: 'foo' )
-	atom.core.objectize({ test: 'foo' }); // { test: 'foo' )
+    atom.core.objectize( 'test', 'foo' ); // { test: 'foo' }
+    atom.core.objectize({ test: 'foo' }); // { test: 'foo' }
 
 Can be used, when you what to be sure, you works with object:
 
