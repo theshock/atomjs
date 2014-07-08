@@ -23,9 +23,11 @@ provides: dom
 (function (window, document) {
 	var
 		regexp = {
-			Tag  : /^[-_a-z0-9]+$/i,
-			Class: /^\.[-_a-z0-9]+$/i,
-			Id   : /^#[-_a-z0-9]+$/i
+			Tag    : /^[-_a-z0-9]+$/i  ,
+			Class  : /^\.[-_a-z0-9]+$/i,
+			Id     : /^#[-_a-z0-9]+$/i ,
+			Html   : /<(?:[\s\S]+)>/ ,
+			Single : /^<\/?([\w-]+)(?:><\/[\w-]+)?>$/
 		},
 		isArray = Array.isArray,
 		prevent = function (e) {
@@ -68,7 +70,26 @@ provides: dom
 			if (!elem || level <= 0) return atom.dom(elem);
 
 			return findParentByLevel(elem.parentNode, level-1);
+		},
+		parseHyperText = function( expr, context ) {
+
+		   var match = regexp.Single.exec( expr ) || regexp.Html.exec( expr )
+		     , fr;
+
+		     return match[1] && match[1].indexOf("<") === -1 ? Dom.create( match[1], 
+
+		       Object.keys( context ).length > 0 ? context : {} )["elems"] : (function( mt ) 
+
+		       {
+		          fr = document.createElement("p");
+		          fr.innerHTML = mt; 
+		            return coreToArray( fr.childNodes )
+
+		       }( match[0] ))
 		};
+
+
+
 		
 	document.addEventListener('DOMContentLoaded', readyCallback, false);
 	window.addEventListener('load', readyCallback, false);
@@ -83,12 +104,12 @@ provides: dom
 			return this;
 		}
 
-		if (!context && sel === 'body') {
+		if (!context && sel === 'body' ) {
 			this.elems = [document.body];
 			return this;
 		}
 
-		if (context !== undefined) {
+		if (context !== undefined && toString.call( context ) !== "[object Object]") {
 			return new Dom(context || document).find(sel);
 		}
 		context = context || document;
@@ -104,7 +125,7 @@ provides: dom
 			  sel == window          ? [ document ]
 			: sel instanceof Dom     ? coreToArray(sel.elems)
 			: coreIsArrayLike(sel)   ? coreToArray(sel)
-			: typeof sel == 'string' ? Dom.query(context, sel)
+			: typeof sel == 'string' ? Dom.query( context, sel.trim() )
 			:                          Dom.find(context, sel);
 
 		if (elems.length == 1 && elems[0] == null) {
@@ -114,8 +135,14 @@ provides: dom
 		return this;
 	};
 	coreAppend(Dom, {
+		
 		query : function (context, sel) {
-			return sel.match(regexp.Id)    ? [(context.getElementById ? context : document).getElementById(sel.substr(1))] :
+
+		return ( sel[0] === "<" && sel[sel.length - 1] === ">" && sel.length >= 3 ) ?
+
+            parseHyperText( sel, context ) 
+		  
+		   :       sel.match(regexp.Id)    ? [(context.getElementById ? context : document).getElementById(sel.substr(1))] :
 			       sel.match(regexp.Class) ? coreToArray(context.getElementsByClassName(sel.substr(1))) :
 			       sel.match(regexp.Tag)   ? coreToArray(context.getElementsByTagName  (sel)) :
 			                                 coreToArray(context.querySelectorAll      (sel));
@@ -430,4 +457,5 @@ provides: dom
 	};
 
 	atom.dom = Dom;
+	
 }(window, window.document));
