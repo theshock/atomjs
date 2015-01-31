@@ -18,7 +18,7 @@ Supported browsers:
 
 Distributed under terms of MIT or LGPL.
 
-Documentation: see [Docs folder](/master/Docs) for description of Atom core and bundled plugins.
+Documentation: see [Docs folder](/master/Docs/En) for description of Atom core and bundled plugins.
 
 
 ## Integration
