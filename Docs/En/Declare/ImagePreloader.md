@@ -72,8 +72,8 @@ Checks, if image with name `name` was loaded.
 
 Returns image with name `name`, if exists, or throws `Error` otherwise
 
-	imagePreloader.exists( 'unit-traktor' ); // returns image
-	imagePreloader.exists( 'unit-diablo'  ); // throws Error
+    imagePreloader.get( 'unit-traktor' ); // returns image
+    imagePreloader.get( 'unit-diablo'  ); // throws Error
 
 ## atom.ImagePreloader.run
 
